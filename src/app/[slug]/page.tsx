@@ -7,6 +7,9 @@ import { ThemedPage } from "@/components/themed-page";
 import { PixelScripts } from "@/components/pixel-scripts";
 import { normalizeTheme } from "@/lib/normalize-theme";
 import { RESERVED_SLUGS } from "@/lib/slug";
+import { ClaimSlugLanding } from "./claim-slug-landing";
+
+const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$|^[a-z0-9]{1,2}$/;
 
 async function loadPage(slug: string) {
   if (RESERVED_SLUGS.has(slug)) return null;
@@ -31,7 +34,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const data = await loadPage(slug);
-  if (!data) return { title: "Página não encontrada" };
+  if (!data) {
+    if (SLUG_REGEX.test(slug) && !RESERVED_SLUGS.has(slug)) {
+      return {
+        title: `linkhub.app/${slug} está disponível`,
+        description: `Reivindique /${slug} no LinkHub. Link na bio, encurtador, QR code e analytics — grátis.`,
+      };
+    }
+    return { title: "Página não encontrada" };
+  }
   return {
     title: data.page.seoTitle ?? data.page.title,
     description: data.page.seoDescription ?? data.page.description ?? undefined,
@@ -58,7 +69,12 @@ export default async function PublicSlugPage({
 }) {
   const { slug } = await params;
   const data = await loadPage(slug);
-  if (!data) notFound();
+  if (!data) {
+    if (SLUG_REGEX.test(slug) && !RESERVED_SLUGS.has(slug)) {
+      return <ClaimSlugLanding slug={slug} />;
+    }
+    notFound();
+  }
 
   const blocksData = data.blocks.map((b) => ({
     id: b.id,

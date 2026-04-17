@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { page } from "@/lib/db/schema";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 function getBaseUrl(): string {
   const url = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
