@@ -1,0 +1,667 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { BlockData, PageTheme } from "@/lib/db/schema";
+
+// ============== NEWSLETTER ==============
+
+export function NewsletterBlock({
+  pageId,
+  blockId,
+  data,
+  theme,
+}: {
+  pageId: string;
+  blockId: string;
+  data: Extract<BlockData, { kind: "newsletter" }>;
+  theme: PageTheme;
+}) {
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    const res = await fetch("/api/newsletter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pageId, blockId, email }),
+    });
+    setLoading(false);
+    if (res.ok) setSent(true);
+  }
+
+  return (
+    <div
+      className="rounded-2xl p-5"
+      style={{ background: theme.accent + "15" }}
+    >
+      <h3 className="text-center font-bold" style={{ color: theme.foreground }}>
+        {data.title}
+      </h3>
+      {data.description && (
+        <p
+          className="mt-1 text-center text-sm"
+          style={{ color: theme.mutedForeground }}
+        >
+          {data.description}
+        </p>
+      )}
+      {sent ? (
+        <p
+          className="mt-4 text-center text-sm font-semibold"
+          style={{ color: theme.accent }}
+        >
+          ✓ Obrigado! Inscrição confirmada.
+        </p>
+      ) : (
+        <form onSubmit={submit} className="mt-4 flex gap-2">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={data.placeholder}
+            required
+            className="flex-1 rounded-lg border bg-white/80 px-3 py-2 text-sm outline-none"
+            style={{ color: "#0a0a0a" }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+            style={{ background: theme.accent, color: theme.accentForeground }}
+          >
+            {loading ? "..." : data.buttonLabel}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+// ============== WHATSAPP ==============
+
+export function WhatsappBlock({
+  data,
+  theme,
+  buttonStyle,
+  onClick,
+}: {
+  data: Extract<BlockData, { kind: "whatsapp" }>;
+  theme: PageTheme;
+  buttonStyle: React.CSSProperties;
+  onClick: () => void;
+}) {
+  const msg = data.message ? `?text=${encodeURIComponent(data.message)}` : "";
+  const href = `https://wa.me/${data.phone}${msg}`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      className="block w-full text-center font-semibold transition-transform hover:scale-[1.02]"
+      style={buttonStyle}
+    >
+      {data.label}
+    </a>
+  );
+}
+
+// ============== MUSIC (Spotify / Apple) ==============
+
+export function MusicBlock({
+  data,
+}: {
+  data: Extract<BlockData, { kind: "music" }>;
+}) {
+  const embedUrl = toMusicEmbed(data);
+  if (!embedUrl) {
+    return (
+      <div className="flex aspect-video items-center justify-center rounded-2xl border-2 border-dashed text-sm opacity-60">
+        Adicione um link de {data.provider}
+      </div>
+    );
+  }
+  const height =
+    data.provider === "spotify" ? 152 : 175; // Apple precisa um pouco mais
+  return (
+    <iframe
+      src={embedUrl}
+      width="100%"
+      height={height}
+      allow="encrypted-media; clipboard-write; autoplay *; fullscreen *"
+      className="rounded-2xl"
+      loading="lazy"
+    />
+  );
+}
+
+function toMusicEmbed(
+  data: Extract<BlockData, { kind: "music" }>
+): string | null {
+  const url = data.url?.trim();
+  if (!url) return null;
+  try {
+    if (data.provider === "spotify") {
+      // https://open.spotify.com/track/ID → embed
+      const u = new URL(url);
+      if (!u.hostname.includes("spotify.com")) return null;
+      const path = u.pathname.replace("/embed", "");
+      return `https://open.spotify.com${path.startsWith("/") ? "/embed" : "/embed/"}${path.replace(/^\//, "")}`;
+    }
+    if (data.provider === "apple") {
+      const u = new URL(url);
+      if (!u.hostname.includes("music.apple.com")) return null;
+      // apple usa mesmo URL, só trocar hostname
+      return `https://embed.music.apple.com${u.pathname}${u.search}`;
+    }
+  } catch {}
+  return null;
+}
+
+// ============== SOCIAL EMBED (Instagram / TikTok) ==============
+
+export function SocialEmbedBlock({
+  data,
+}: {
+  data: Extract<BlockData, { kind: "social-embed" }>;
+}) {
+  const url = data.url?.trim();
+  if (!url) {
+    return (
+      <div className="flex aspect-square items-center justify-center rounded-2xl border-2 border-dashed text-sm opacity-60">
+        Adicione link do post
+      </div>
+    );
+  }
+
+  if (data.provider === "instagram") {
+    // Instagram tem endpoint /embed/ nos posts
+    let embed = url.replace(/\/?$/, "/");
+    if (!embed.includes("/embed")) embed += "embed/";
+    return (
+      <iframe
+        src={embed}
+        width="100%"
+        height={500}
+        allow="encrypted-media"
+        frameBorder={0}
+        scrolling="no"
+        className="rounded-2xl"
+        loading="lazy"
+      />
+    );
+  }
+
+  if (data.provider === "tiktok") {
+    // Extrai videoId da URL
+    const match = url.match(/video\/(\d+)/);
+    const videoId = match ? match[1] : null;
+    if (!videoId) {
+      return (
+        <div className="rounded-2xl border-2 border-dashed p-4 text-center text-xs opacity-60">
+          URL inválida do TikTok
+        </div>
+      );
+    }
+    return (
+      <iframe
+        src={`https://www.tiktok.com/embed/v2/${videoId}`}
+        width="100%"
+        height={740}
+        allow="encrypted-media"
+        frameBorder={0}
+        scrolling="no"
+        className="rounded-2xl"
+        loading="lazy"
+      />
+    );
+  }
+
+  return null;
+}
+
+// ============== FORM ==============
+
+export function FormBlock({
+  pageId,
+  blockId,
+  data,
+  theme,
+}: {
+  pageId: string;
+  blockId: string;
+  data: Extract<BlockData, { kind: "form" }>;
+  theme: PageTheme;
+}) {
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch("/api/form-submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pageId, blockId, data: values }),
+    });
+    setLoading(false);
+    if (res.ok) setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <div
+        className="rounded-2xl p-5 text-center"
+        style={{ background: theme.accent + "15" }}
+      >
+        <p className="font-semibold" style={{ color: theme.foreground }}>
+          ✓ {data.successMessage ?? "Recebido!"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="rounded-2xl p-5 space-y-3"
+      style={{ background: theme.accent + "15" }}
+    >
+      <h3 className="font-bold" style={{ color: theme.foreground }}>
+        {data.title}
+      </h3>
+      {data.fields.map((f) => (
+        <div key={f.id}>
+          <label
+            className="mb-1 block text-xs"
+            style={{ color: theme.mutedForeground }}
+          >
+            {f.label}
+            {f.required && " *"}
+          </label>
+          {f.type === "textarea" ? (
+            <textarea
+              required={f.required}
+              value={values[f.id] ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, [f.id]: e.target.value }))
+              }
+              rows={3}
+              className="w-full rounded-lg border bg-white/80 px-3 py-2 text-sm outline-none"
+              style={{ color: "#0a0a0a" }}
+            />
+          ) : (
+            <input
+              type={f.type === "email" ? "email" : f.type === "phone" ? "tel" : "text"}
+              required={f.required}
+              value={values[f.id] ?? ""}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, [f.id]: e.target.value }))
+              }
+              className="w-full rounded-lg border bg-white/80 px-3 py-2 text-sm outline-none"
+              style={{ color: "#0a0a0a" }}
+            />
+          )}
+        </div>
+      ))}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-lg py-2 text-sm font-semibold disabled:opacity-50"
+        style={{ background: theme.accent, color: theme.accentForeground }}
+      >
+        {loading ? "Enviando..." : data.submitLabel}
+      </button>
+    </form>
+  );
+}
+
+// ============== COUNTDOWN ==============
+
+export function CountdownBlock({
+  data,
+  theme,
+}: {
+  data: Extract<BlockData, { kind: "countdown" }>;
+  theme: PageTheme;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const i = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(i);
+  }, []);
+
+  const target = new Date(data.targetDate).getTime();
+  const diff = target - now;
+  const finished = diff <= 0;
+
+  if (finished) {
+    return (
+      <div
+        className="rounded-2xl p-6 text-center"
+        style={{ background: theme.accent, color: theme.accentForeground }}
+      >
+        <p className="text-lg font-black tracking-tight">
+          {data.finishedMessage ?? "Acabou!"}
+        </p>
+      </div>
+    );
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diff / 1000 / 60) % 60);
+  const secs = Math.floor((diff / 1000) % 60);
+
+  return (
+    <div
+      className="rounded-2xl p-5 text-center"
+      style={{ background: theme.accent + "15" }}
+    >
+      <p
+        className="mb-3 text-sm font-semibold"
+        style={{ color: theme.mutedForeground }}
+      >
+        {data.title}
+      </p>
+      <div className="flex items-center justify-center gap-2 font-mono text-2xl font-black tabular-nums">
+        <CountdownCell value={days} label="dias" />
+        <span style={{ color: theme.mutedForeground }}>:</span>
+        <CountdownCell value={hours} label="h" />
+        <span style={{ color: theme.mutedForeground }}>:</span>
+        <CountdownCell value={mins} label="min" />
+        <span style={{ color: theme.mutedForeground }}>:</span>
+        <CountdownCell value={secs} label="s" />
+      </div>
+    </div>
+  );
+}
+
+function CountdownCell({ value, label }: { value: number; label: string }) {
+  return (
+    <span className="inline-flex flex-col items-center">
+      <span>{String(value).padStart(2, "0")}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-wider opacity-60">
+        {label}
+      </span>
+    </span>
+  );
+}
+
+// ============== FAQ ==============
+
+export function FaqBlock({
+  data,
+  theme,
+}: {
+  data: Extract<BlockData, { kind: "faq" }>;
+  theme: PageTheme;
+}) {
+  return (
+    <div className="space-y-2">
+      {data.items.map((item, i) => (
+        <details
+          key={i}
+          className="group rounded-xl border p-3"
+          style={{
+            borderColor: theme.mutedForeground + "30",
+            color: theme.foreground,
+          }}
+        >
+          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-semibold">
+            <span>{item.q}</span>
+            <span className="transition-transform group-open:rotate-45">+</span>
+          </summary>
+          <p
+            className="mt-2 text-sm leading-relaxed"
+            style={{ color: theme.mutedForeground }}
+          >
+            {item.a}
+          </p>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+// ============== TESTIMONIALS ==============
+
+export function TestimonialsBlock({
+  data,
+  theme,
+}: {
+  data: Extract<BlockData, { kind: "testimonials" }>;
+  theme: PageTheme;
+}) {
+  return (
+    <div className="space-y-3">
+      {data.items.map((t, i) => (
+        <blockquote
+          key={i}
+          className="rounded-2xl p-4"
+          style={{ background: theme.accent + "12" }}
+        >
+          <p
+            className="text-sm italic leading-relaxed"
+            style={{ color: theme.foreground }}
+          >
+            &ldquo;{t.quote}&rdquo;
+          </p>
+          <footer className="mt-3 flex items-center gap-2">
+            {t.avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={t.avatarUrl}
+                alt={t.name}
+                className="size-8 rounded-full object-cover"
+              />
+            )}
+            <div>
+              <p
+                className="text-xs font-bold"
+                style={{ color: theme.foreground }}
+              >
+                {t.name}
+              </p>
+              {t.role && (
+                <p
+                  className="text-[10px]"
+                  style={{ color: theme.mutedForeground }}
+                >
+                  {t.role}
+                </p>
+              )}
+            </div>
+          </footer>
+        </blockquote>
+      ))}
+    </div>
+  );
+}
+
+// ============== MAP ==============
+
+export function MapBlock({
+  data,
+  theme,
+}: {
+  data: Extract<BlockData, { kind: "map" }>;
+  theme: PageTheme;
+}) {
+  const src = `https://www.google.com/maps?q=${encodeURIComponent(data.query)}&output=embed`;
+  return (
+    <div className="overflow-hidden rounded-2xl">
+      {data.label && (
+        <div
+          className="px-3 py-2 text-xs font-semibold"
+          style={{
+            background: theme.accent + "15",
+            color: theme.foreground,
+          }}
+        >
+          📍 {data.label}
+        </div>
+      )}
+      <iframe
+        src={src}
+        width="100%"
+        height={220}
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        className="block"
+      />
+    </div>
+  );
+}
+
+// ============== EVENTS ==============
+
+export function EventsBlock({
+  data,
+  theme,
+}: {
+  data: Extract<BlockData, { kind: "events" }>;
+  theme: PageTheme;
+}) {
+  const future = data.items
+    .filter((e) => e.title && e.date)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  return (
+    <div className="space-y-2">
+      {future.map((e, i) => {
+        const d = new Date(e.date);
+        const day = d.getDate();
+        const month = d.toLocaleString("pt-BR", { month: "short" });
+        const content = (
+          <>
+            <div
+              className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl text-center"
+              style={{
+                background: theme.accent,
+                color: theme.accentForeground,
+              }}
+            >
+              <span className="text-xs font-semibold uppercase">{month}</span>
+              <span className="text-lg font-black leading-none">{day}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p
+                className="truncate font-semibold"
+                style={{ color: theme.foreground }}
+              >
+                {e.title}
+              </p>
+              <p
+                className="text-xs"
+                style={{ color: theme.mutedForeground }}
+              >
+                {d.toLocaleString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                {e.city && ` · ${e.city}`}
+              </p>
+            </div>
+          </>
+        );
+        return e.url ? (
+          <a
+            key={i}
+            href={e.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-2xl border p-2 transition-transform hover:scale-[1.01]"
+            style={{ borderColor: theme.mutedForeground + "30" }}
+          >
+            {content}
+          </a>
+        ) : (
+          <div
+            key={i}
+            className="flex items-center gap-3 rounded-2xl border p-2"
+            style={{ borderColor: theme.mutedForeground + "30" }}
+          >
+            {content}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============== PRODUCTS ==============
+
+export function ProductsBlock({
+  data,
+  theme,
+  onProductClick,
+}: {
+  data: Extract<BlockData, { kind: "products" }>;
+  theme: PageTheme;
+  onProductClick?: (title: string, url: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {data.items.map((p, i) => {
+        const inner = (
+          <>
+            {p.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.imageUrl}
+                alt={p.title}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-black/5 text-xs opacity-50">
+                sem imagem
+              </div>
+            )}
+            <p
+              className="mt-2 truncate text-xs font-semibold"
+              style={{ color: theme.foreground }}
+            >
+              {p.title}
+            </p>
+            {p.price && (
+              <p
+                className="text-[11px] font-bold"
+                style={{ color: theme.accent }}
+              >
+                {p.price}
+              </p>
+            )}
+          </>
+        );
+        return p.url ? (
+          <a
+            key={i}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onProductClick?.(p.title, p.url!)}
+            className="rounded-2xl p-2 transition-transform hover:scale-[1.02]"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </a>
+        ) : (
+          <div
+            key={i}
+            className="rounded-2xl p-2"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

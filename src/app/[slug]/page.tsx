@@ -1,0 +1,94 @@
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { asc, eq, and } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { block, page, user, type BlockData } from "@/lib/db/schema";
+import { ThemedPage } from "@/components/themed-page";
+import { PixelScripts } from "@/components/pixel-scripts";
+import { normalizeTheme } from "@/lib/normalize-theme";
+import { RESERVED_SLUGS } from "@/lib/slug";
+
+async function loadPage(slug: string) {
+  if (RESERVED_SLUGS.has(slug)) return null;
+  const [row] = await db
+    .select({ page, verified: user.verified })
+    .from(page)
+    .innerJoin(user, eq(page.userId, user.id))
+    .where(and(eq(page.slug, slug), eq(page.published, true)));
+  if (!row) return null;
+  const blocks = await db
+    .select()
+    .from(block)
+    .where(and(eq(block.pageId, row.page.id), eq(block.visible, true)))
+    .orderBy(asc(block.position));
+  return { page: row.page, blocks, verified: row.verified };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const data = await loadPage(slug);
+  if (!data) return { title: "Página não encontrada" };
+  return {
+    title: data.page.seoTitle ?? data.page.title,
+    description: data.page.seoDescription ?? data.page.description ?? undefined,
+    openGraph: {
+      title: data.page.seoTitle ?? data.page.title,
+      description:
+        data.page.seoDescription ?? data.page.description ?? undefined,
+      images: data.page.ogImageUrl ? [data.page.ogImageUrl] : undefined,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: data.page.seoTitle ?? data.page.title,
+      description:
+        data.page.seoDescription ?? data.page.description ?? undefined,
+    },
+  };
+}
+
+export default async function PublicSlugPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const data = await loadPage(slug);
+  if (!data) notFound();
+
+  const blocksData = data.blocks.map((b) => ({
+    id: b.id,
+    type: b.type,
+    data: b.data as BlockData,
+  }));
+
+  return (
+    <>
+      <PixelScripts integrations={data.page.integrations ?? {}} />
+      {data.page.customCss && (
+        <style dangerouslySetInnerHTML={{ __html: data.page.customCss }} />
+      )}
+      {data.page.customJs && (
+        <script
+          dangerouslySetInnerHTML={{ __html: data.page.customJs }}
+          defer
+        />
+      )}
+      <ThemedPage
+        pageId={data.page.id}
+        pageSlug={data.page.slug}
+        title={data.page.title}
+        description={data.page.description}
+        avatarUrl={data.page.avatarUrl}
+        coverUrl={data.page.coverUrl}
+        theme={normalizeTheme(data.page.theme)}
+        blocks={blocksData}
+        verified={data.verified}
+      />
+    </>
+  );
+}
