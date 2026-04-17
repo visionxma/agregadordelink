@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 export const alt = "LinkHub";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+// Cacheia OG por 1 hora — evita regenerar no-demand a cada crawl do Facebook/X/LinkedIn
+export const revalidate = 3600;
 
 function backgroundCss(b: ThemeBackground): string {
   if (b.type === "solid") return b.color;

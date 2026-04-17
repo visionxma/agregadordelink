@@ -6,6 +6,7 @@ import type {
   AvatarShape,
   ButtonHover,
   ButtonStyle,
+  ButtonWidth,
   ClickSound,
   CursorStyle,
   Effect,
@@ -135,6 +136,14 @@ export function CustomizerPanel({
           value={local.entryAnimation ?? "none"}
           onChange={(v) => update({ entryAnimation: v })}
           options={ENTRY_ANIMATION_OPTIONS}
+        />
+      </Section>
+
+      <Section title="Largura dos botões">
+        <OptionGrid<ButtonWidth>
+          value={local.buttonWidth ?? "full"}
+          onChange={(v) => update({ buttonWidth: v })}
+          options={BUTTON_WIDTH_OPTIONS}
         />
       </Section>
 
@@ -712,6 +721,11 @@ const BUTTON_HOVER_OPTIONS: { value: ButtonHover; label: string }[] = [
   { value: "lift", label: "Lift" },
   { value: "tilt", label: "3D Tilt" },
   { value: "glare", label: "Glare" },
+];
+
+const BUTTON_WIDTH_OPTIONS: { value: ButtonWidth; label: string }[] = [
+  { value: "full", label: "Largura total" },
+  { value: "auto", label: "Largura do texto" },
 ];
 
 const CURSOR_OPTIONS: { value: CursorStyle; label: string }[] = [

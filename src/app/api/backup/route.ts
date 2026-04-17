@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import {
   block,
   event,
+  formSubmission,
+  newsletterSubscriber,
   page,
   shortLink,
 } from "@/lib/db/schema";
@@ -87,7 +89,47 @@ export async function GET() {
     zip.file(`analytics/${p.slug}.csv`, csv);
   }
 
-  // 4. Short links
+  // 4. Newsletter subscribers
+  for (const p of pages) {
+    const subs = await db
+      .select()
+      .from(newsletterSubscriber)
+      .where(eq(newsletterSubscriber.pageId, p.id));
+    if (subs.length > 0) {
+      zip.file(
+        `newsletter/${p.slug}.csv`,
+        [
+          "email,createdAt",
+          ...subs.map(
+            (s) => `${s.email},${s.createdAt.toISOString()}`
+          ),
+        ].join("\n")
+      );
+    }
+  }
+
+  // 5. Form submissions
+  for (const p of pages) {
+    const forms = await db
+      .select()
+      .from(formSubmission)
+      .where(eq(formSubmission.pageId, p.id));
+    if (forms.length > 0) {
+      zip.file(
+        `forms/${p.slug}.json`,
+        JSON.stringify(
+          forms.map((f) => ({
+            ...f,
+            createdAt: f.createdAt.toISOString(),
+          })),
+          null,
+          2
+        )
+      );
+    }
+  }
+
+  // 6. Short links
   const links = await db
     .select()
     .from(shortLink)

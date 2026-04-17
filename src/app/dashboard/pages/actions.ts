@@ -19,6 +19,7 @@ import {
 } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
 import { getPresetById } from "@/lib/themes";
+import { getPaletteById } from "@/lib/palettes";
 import { getTemplateById, getTemplateTheme } from "@/lib/templates";
 import { validatePageSlug } from "@/lib/slug";
 import { sql } from "drizzle-orm";
@@ -178,6 +179,17 @@ const publishTemplateSchema = z.object({
   description: z.string().max(120).optional().nullable(),
 });
 
+const MAX_TEMPLATES_PER_USER = 3;
+const BANNED_WORDS = [
+  "xxx", "porn", "porno", "nude", "sexo explicito",
+  "hack", "pirateado", "crack",
+];
+
+function containsBannedContent(text: string): boolean {
+  const normalized = text.toLowerCase();
+  return BANNED_WORDS.some((w) => normalized.includes(w));
+}
+
 export async function publishAsTemplate(raw: {
   pageId: string;
   name: string;
@@ -189,6 +201,25 @@ export async function publishAsTemplate(raw: {
   const parsed = publishTemplateSchema.safeParse(raw);
   if (!parsed.success) {
     return { error: "Dados inválidos." };
+  }
+
+  // Moderação básica de conteúdo
+  const combined = `${parsed.data.name} ${parsed.data.description ?? ""}`;
+  if (containsBannedContent(combined)) {
+    return {
+      error: "Nome ou descrição contém termos não permitidos.",
+    };
+  }
+
+  // Limite por usuário
+  const existing = await db
+    .select({ id: userTemplate.id })
+    .from(userTemplate)
+    .where(eq(userTemplate.userId, user.id));
+  if (existing.length >= MAX_TEMPLATES_PER_USER) {
+    return {
+      error: `Máximo de ${MAX_TEMPLATES_PER_USER} modelos publicados por usuário. Delete um existente antes.`,
+    };
   }
 
   const sourcePage = await loadUserPage(parsed.data.pageId, user.id);
@@ -224,6 +255,57 @@ export async function publishAsTemplate(raw: {
   return { ok: true as const };
 }
 
+const customDomainSchema = z.object({
+  domain: z
+    .string()
+    .trim()
+    .max(253)
+    .regex(
+      /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i,
+      "Formato inválido — use apenas domínio (ex: meusite.com.br, sem http://)"
+    )
+    .optional()
+    .or(z.literal("")),
+});
+
+export async function updateCustomDomain(
+  pageId: string,
+  rawDomain: string
+) {
+  const user = await requireUser();
+  const existing = await loadUserPage(pageId, user.id);
+
+  const parsed = customDomainSchema.safeParse({
+    domain: rawDomain.toLowerCase().trim(),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Dados inválidos" };
+  }
+
+  const domain = parsed.data.domain || null;
+
+  // Checa se já existe em outra página
+  if (domain) {
+    const [conflict] = await db
+      .select({ id: page.id })
+      .from(page)
+      .where(eq(page.customDomain, domain))
+      .limit(1);
+    if (conflict && conflict.id !== pageId) {
+      return { error: "Este domínio já está vinculado a outra página." };
+    }
+  }
+
+  await db
+    .update(page)
+    .set({ customDomain: domain, updatedAt: new Date() })
+    .where(eq(page.id, pageId));
+
+  revalidatePath(`/dashboard/pages/${pageId}/edit`);
+  revalidatePath(`/${existing.slug}`);
+  return { ok: true as const };
+}
+
 const updatePageSchema = z.object({
   title: z.string().min(1).max(80),
   description: z.string().max(200).optional().nullable(),
@@ -234,7 +316,7 @@ const updatePageSchema = z.object({
 
 export async function updatePage(pageId: string, formData: FormData) {
   const user = await requireUser();
-  await loadUserPage(pageId, user.id);
+  const existing = await loadUserPage(pageId, user.id);
 
   const rawAvatar = formData.get("avatarUrl");
   const rawCover = formData.get("coverUrl");
@@ -269,6 +351,8 @@ export async function updatePage(pageId: string, formData: FormData) {
 
   revalidatePath(`/dashboard/pages/${pageId}/edit`);
   revalidatePath("/dashboard");
+  revalidatePath(`/${existing.slug}`);
+  revalidatePath("/[slug]", "page");
   return { ok: true };
 }
 
@@ -403,11 +487,37 @@ export async function updateBlock(
     .from(block)
     .innerJoin(page, eq(page.id, block.pageId))
     .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) throw new Error("Bloco não encontrado");
+  if (!b || b.userId !== user.id) return;
 
   await db
     .update(block)
     .set({ data, updatedAt: new Date() })
+    .where(eq(block.id, blockId));
+
+  revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
+}
+
+export async function updateBlockStyle(
+  blockId: string,
+  style: import("@/lib/db/schema").BlockStyle
+) {
+  const user = await requireUser();
+  const [b] = await db
+    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
+    .from(block)
+    .innerJoin(page, eq(page.id, block.pageId))
+    .where(eq(block.id, blockId));
+  if (!b || b.userId !== user.id) return;
+
+  // Remove propriedades vazias/undefined antes de salvar
+  const cleaned: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(style)) {
+    if (v !== undefined && v !== "" && v !== null) cleaned[k] = v;
+  }
+
+  await db
+    .update(block)
+    .set({ style: cleaned as import("@/lib/db/schema").BlockStyle, updatedAt: new Date() })
     .where(eq(block.id, blockId));
 
   revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
@@ -420,7 +530,7 @@ export async function toggleBlockGoal(blockId: string, isGoal: boolean) {
     .from(block)
     .innerJoin(page, eq(page.id, block.pageId))
     .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) throw new Error("Bloco não encontrado");
+  if (!b || b.userId !== user.id) return;
 
   await db
     .update(block)
@@ -438,7 +548,10 @@ export async function deleteBlock(blockId: string) {
     .from(block)
     .innerJoin(page, eq(page.id, block.pageId))
     .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) throw new Error("Bloco não encontrado");
+
+  // Idempotente: se bloco já não existe (race com outro delete / double-click), sem erro
+  if (!b) return;
+  if (b.userId !== user.id) return;
 
   await db.delete(block).where(eq(block.id, blockId));
   revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
@@ -508,7 +621,7 @@ export async function updateIntegrations(
 
 export async function applyThemePreset(pageId: string, presetId: string) {
   const user = await requireUser();
-  await loadUserPage(pageId, user.id);
+  const existing = await loadUserPage(pageId, user.id);
   const preset = getPresetById(presetId);
   if (!preset) throw new Error("Tema não encontrado");
   await db
@@ -516,16 +629,44 @@ export async function applyThemePreset(pageId: string, presetId: string) {
     .set({ theme: preset.theme, updatedAt: new Date() })
     .where(eq(page.id, pageId));
   revalidatePath(`/dashboard/pages/${pageId}/edit`);
+  revalidatePath(`/${existing.slug}`);
+}
+
+export async function applyColorPalette(pageId: string, paletteId: string) {
+  const user = await requireUser();
+  const existing = await loadUserPage(pageId, user.id);
+  const palette = getPaletteById(paletteId);
+  if (!palette) throw new Error("Paleta não encontrada");
+
+  // Aplica só as cores, mantém resto do tema (fontes, botões, efeitos, etc)
+  const nextTheme: PageTheme = {
+    ...existing.theme,
+    preset: undefined, // perdeu identidade de preset
+    background: { type: "solid", color: palette.background },
+    foreground: palette.foreground,
+    mutedForeground: palette.mutedForeground,
+    accent: palette.accent,
+    accentForeground: palette.accentForeground,
+  };
+
+  await db
+    .update(page)
+    .set({ theme: nextTheme, updatedAt: new Date() })
+    .where(eq(page.id, pageId));
+
+  revalidatePath(`/dashboard/pages/${pageId}/edit`);
+  revalidatePath(`/${existing.slug}`);
 }
 
 export async function updateTheme(pageId: string, theme: PageTheme) {
   const user = await requireUser();
-  await loadUserPage(pageId, user.id);
+  const existing = await loadUserPage(pageId, user.id);
   await db
     .update(page)
     .set({ theme, updatedAt: new Date() })
     .where(eq(page.id, pageId));
   revalidatePath(`/dashboard/pages/${pageId}/edit`);
+  revalidatePath(`/${existing.slug}`);
 }
 
 export async function reorderBlocks(pageId: string, orderedIds: string[]) {

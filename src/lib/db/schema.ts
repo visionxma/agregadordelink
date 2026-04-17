@@ -116,6 +116,7 @@ export const block = pgTable(
       .references(() => page.id, { onDelete: "cascade" }),
     type: text("type").$type<BlockType>().notNull(),
     data: jsonb("data").$type<BlockData>().notNull(),
+    style: jsonb("style").$type<BlockStyle>().notNull().default({}),
     position: integer("position").notNull().default(0),
     visible: boolean("visible").notNull().default(true),
     isGoal: boolean("is_goal").notNull().default(false),
@@ -127,6 +128,19 @@ export const block = pgTable(
     positionIdx: index("block_position_idx").on(t.pageId, t.position),
   })
 );
+
+export type BlockStyle = {
+  background?: string;
+  color?: string;
+  fontSize?: number; // px — 10..48
+  fontWeight?: 400 | 500 | 600 | 700 | 800 | 900;
+  fontFamily?: FontKey;
+  borderRadius?: number; // px — 0..48
+  borderWidth?: number; // px — 0..6
+  borderColor?: string;
+  textAlign?: "left" | "center" | "right";
+  padding?: number; // px — 8..32
+};
 
 export const event = pgTable(
   "event",
@@ -346,6 +360,7 @@ export type EntryAnimation =
   | "scale"
   | "stagger";
 export type ButtonHover = "none" | "lift" | "tilt" | "glare";
+export type ButtonWidth = "full" | "auto";
 export type CursorStyle =
   | "default"
   | "pointer"
@@ -370,6 +385,7 @@ export type PageTheme = {
   effect: Effect;
   entryAnimation?: EntryAnimation;
   buttonHover?: ButtonHover;
+  buttonWidth?: ButtonWidth;
   customFontUrl?: string;
   customFontName?: string;
   darkModeAuto?: boolean;

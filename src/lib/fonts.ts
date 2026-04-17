@@ -1,17 +1,8 @@
-import {
-  Bebas_Neue,
-  Caveat,
-  Dancing_Script,
-  DM_Sans,
-  Inter,
-  Instrument_Serif,
-  JetBrains_Mono,
-  Manrope,
-  Mulish,
-  Playfair_Display,
-  Poppins,
-  Space_Grotesk,
-} from "next/font/google";
+// Fontes principais. Inter carrega em toda a app (inclui dashboard e landing).
+// As 11 fontes customizáveis são carregadas sob demanda apenas em rotas que
+// usam `ThemedPage` (público e editor) via `lib/fonts-public.ts`.
+
+import { Inter } from "next/font/google";
 import type { FontKey } from "@/lib/db/schema";
 
 export const inter = Inter({
@@ -20,89 +11,8 @@ export const inter = Inter({
   display: "swap",
 });
 
-export const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-poppins",
-  display: "swap",
-});
-
-export const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-});
-
-export const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  display: "swap",
-});
-
-export const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  display: "swap",
-});
-
-export const mulish = Mulish({
-  subsets: ["latin"],
-  variable: "--font-mulish",
-  display: "swap",
-});
-
-export const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-  display: "swap",
-});
-
-export const bebas = Bebas_Neue({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-bebas",
-  display: "swap",
-});
-
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
-  display: "swap",
-});
-
-export const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-instrument-serif",
-  display: "swap",
-});
-
-export const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-caveat",
-  display: "swap",
-});
-
-export const dancingScript = Dancing_Script({
-  subsets: ["latin"],
-  variable: "--font-dancing-script",
-  display: "swap",
-});
-
-export const allFontVariables = [
-  inter.variable,
-  poppins.variable,
-  spaceGrotesk.variable,
-  dmSans.variable,
-  manrope.variable,
-  mulish.variable,
-  playfair.variable,
-  bebas.variable,
-  jetbrainsMono.variable,
-  instrumentSerif.variable,
-  caveat.variable,
-  dancingScript.variable,
-].join(" ");
+// Apenas Inter no root — demais fontes só são carregadas em rotas públicas
+export const allFontVariables = inter.variable;
 
 export const fontClassMap: Record<FontKey, string> = {
   inter: "font-[var(--font-inter)]",

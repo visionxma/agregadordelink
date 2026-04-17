@@ -7,6 +7,7 @@ import { ThemeThumbnail } from "@/components/theme-thumbnail";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PageTheme } from "@/lib/db/schema";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { applyThemePreset } from "../../actions";
 
 export function ThemePicker({
@@ -19,6 +20,8 @@ export function ThemePicker({
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState(currentPreset);
+
+  useBodyScrollLock(open);
 
   function handleApply(id: string) {
     setSelectedId(id);
@@ -40,13 +43,14 @@ export function ThemePicker({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => setOpen(false)}
         >
-          <div
-            className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex min-h-full items-center justify-center py-8">
+            <div
+              className="relative flex w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
             <header className="flex items-center justify-between border-b px-6 py-4">
               <div>
                 <h2 className="text-xl font-bold">Galeria de temas</h2>
@@ -63,7 +67,7 @@ export function ThemePicker({
               </Button>
             </header>
 
-            <div className="grid grid-cols-2 gap-4 overflow-y-auto p-6 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 p-6 sm:grid-cols-3 lg:grid-cols-4">
               {themePresets.map((p) => (
                 <button
                   key={p.id}
@@ -91,6 +95,7 @@ export function ThemePicker({
                   )}
                 </button>
               ))}
+            </div>
             </div>
           </div>
         </div>

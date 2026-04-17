@@ -40,6 +40,8 @@ export function normalizeTheme(raw: unknown): PageTheme {
       (t.entryAnimation as PageTheme["entryAnimation"] | undefined) ?? "none",
     buttonHover:
       (t.buttonHover as PageTheme["buttonHover"] | undefined) ?? "none",
+    buttonWidth:
+      (t.buttonWidth as PageTheme["buttonWidth"] | undefined) ?? "full",
     customFontUrl: (t.customFontUrl as string | undefined) ?? undefined,
     customFontName: (t.customFontName as string | undefined) ?? undefined,
     darkModeAuto: Boolean(t.darkModeAuto),

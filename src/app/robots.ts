@@ -1,0 +1,34 @@
+import type { MetadataRoute } from "next";
+
+function getBaseUrl(): string {
+  const url = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+  if (url) return url.replace(/\/$/, "");
+  return "https://linkhub.app";
+}
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl = getBaseUrl();
+
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: [
+          "/dashboard",
+          "/dashboard/*",
+          "/onboarding",
+          "/onboarding/*",
+          "/api/",
+          "/api/*",
+          "/__custom/*",
+          "/login",
+          "/signup",
+          "/forgot-password",
+          "/reset-password",
+        ],
+      },
+    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
+  };
+}

@@ -7,6 +7,7 @@ import { EditorHeaderQr } from "./editor-header-qr";
 import { PublishTemplateButton } from "./publish-template-button";
 import { IntegrationsForm } from "./integrations-form";
 import { AdvancedForm } from "./advanced-form";
+import { CustomDomainForm } from "./custom-domain-form";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { block, page } from "@/lib/db/schema";
@@ -16,6 +17,7 @@ import { PageSettingsForm } from "./page-settings-form";
 import { BlockList } from "./block-list";
 import { AddBlockBar } from "./add-block-bar";
 import { ThemePicker } from "./theme-picker";
+import { PalettePicker } from "./palette-picker";
 import { LivePreview } from "./live-preview";
 import { CustomizerPanel } from "./customizer-panel";
 import { SidebarTabs } from "./sidebar-tabs";
@@ -72,6 +74,12 @@ export default async function EditPage({
                 <span className="hidden sm:inline">Analytics</span>
               </Link>
             </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/dashboard/pages/${p.id}/submissions`}>
+                <span className="hidden sm:inline">Respostas</span>
+                <span className="sm:hidden">📬</span>
+              </Link>
+            </Button>
             <PublishTemplateButton pageId={p.id} suggestedName={p.title} />
             <EditorHeaderQr slug={p.slug} title={p.title} />
             <Button asChild variant="outline" size="sm">
@@ -101,6 +109,8 @@ export default async function EditPage({
             coverUrl={p.coverUrl}
             theme={theme}
             blocks={blocks}
+            customCss={p.customCss}
+            customJs={p.customJs}
           />
         </div>
 
@@ -111,11 +121,14 @@ export default async function EditPage({
                 id: "themes",
                 label: "Temas",
                 content: (
-                  <div className="space-y-3">
+                  <div className="space-y-5">
                     <ThemePicker pageId={p.id} currentPreset={theme.preset} />
                     <p className="text-xs text-muted-foreground">
-                      12 presets prontos. Clica pra aplicar.
+                      24 presets completos (cores + fonte + botão + efeito).
                     </p>
+                    <div className="border-t border-border pt-4">
+                      <PalettePicker pageId={p.id} />
+                    </div>
                   </div>
                 ),
               },
@@ -127,7 +140,12 @@ export default async function EditPage({
               {
                 id: "settings",
                 label: "Página",
-                content: <PageSettingsForm page={p} />,
+                content: (
+                  <div className="space-y-4">
+                    <PageSettingsForm page={p} />
+                    <CustomDomainForm page={p} />
+                  </div>
+                ),
               },
               {
                 id: "integrations",

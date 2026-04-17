@@ -3,12 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { page as pageTable } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { block, page as pageTable, type Block } from "@/lib/db/schema";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
-import { ThemeThumbnail } from "@/components/theme-thumbnail";
-import { normalizeTheme } from "@/lib/normalize-theme";
-import { ExternalLink, Link2, Plus, Sparkles } from "lucide-react";
+import { PagePreviewCard } from "@/components/page-preview-card";
+import { Link2, Plus, Sparkles } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { PageCardActions } from "./page-card-actions";
 
@@ -21,6 +20,24 @@ export default async function DashboardPage() {
     .from(pageTable)
     .where(eq(pageTable.userId, session.user.id))
     .orderBy(desc(pageTable.updatedAt));
+
+  // Carrega todos os blocos visíveis de uma vez (1 query) e agrupa por page
+  const pageIds = pages.map((p) => p.id);
+  const allBlocks =
+    pageIds.length > 0
+      ? await db
+          .select()
+          .from(block)
+          .where(and(inArray(block.pageId, pageIds), eq(block.visible, true)))
+          .orderBy(asc(block.position))
+      : [];
+
+  const blocksByPage = new Map<string, Block[]>();
+  for (const b of allBlocks) {
+    const arr = blocksByPage.get(b.pageId) ?? [];
+    arr.push(b);
+    blocksByPage.set(b.pageId, arr);
+  }
 
   return (
     <main className="ambient-bg min-h-screen">
@@ -98,9 +115,12 @@ export default async function DashboardPage() {
                 className="group overflow-hidden rounded-3xl border border-border bg-card/80 backdrop-blur-xl shadow-ios-sm transition-all hover:-translate-y-1 hover:shadow-ios-lg hover:border-primary/30"
               >
                 <div className="relative">
-                  <ThemeThumbnail theme={normalizeTheme(p.theme)} label={p.title} />
+                  <PagePreviewCard
+                    page={p}
+                    blocks={blocksByPage.get(p.id) ?? []}
+                  />
                   {!p.published && (
-                    <span className="absolute right-3 top-3 rounded-full bg-amber-500/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
+                    <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-500/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
                       Rascunho
                     </span>
                   )}

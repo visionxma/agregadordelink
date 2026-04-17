@@ -64,6 +64,7 @@ export default async function PublicSlugPage({
     id: b.id,
     type: b.type,
     data: b.data as BlockData,
+    style: b.style,
   }));
 
   return (

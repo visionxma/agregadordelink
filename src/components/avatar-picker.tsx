@@ -9,6 +9,7 @@ import {
   avatarsForStyle,
   type AvatarItem,
 } from "@/lib/photo-bank";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 export function AvatarPicker({
   open,
@@ -23,17 +24,20 @@ export function AvatarPicker({
 }) {
   const [activeStyle, setActiveStyle] = useState(avatarStyles[0].id);
 
+  useBodyScrollLock(open);
+
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
-      <div
-        className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex min-h-full items-center justify-center py-8">
+        <div
+          className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl animate-scale-in"
+          onClick={(e) => e.stopPropagation()}
+        >
         <header className="flex items-center justify-between border-b px-6 py-4">
           <div>
             <h2 className="text-xl font-bold">Escolha seu avatar</h2>
@@ -65,7 +69,7 @@ export function AvatarPicker({
           ))}
         </div>
 
-        <div className="grid grid-cols-4 gap-3 overflow-y-auto p-6 sm:grid-cols-6 lg:grid-cols-8">
+        <div className="grid grid-cols-4 gap-3 p-6 sm:grid-cols-6 lg:grid-cols-8">
           {avatarsForStyle(activeStyle).map((a) => (
             <AvatarCard
               key={a.id}
@@ -77,6 +81,7 @@ export function AvatarPicker({
               }}
             />
           ))}
+        </div>
         </div>
       </div>
     </div>

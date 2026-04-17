@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type {
   AvatarShape,
   BlockData,
+  BlockStyle,
   ButtonStyle,
   Effect,
   PageTheme,
@@ -26,6 +27,7 @@ import {
   WhatsappBlock,
 } from "./advanced-blocks";
 import { cursorCss, playClickSound, TiltWrapper } from "./theme-fx";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 // Declara tipos das libs de tracking injetadas (Meta / GA / TikTok / GTM)
 declare global {
@@ -86,7 +88,38 @@ function dispatchPixelClick(label: string, url: string) {
   } catch {}
 }
 
-export type PreviewBlock = { id: string; type: string; data: BlockData };
+export type PreviewBlock = {
+  id: string;
+  type: string;
+  data: BlockData;
+  style?: BlockStyle;
+};
+
+// Converte BlockStyle em CSSProperties aplicáveis
+export function blockStyleToCss(
+  s: BlockStyle | undefined | null
+): React.CSSProperties {
+  if (!s) return {};
+  const css: React.CSSProperties = {};
+  if (s.background) css.background = s.background;
+  if (s.color) css.color = s.color;
+  if (s.fontSize) css.fontSize = `${s.fontSize}px`;
+  if (s.fontWeight) css.fontWeight = s.fontWeight;
+  if (s.fontFamily) css.fontFamily = fontCssVarMap[s.fontFamily];
+  if (s.borderRadius !== undefined && s.borderRadius >= 0) {
+    css.borderRadius = `${s.borderRadius}px`;
+  }
+  if (s.borderWidth) {
+    css.borderWidth = `${s.borderWidth}px`;
+    css.borderStyle = "solid";
+  }
+  if (s.borderColor) css.borderColor = s.borderColor;
+  if (s.textAlign) css.textAlign = s.textAlign;
+  if (s.padding !== undefined && s.padding >= 0) {
+    css.padding = `${s.padding}px`;
+  }
+  return css;
+}
 
 export function ThemedPage({
   pageId,
@@ -99,6 +132,7 @@ export function ThemedPage({
   blocks,
   verified = false,
   trackEvents = true,
+  showAvatarPlaceholder = false,
 }: {
   pageId: string;
   pageSlug?: string;
@@ -110,6 +144,7 @@ export function ThemedPage({
   blocks: PreviewBlock[];
   verified?: boolean;
   trackEvents?: boolean;
+  showAvatarPlaceholder?: boolean;
 }) {
   const viewed = useRef(false);
   useEffect(() => {
@@ -159,14 +194,53 @@ export function ThemedPage({
 
   return (
     <main
-      className="relative flex min-h-screen flex-col items-center overflow-hidden antialiased"
+      className="linkhub-page antialiased"
       style={{
         ...bgStyle,
         color: theme.foreground,
         fontFamily: fontVar,
         cursor: cursorValue,
+        // Layout travado via inline style — protege contra CSS custom
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "var(--linkhub-page-min-h, 100vh)",
+        width: "100%",
+        overflowX: "hidden",
       }}
     >
+      {/* Safety stylesheet — enforce centralização mesmo com CSS custom agressivo */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .linkhub-page {
+              display: flex !important;
+              flex-direction: column !important;
+              align-items: center !important;
+              width: 100% !important;
+            }
+            .linkhub-cover,
+            .linkhub-content {
+              width: 100% !important;
+              max-width: 28rem !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
+              box-sizing: border-box;
+              float: none !important;
+              position: relative !important;
+            }
+            .linkhub-page > * {
+              float: none !important;
+            }
+            .linkhub-blocks {
+              width: 100% !important;
+              display: flex !important;
+              flex-direction: column !important;
+            }
+          `,
+        }}
+      />
       {theme.customFontUrl && (
         <style
           dangerouslySetInnerHTML={{
@@ -185,7 +259,7 @@ export function ThemedPage({
 
       {/* COVER — full-width no topo */}
       {hasCover && (
-        <div className="relative z-10 w-full max-w-md overflow-hidden">
+        <div className="linkhub-cover relative z-10 w-full max-w-md overflow-hidden">
           <div className="relative aspect-[3/1] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -199,16 +273,22 @@ export function ThemedPage({
 
       <div
         className={cn(
-          "relative z-10 w-full max-w-md px-4",
-          hasCover ? "pb-12 -mt-12" : "py-12",
+          "linkhub-content relative z-10 w-full max-w-md px-4",
+          hasCover ? "pb-8 -mt-12" : "py-10",
           !hasCover && spacingCls
         )}
+        style={{
+          width: "100%",
+          maxWidth: "28rem",
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
       >
-        <header className="flex flex-col items-center text-center">
-          {avatarUrl && (
+        <header className="linkhub-header flex flex-col items-center text-center">
+          {avatarUrl ? (
             <div
               className={cn(
-                "mb-4 size-24 overflow-hidden",
+                "linkhub-avatar mb-4 size-24 overflow-hidden",
                 avatarShapeClass(theme.avatarShape),
                 hasCover && "ring-4"
               )}
@@ -225,9 +305,25 @@ export function ThemedPage({
                 className="size-full object-cover"
               />
             </div>
-          )}
+          ) : showAvatarPlaceholder ? (
+            <div
+              className={cn(
+                "linkhub-avatar linkhub-avatar-placeholder mb-4 flex size-24 items-center justify-center border-2 border-dashed",
+                avatarShapeClass(theme.avatarShape)
+              )}
+              style={{
+                borderColor: theme.mutedForeground + "60",
+                color: theme.mutedForeground,
+              }}
+              title="Adicione um avatar em Página → Avatar"
+            >
+              <span className="text-3xl font-black opacity-50">
+                {title.charAt(0).toUpperCase() || "?"}
+              </span>
+            </div>
+          ) : null}
           <h1
-            className="inline-flex items-center gap-1.5 text-3xl font-bold tracking-tight sm:text-4xl"
+            className="linkhub-title inline-flex items-center gap-1.5 text-3xl font-bold tracking-tight sm:text-4xl"
             style={{ fontFamily: titleVar }}
           >
             {title}
@@ -235,7 +331,7 @@ export function ThemedPage({
           </h1>
           {description && (
             <p
-              className="mt-3 text-sm leading-relaxed"
+              className="linkhub-bio mt-3 text-sm leading-relaxed"
               style={{ color: theme.mutedForeground }}
             >
               {description}
@@ -243,22 +339,27 @@ export function ThemedPage({
           )}
         </header>
 
-        <div className={cn("mt-8", blocksGapClass(theme.spacing))}>
+        <div className={cn("linkhub-blocks mt-8", blocksGapClass(theme.spacing))}>
           {blocks.map((b, i) => (
             <AnimatedWrap key={b.id} index={i} animation={entryAnim}>
-              <BlockView
-                block={b}
-                theme={theme}
-                pageId={pageId}
-                pageSlug={pageSlug}
-                trackEvents={trackEvents}
-              />
+              <div
+                className={`linkhub-block linkhub-block-${b.type}`}
+                data-block-id={b.id}
+              >
+                <BlockView
+                  block={b}
+                  theme={theme}
+                  pageId={pageId}
+                  pageSlug={pageSlug}
+                  trackEvents={trackEvents}
+                />
+              </div>
             </AnimatedWrap>
           ))}
         </div>
 
         <footer
-          className="flex flex-col items-center gap-2 pt-12 text-center text-xs"
+          className="linkhub-footer flex flex-col items-center gap-2 pt-8 text-center text-xs"
           style={{ color: theme.mutedForeground }}
         >
           <span>
@@ -429,6 +530,8 @@ function ReportModal({
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useBodyScrollLock(true);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -443,13 +546,14 @@ function ReportModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-black/70 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div
-        className="w-full max-w-sm rounded-3xl bg-white p-6 text-left text-neutral-900 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex min-h-full items-center justify-center py-8">
+        <div
+          className="w-full max-w-sm rounded-3xl bg-white p-6 text-left text-neutral-900 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
         {sent ? (
           <div className="text-center">
             <p className="text-lg font-bold">Obrigado</p>
@@ -531,6 +635,7 @@ function ReportModal({
             </div>
           </form>
         )}
+        </div>
       </div>
     </div>
   );
@@ -634,12 +739,21 @@ function BlockView({
     const campaign = pageSlug ?? "bio";
     const finalUrl = withUtm(d.url || "#", campaign);
     const hover = theme.buttonHover ?? "none";
+    const isAutoWidth = theme.buttonWidth === "auto";
     const hoverCls =
       hover === "lift"
         ? "hover:-translate-y-1 hover:shadow-2xl"
         : hover === "none"
           ? "hover:scale-[1.02]"
           : "";
+    const themeStyle = buttonStyleCss(
+      theme.buttonStyle,
+      theme.accent,
+      theme.accentForeground,
+      theme.foreground
+    );
+    // Style por bloco sobrepõe o tema
+    const baseStyle = { ...themeStyle, ...blockStyleToCss(block.style) };
     const linkEl = (
       <a
         href={finalUrl}
@@ -647,23 +761,30 @@ function BlockView({
         rel="noopener noreferrer"
         onClick={() => trackClick(d.label, finalUrl)}
         className={cn(
-          "group block w-full text-center font-semibold transition-all duration-200 active:scale-[0.98]",
+          "linkhub-button group text-center font-semibold transition-all duration-200 active:scale-[0.98]",
+          isAutoWidth ? "inline-block" : "block w-full",
           hoverCls
         )}
-        style={buttonStyleCss(
-          theme.buttonStyle,
-          theme.accent,
-          theme.accentForeground,
-          theme.foreground
-        )}
+        style={
+          isAutoWidth
+            ? { ...baseStyle, display: "inline-block", width: "auto" }
+            : baseStyle
+        }
       >
         {d.label || "Meu link"}
       </a>
     );
-    if (hover === "tilt" || hover === "glare") {
-      return <TiltWrapper hoverStyle={hover}>{linkEl}</TiltWrapper>;
-    }
-    return linkEl;
+    const withHover =
+      hover === "tilt" || hover === "glare" ? (
+        <TiltWrapper hoverStyle={hover}>{linkEl}</TiltWrapper>
+      ) : (
+        linkEl
+      );
+    return isAutoWidth ? (
+      <div style={{ textAlign: "center", width: "100%" }}>{withHover}</div>
+    ) : (
+      withHover
+    );
   }
 
   if (d.kind === "text") {
@@ -673,6 +794,7 @@ function BlockView({
         style={{
           textAlign: d.align ?? "center",
           color: theme.mutedForeground,
+          ...blockStyleToCss(block.style),
         }}
       >
         {d.content}
@@ -689,6 +811,7 @@ function BlockView({
         src={d.url}
         alt={d.alt ?? ""}
         className="w-full rounded-2xl"
+        style={blockStyleToCss(block.style)}
       />
     ) : (
       <div className="flex aspect-video w-full items-center justify-center rounded-2xl border-2 border-dashed text-sm opacity-60">
@@ -754,19 +877,28 @@ function BlockView({
   }
 
   if (d.kind === "whatsapp") {
-    const btnStyle = buttonStyleCss(
-      theme.buttonStyle,
-      "#25d366",
-      "#ffffff",
-      theme.foreground
-    );
-    return (
+    const isAutoWidth = theme.buttonWidth === "auto";
+    const btnStyle = {
+      ...buttonStyleCss(
+        theme.buttonStyle,
+        "#25d366",
+        "#ffffff",
+        theme.foreground
+      ),
+      ...(isAutoWidth ? { display: "inline-block", width: "auto" } : {}),
+    };
+    const el = (
       <WhatsappBlock
         data={d}
         theme={theme}
         buttonStyle={btnStyle}
         onClick={() => trackClick(d.label, `https://wa.me/${d.phone}`)}
       />
+    );
+    return isAutoWidth ? (
+      <div style={{ textAlign: "center", width: "100%" }}>{el}</div>
+    ) : (
+      el
     );
   }
 

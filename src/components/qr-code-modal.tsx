@@ -17,6 +17,7 @@ import {
   XIcon,
   TelegramIcon,
 } from "@/components/social-icons";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 export function QRCodeModal({
   open,
@@ -39,6 +40,8 @@ export function QRCodeModal({
     }
     if (!open) setCopied(false);
   }, [open]);
+
+  useBodyScrollLock(open);
 
   if (!open) return null;
 
@@ -119,13 +122,14 @@ export function QRCodeModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
-      <div
-        className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-background shadow-ios-lg animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex min-h-full items-center justify-center py-8">
+        <div
+          className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-background shadow-ios-lg animate-scale-in"
+          onClick={(e) => e.stopPropagation()}
+        >
         <header className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
             <h2 className="font-bold">Compartilhar</h2>
@@ -230,6 +234,7 @@ export function QRCodeModal({
           <p className="mt-3 text-[10px] text-muted-foreground">
             Dica: baixa o PNG pra postar em Stories ou TikTok
           </p>
+        </div>
         </div>
       </div>
     </div>

@@ -198,17 +198,19 @@ export function PageSettingsForm({ page }: { page: Page }) {
             <Button type="submit" disabled={pending} className="flex-1">
               {pending ? "Salvando..." : saved ? "Salvo ✓" : "Salvar"}
             </Button>
-            <form
-              action={async () => {
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              disabled={pending}
+              onClick={() => {
                 if (confirm("Deletar esta página? Não dá pra desfazer.")) {
-                  await deletePage(page.id);
+                  startTransition(() => deletePage(page.id));
                 }
               }}
             >
-              <Button type="submit" variant="destructive" size="icon">
-                <Trash2 className="size-4" />
-              </Button>
-            </form>
+              <Trash2 className="size-4" />
+            </Button>
           </div>
         </form>
       </CardContent>

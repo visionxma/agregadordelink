@@ -297,7 +297,17 @@ export function FormBlock({
             />
           ) : (
             <input
-              type={f.type === "email" ? "email" : f.type === "phone" ? "tel" : "text"}
+              type={
+                f.type === "email"
+                  ? "email"
+                  : f.type === "phone"
+                    ? "tel"
+                    : "text"
+              }
+              inputMode={f.type === "phone" ? "tel" : undefined}
+              placeholder={
+                f.type === "phone" ? "(11) 99999-9999" : undefined
+              }
               required={f.required}
               value={values[f.id] ?? ""}
               onChange={(e) =>
@@ -486,6 +496,62 @@ export function TestimonialsBlock({
 
 // ============== MAP ==============
 
+type MapSrc = { src: string; openUrl: string } | null;
+
+export function toMapSrc(input: string): MapSrc {
+  const q = input.trim();
+  if (!q) return null;
+
+  // 1. URL de embed direto do Google Maps (Compartilhar → Incorporar um mapa)
+  if (q.includes("/maps/embed?pb=")) {
+    return { src: q, openUrl: q };
+  }
+
+  // 2. URL do Google Maps com coordenadas — /@lat,lng,zoom
+  const coordMatch = q.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (coordMatch) {
+    const [, lat, lng] = coordMatch;
+    return {
+      src: `https://www.google.com/maps?q=${lat},${lng}&hl=pt-BR&z=16&output=embed`,
+      openUrl: q,
+    };
+  }
+
+  // 3. URL /place/Nome/... — extrai o nome do place
+  const placeMatch = q.match(/\/place\/([^/@]+)/);
+  if (placeMatch) {
+    const place = decodeURIComponent(placeMatch[1]!.replace(/\+/g, " "));
+    return {
+      src: `https://www.google.com/maps?q=${encodeURIComponent(place)}&output=embed`,
+      openUrl: q,
+    };
+  }
+
+  // 4. Short link (maps.app.goo.gl / goo.gl/maps) — não dá pra resolver client-side.
+  //    Usa o próprio link como embed (funciona parcialmente em alguns casos) + link pra abrir.
+  if (/maps\.app\.goo\.gl|goo\.gl\/maps/.test(q)) {
+    return {
+      src: q,
+      openUrl: q,
+    };
+  }
+
+  // 5. Qualquer outra URL do Google Maps
+  if (/^https?:\/\/(www\.)?(google\.com|maps\.google\.com)/i.test(q)) {
+    return {
+      src: q,
+      openUrl: q,
+    };
+  }
+
+  // 6. Endereço livre / coordenadas em texto
+  const encoded = encodeURIComponent(q);
+  return {
+    src: `https://www.google.com/maps?q=${encoded}&output=embed`,
+    openUrl: `https://www.google.com/maps/search/?api=1&query=${encoded}`,
+  };
+}
+
 export function MapBlock({
   data,
   theme,
@@ -493,22 +559,45 @@ export function MapBlock({
   data: Extract<BlockData, { kind: "map" }>;
   theme: PageTheme;
 }) {
-  const src = `https://www.google.com/maps?q=${encodeURIComponent(data.query)}&output=embed`;
+  const resolved = toMapSrc(data.query);
+
+  if (!resolved) {
+    return (
+      <div
+        className="flex aspect-[2/1] flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 text-center text-xs"
+        style={{
+          borderColor: theme.mutedForeground + "40",
+          color: theme.mutedForeground,
+        }}
+      >
+        <p className="font-semibold">📍 Adicione endereço ou link do Google Maps</p>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-hidden rounded-2xl">
       {data.label && (
         <div
-          className="px-3 py-2 text-xs font-semibold"
+          className="flex items-center justify-between px-3 py-2 text-xs font-semibold"
           style={{
             background: theme.accent + "15",
             color: theme.foreground,
           }}
         >
-          📍 {data.label}
+          <span>📍 {data.label}</span>
+          <a
+            href={resolved.openUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 opacity-70 hover:opacity-100"
+          >
+            Abrir no Maps
+          </a>
         </div>
       )}
       <iframe
-        src={src}
+        src={resolved.src}
         width="100%"
         height={220}
         allowFullScreen

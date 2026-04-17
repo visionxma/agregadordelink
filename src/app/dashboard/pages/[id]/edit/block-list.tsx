@@ -39,7 +39,8 @@ import {
   Trash2,
   Type,
 } from "lucide-react";
-import type { Block, BlockData } from "@/lib/db/schema";
+import type { Block, BlockData, FormField } from "@/lib/db/schema";
+import { BlockStyleEditor } from "./block-style-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,12 +65,18 @@ export function BlockList({ blocks }: { blocks: Block[] }) {
   }, [blocks]);
 
   function handleDeleteWithUndo(blockId: string) {
+    // Cancela timeout pendente desse bloco (se user clicou delete de novo)
+    const existing = pendingDeletions.current.get(blockId);
+    if (existing) clearTimeout(existing);
+
     // Remove optimista da UI
     setItems((curr) => curr.filter((b) => b.id !== blockId));
 
     // Agenda delete real em 5s
     const timeoutId = setTimeout(() => {
-      deleteBlock(blockId);
+      deleteBlock(blockId).catch(() => {
+        // Silencia qualquer erro — provável race já tratado server-side
+      });
       pendingDeletions.current.delete(blockId);
     }, 5000);
     pendingDeletions.current.set(blockId, timeoutId);
@@ -332,6 +339,12 @@ function SortableBlock({
             <p className="text-xs text-muted-foreground">Linha divisória</p>
           )}
 
+          {/* Editor de estilo por bloco — aparece em todos os tipos */}
+          <BlockStyleEditor
+            blockId={block.id}
+            currentStyle={block.style ?? {}}
+          />
+
           {data.kind === "newsletter" && (
             <>
               <Input
@@ -484,13 +497,162 @@ function SortableBlock({
                   }
                 />
               </div>
-              <div className="rounded-lg bg-secondary p-2 text-xs">
-                {data.fields.length} campos:{" "}
-                {data.fields.map((f) => f.label).join(" · ")}
+
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Campos do formulário
+                </p>
+                {data.fields.length === 0 && (
+                  <p className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+                    Nenhum campo. Adicione pelo menos um.
+                  </p>
+                )}
+                {data.fields.map((f, i) => (
+                  <div
+                    key={f.id}
+                    className="space-y-1.5 rounded-lg bg-secondary/60 p-2"
+                  >
+                    <div className="grid grid-cols-[1fr_130px] gap-1.5">
+                      <Input
+                        defaultValue={f.label}
+                        placeholder="Rótulo (ex: Nome)"
+                        onBlur={(e) => {
+                          const next = [...data.fields];
+                          next[i] = {
+                            ...next[i]!,
+                            label: e.target.value,
+                          };
+                          handleUpdate({ ...data, fields: next });
+                        }}
+                      />
+                      <select
+                        defaultValue={f.type}
+                        onChange={(e) => {
+                          const next = [...data.fields];
+                          next[i] = {
+                            ...next[i]!,
+                            type: e.target.value as FormField["type"],
+                          };
+                          handleUpdate({ ...data, fields: next });
+                        }}
+                        className="flex h-9 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <option value="text">Texto curto</option>
+                        <option value="email">Email</option>
+                        <option value="phone">WhatsApp / Tel</option>
+                        <option value="textarea">Texto longo</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="flex cursor-pointer items-center gap-1.5 text-[11px]">
+                        <input
+                          type="checkbox"
+                          defaultChecked={f.required}
+                          onChange={(e) => {
+                            const next = [...data.fields];
+                            next[i] = {
+                              ...next[i]!,
+                              required: e.target.checked,
+                            };
+                            handleUpdate({ ...data, fields: next });
+                          }}
+                          className="size-3"
+                        />
+                        Obrigatório
+                      </label>
+                      <div className="flex items-center gap-2">
+                        {i > 0 && (
+                          <button
+                            type="button"
+                            className="text-[10px] text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              const next = [...data.fields];
+                              [next[i - 1], next[i]] = [next[i]!, next[i - 1]!];
+                              handleUpdate({ ...data, fields: next });
+                            }}
+                          >
+                            ↑
+                          </button>
+                        )}
+                        {i < data.fields.length - 1 && (
+                          <button
+                            type="button"
+                            className="text-[10px] text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              const next = [...data.fields];
+                              [next[i], next[i + 1]] = [next[i + 1]!, next[i]!];
+                              handleUpdate({ ...data, fields: next });
+                            }}
+                          >
+                            ↓
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleUpdate({
+                              ...data,
+                              fields: data.fields.filter((_, x) => x !== i),
+                            })
+                          }
+                          className="text-[10px] text-destructive hover:underline"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        fields: [
+                          ...data.fields,
+                          {
+                            id: Math.random().toString(36).slice(2, 9),
+                            label: "Novo campo",
+                            type: "text",
+                            required: false,
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    + Campo
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        fields: [
+                          ...data.fields,
+                          {
+                            id: Math.random().toString(36).slice(2, 9),
+                            label: "WhatsApp",
+                            type: "phone",
+                            required: true,
+                          },
+                        ],
+                      })
+                    }
+                  >
+                    + WhatsApp
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Campos: nome, email, mensagem (edição avançada em breve).
-                Submissões no Analytics.
+
+              <p className="text-[10px] text-muted-foreground">
+                Respostas em{" "}
+                <strong>Respostas → {data.title || "Formulário"}</strong>.
               </p>
             </>
           )}
@@ -650,16 +812,25 @@ function SortableBlock({
 
           {data.kind === "map" && (
             <>
-              <Input
-                defaultValue={data.query}
-                placeholder="Endereço ou lat,lng"
-                onBlur={(e) =>
-                  handleUpdate({ ...data, query: e.target.value })
-                }
-              />
+              <div className="space-y-1">
+                <Label className="text-xs">
+                  Endereço, coordenadas ou link do Google Maps
+                </Label>
+                <Input
+                  defaultValue={data.query}
+                  placeholder="Av. Paulista 1578 · -23.56,-46.65 · https://maps.app.goo.gl/..."
+                  onBlur={(e) =>
+                    handleUpdate({ ...data, query: e.target.value })
+                  }
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Cola direto o link do Google Maps (Compartilhar → Copiar link)
+                  ou digite o endereço completo.
+                </p>
+              </div>
               <Input
                 defaultValue={data.label ?? ""}
-                placeholder="Rótulo (opcional)"
+                placeholder="Rótulo (opcional) — ex: Onde estamos"
                 onBlur={(e) =>
                   handleUpdate({ ...data, label: e.target.value })
                 }

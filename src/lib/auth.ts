@@ -9,8 +9,10 @@ import {
   sendVerifyEmail,
 } from "@/lib/email";
 
+// Default: exige verificação de email sempre que Resend estiver configurado.
+// Pra desativar explicitamente (ex: ambiente dev com Resend): EMAIL_VERIFICATION=disabled
 const requireVerification =
-  process.env.EMAIL_VERIFICATION === "required" && isEmailConfigured();
+  isEmailConfigured() && process.env.EMAIL_VERIFICATION !== "disabled";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {

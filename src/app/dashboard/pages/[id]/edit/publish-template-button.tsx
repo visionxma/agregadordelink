@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { publishAsTemplate } from "../../actions";
 
 const CATEGORIES = [
@@ -38,6 +39,8 @@ export function PublishTemplateButton({
     emoji: "✨",
     description: "",
   });
+
+  useBodyScrollLock(open);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,13 +79,14 @@ export function PublishTemplateButton({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => !pending && setOpen(false)}
         >
-          <div
-            className="relative w-full max-w-md overflow-hidden rounded-3xl bg-background shadow-ios-lg animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="flex min-h-full items-center justify-center py-8">
+            <div
+              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-background shadow-ios-lg animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
             <header className="flex items-center justify-between border-b border-border px-6 py-4">
               <div>
                 <h2 className="font-bold">Publicar como modelo</h2>
@@ -207,6 +211,7 @@ export function PublishTemplateButton({
                 </div>
               </form>
             )}
+            </div>
           </div>
         </div>
       )}

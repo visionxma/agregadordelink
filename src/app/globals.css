@@ -85,6 +85,10 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    /* Gutter estável evita layout shift quando aparece/some scrollbar */
+    scrollbar-gutter: stable;
+    /* Evita rubber-banding nos browsers mobile + pull-to-refresh por acidente */
+    overscroll-behavior-y: contain;
   }
 
   /* Scrollbar mais refinada — iOS vibe */
@@ -251,6 +255,20 @@
 /* ============== UTILITIES ============== */
 
 @layer utilities {
+  /* Esconde scrollbar mas mantém scroll funcionando */
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Contém scroll — evita propagar pra scroll pai */
+  .scroll-contain {
+    overscroll-behavior: contain;
+  }
+
   /* Anima entrada sutil */
   .animate-fade-in {
     animation: fadeIn 0.4s ease-out;
