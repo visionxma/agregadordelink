@@ -8,6 +8,10 @@ import { signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  GoogleSignInButton,
+  OrDivider,
+} from "@/components/google-sign-in-button";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -54,7 +58,15 @@ export default function SignupPage() {
             Grátis pra sempre. Pronto em 30 segundos.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div className="mt-6">
+            <GoogleSignInButton
+              label="Criar conta com Google"
+              callbackURL="/onboarding"
+            />
+            <OrDivider />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome</Label>
               <Input

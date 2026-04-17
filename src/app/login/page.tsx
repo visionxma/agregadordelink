@@ -8,6 +8,10 @@ import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  GoogleSignInButton,
+  OrDivider,
+} from "@/components/google-sign-in-button";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,7 +55,12 @@ export default function LoginPage() {
             Entre pra continuar editando sua página.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div className="mt-6">
+            <GoogleSignInButton label="Entrar com Google" />
+            <OrDivider />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
