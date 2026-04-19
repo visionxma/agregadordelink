@@ -101,10 +101,10 @@ export default function SignupPage() {
           <path
             key={l.key}
             d={l.d}
-            stroke="rgba(255,255,255,0.45)"
-            strokeWidth="1.5"
+            stroke="rgba(255,255,255,0.75)"
+            strokeWidth="2.5"
             fill="none"
-            strokeDasharray="5 5"
+            strokeDasharray="6 4"
           />
         ))}
       </svg>
