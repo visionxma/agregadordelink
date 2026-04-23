@@ -835,11 +835,25 @@ export function ImageCarouselBlock({
   theme: PageTheme;
   onItemClick?: (title: string, url: string) => void;
 }) {
-  const ratio = (data.aspect ?? "3:4").replace(":", "/");
-  const cardStyle: React.CSSProperties = {
-    aspectRatio: ratio,
-    height: "14rem",
-  };
+  const aspectStr = data.aspect ?? "3:4";
+  const ratio = aspectStr.replace(":", "/");
+  // Paisagem (W > H): largura fixa em 18rem mas nunca ultrapassa o
+  // container (maxWidth 100%) — garante que não vaza em telas pequenas.
+  // Retrato/quadrado: altura fixa em 14rem, largura calculada pela razão.
+  const [w, h] = aspectStr.split(":").map(Number);
+  const isLandscape = (w ?? 1) > (h ?? 1);
+  const cardStyle: React.CSSProperties = isLandscape
+    ? {
+        aspectRatio: ratio,
+        width: "18rem",
+        maxWidth: "100%",
+        height: "auto",
+      }
+    : {
+        aspectRatio: ratio,
+        height: "14rem",
+        width: "auto",
+      };
   return (
     <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {data.items.map((it, i) => {
