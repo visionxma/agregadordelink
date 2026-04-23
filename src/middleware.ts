@@ -1,10 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
+// Hosts do app sempre reconhecidos, independente do env — evita que o
+// rewrite de custom-domain capture o domínio principal por engano.
+const BUILTIN_APP_HOSTS = [
+  "localhost:3000",
+  "linkbiobr.com",
+  "www.linkbiobr.com",
+];
+
 const APP_HOSTS = new Set(
-  (process.env.APP_HOSTS ?? "localhost:3000,linkbiobr.com")
-    .split(",")
+  [...BUILTIN_APP_HOSTS, ...(process.env.APP_HOSTS ?? "").split(",")]
     .map((h) => h.trim().toLowerCase())
+    .filter(Boolean)
 );
 
 export function middleware(request: NextRequest) {
