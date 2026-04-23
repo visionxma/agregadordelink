@@ -87,7 +87,8 @@ export default function LoginPage() {
       ref={containerRef}
       className="relative flex min-h-screen items-center justify-center overflow-hidden p-4"
       style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #e0f2fe 30%, #bae6fd 60%, #38bdf8 85%, #0284c7 100%)",
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #e8fbef 30%, #c8f5d6 60%, #ffe94d 85%, #ffdf00 100%)",
       }}
     >
       <style>{`
@@ -124,7 +125,7 @@ export default function LoginPage() {
             animationDelay: t.delay,
           }}
         >
-          <span className="text-blue-500">{t.icon}</span>
+          <span className="text-primary">{t.icon}</span>
           {t.label}
         </div>
       ))}
@@ -158,9 +159,9 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="mt-6 text-center text-sm text-blue-900/70">
+        <p className="mt-6 text-center text-sm text-foreground/70">
           Não tem conta?{" "}
-          <Link href="/signup" className="font-bold text-blue-900 underline hover:text-primary">
+          <Link href="/signup" className="font-bold text-foreground underline hover:text-primary">
             Criar grátis
           </Link>
         </p>

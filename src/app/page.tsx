@@ -315,7 +315,7 @@ export default function HomePage() {
                     ].map((c, i) => (
                       <span
                         key={i}
-                        className="inline-block size-8 rounded-full ring-2 ring-[#0a4fa3]"
+                        className="inline-block size-8 rounded-full ring-2 ring-[#002776]"
                         style={{
                           background: `radial-gradient(circle at 30% 30%, white, ${c})`,
                         }}
