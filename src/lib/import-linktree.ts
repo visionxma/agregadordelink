@@ -47,7 +47,7 @@ export async function importFromUrl(
     const res = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; LinkHubImport/1.0; +https://linkhub.app)",
+          "Mozilla/5.0 (compatible; LinkBioBRImport/1.0; +https://linkbiobr.com)",
       },
       redirect: "follow",
     });

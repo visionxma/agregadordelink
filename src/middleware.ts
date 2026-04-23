@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
 const APP_HOSTS = new Set(
-  (process.env.APP_HOSTS ?? "localhost:3000,linkhub.app")
+  (process.env.APP_HOSTS ?? "localhost:3000,linkbiobr.com")
     .split(",")
     .map((h) => h.trim().toLowerCase())
 );

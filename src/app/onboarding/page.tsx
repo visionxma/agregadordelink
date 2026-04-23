@@ -659,7 +659,7 @@ function StepComplete({
         <div className="mx-auto mt-8 max-w-sm rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-5 shadow-ios">
           <p className="text-xs text-muted-foreground">Sua URL</p>
           <p className="mt-1 font-mono text-sm font-semibold text-primary">
-            linkhub.app/{slug}
+            linkbiobr.com/{slug}
           </p>
           <div className="mt-3 border-t border-border pt-3 text-left">
             <p className="font-bold">{name}</p>

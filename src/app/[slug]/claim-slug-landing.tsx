@@ -10,6 +10,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrazilFlag } from "@/components/brazil-flag";
 
 export function ClaimSlugLanding({ slug }: { slug: string }) {
   const signupHref = `/signup?slug=${encodeURIComponent(slug)}`;
@@ -55,7 +56,7 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
             className="text-balance font-black leading-[0.95] tracking-[-0.04em] text-[#0a2d5e]"
             style={{ fontSize: "clamp(2rem, 6vw, 4.5rem)" }}
           >
-            linkhub.app/
+            linkbiobr.com/
             <span className="italic text-primary">{slug}</span>
           </h1>
 
@@ -81,7 +82,7 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
               variant="outline"
               className="h-12 rounded-full border-foreground/20 bg-white/90 px-7 text-base font-semibold backdrop-blur hover:bg-white"
             >
-              <Link href="/">Ver o LinkHub</Link>
+              <Link href="/">Ver o LinkBio BR</Link>
             </Button>
           </div>
 
@@ -184,9 +185,14 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
             <span className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
               <Sparkles className="size-3" />
             </span>
-            <span className="font-bold text-foreground">linkhub</span>
+            <span className="flex items-center gap-1.5 font-bold text-foreground">
+              LinkBio <BrazilFlag className="h-4 w-auto" />
+            </span>
           </Link>
-          <span>© {new Date().getFullYear()} LinkHub</span>
+          <span className="flex items-center gap-1.5">
+            © {new Date().getFullYear()} LinkBio{" "}
+            <BrazilFlag className="h-3.5 w-auto" />
+          </span>
         </div>
       </footer>
     </main>

@@ -30,7 +30,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       "Todos os 24 temas",
       "50+ modelos",
       "Analytics básico (7 dias)",
-      "Subdomínio linkhub.app",
+      "Subdomínio linkbiobr.com",
     ],
     limits: {
       pages: 1,
@@ -51,7 +51,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       "3 páginas",
       "Domínio próprio",
       "Analytics avançado (90 dias)",
-      "Remover branding LinkHub",
+      "Remover branding LinkBio BR",
       "Encurtador ilimitado",
       "IA (50 gerações/mês)",
       "Suporte prioritário",

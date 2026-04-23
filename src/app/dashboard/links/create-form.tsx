@@ -86,7 +86,7 @@ export function CreateShortLinkForm() {
                 <Label htmlFor="code">Código personalizado (opcional)</Label>
                 <div className="flex items-center gap-2 rounded-xl border border-input bg-card/70 backdrop-blur-sm px-3.5 shadow-ios-sm focus-within:ring-2 focus-within:ring-ring">
                   <span className="text-sm text-muted-foreground">
-                    linkhub.app/s/
+                    linkbiobr.com/s/
                   </span>
                   <input
                     id="code"
@@ -125,7 +125,7 @@ export function CreateShortLinkForm() {
                 <Sparkles className="size-4" /> Link criado!
               </p>
               <p className="mt-1 font-mono text-xs">
-                linkhub.app/s/<strong>{success}</strong>
+                linkbiobr.com/s/<strong>{success}</strong>
               </p>
             </div>
           )}

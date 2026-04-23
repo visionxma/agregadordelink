@@ -17,6 +17,7 @@ import {
   WhatsappIcon,
   YoutubeIcon,
 } from "@/components/social-icons";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { themePresets } from "@/lib/themes";
 
 export default function HomePage() {
@@ -79,8 +80,8 @@ export default function HomePage() {
                 feito pra <span className="italic">você</span>.
               </h1>
               <p className="mt-4 max-w-lg text-pretty text-base text-[#0a2d5e]/80 sm:text-lg">
-                Entre 70 mil criadores que usam o LinkHub. Um link só pra
-                compartilhar tudo que você cria, coleciona e vende no
+                Entre 70 mil criadores que usam o LinkBio BR. Um link só
+                pra compartilhar tudo que você cria, coleciona e vende no
                 Instagram, TikTok, YouTube e outras redes.
               </p>
 
@@ -91,7 +92,7 @@ export default function HomePage() {
               >
                 <div className="flex flex-1 items-center gap-2 px-4">
                   <span className="text-sm font-semibold text-muted-foreground">
-                    linkhub.app/
+                    linkbiobr.com/
                   </span>
                   <input
                     type="text"
@@ -370,7 +371,10 @@ export default function HomePage() {
 
       <footer className="border-t border-border/50 px-4 py-8">
         <div className="container mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-sm text-muted-foreground sm:flex-row">
-          <p>© 2026 LinkHub. Feito pela VisionX no Maranhão, Brasil.</p>
+          <p className="flex items-center gap-1.5">
+            © 2026 LinkBio <BrazilFlag className="h-3.5 w-auto" />. Feito
+            pela VisionX no Maranhão, Brasil.
+          </p>
           <div className="flex gap-6">
             <Link href="/login" className="hover:text-foreground">
               Entrar

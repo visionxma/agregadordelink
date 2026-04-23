@@ -77,7 +77,7 @@ export default async function HealthPage() {
                     <div>
                       <h3 className="font-bold">{issues[0]!.pageTitle}</h3>
                       <p className="text-xs text-muted-foreground">
-                        linkhub.app/{issues[0]!.pageSlug}
+                        linkbiobr.com/{issues[0]!.pageSlug}
                       </p>
                     </div>
                     <Button asChild size="sm" variant="outline">

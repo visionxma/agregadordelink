@@ -37,8 +37,8 @@ export async function generateMetadata({
   if (!data) {
     if (SLUG_REGEX.test(slug) && !RESERVED_SLUGS.has(slug)) {
       return {
-        title: `linkhub.app/${slug} está disponível`,
-        description: `Reivindique /${slug} no LinkHub. Link na bio, encurtador, QR code e analytics — grátis.`,
+        title: `linkbiobr.com/${slug} está disponível`,
+        description: `Reivindique /${slug} no LinkBio BR. Link na bio, encurtador, QR code e analytics — grátis.`,
       };
     }
     return { title: "Página não encontrada" };

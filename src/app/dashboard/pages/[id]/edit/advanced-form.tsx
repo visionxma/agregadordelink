@@ -206,7 +206,7 @@ function SelectorReference({
             onInsert={onInsert}
           />
           <ExampleSnippet
-            title="Esconder rodapé LinkHub"
+            title="Esconder rodapé LinkBio BR"
             code={`.linkhub-footer {
   display: none !important;
 }`}

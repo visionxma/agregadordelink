@@ -4,7 +4,7 @@ import { allFontVariables, inter } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LinkHub — Sua bio, muito além do link",
+  title: "LinkBio BR — Sua bio, muito além do link",
   description:
     "Crie uma mini-landing page de alta conversão com checkout nativo, IA e analytics de verdade.",
 };

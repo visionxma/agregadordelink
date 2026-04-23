@@ -253,7 +253,7 @@ function DesktopFrame({ children }: { children: React.ReactNode }) {
           <span className="size-3 rounded-full bg-yellow-400" />
           <span className="size-3 rounded-full bg-green-400" />
           <div className="ml-2 flex-1 rounded-md bg-white px-2.5 py-0.5 text-[10px] font-mono text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            linkhub.app/sua-pagina
+            linkbiobr.com/sua-pagina
           </div>
         </div>
         <div className="relative h-[600px] overflow-hidden bg-white">

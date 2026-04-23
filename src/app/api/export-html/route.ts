@@ -189,7 +189,7 @@ ${p.description ? `<meta name="description" content="${escapeHtml(p.description)
     <div class="blocks">
       ${blocksHtml}
     </div>
-    <footer>Exportado de linkhub.app</footer>
+    <footer>Exportado de linkbiobr.com</footer>
   </div>
 </body>
 </html>`;

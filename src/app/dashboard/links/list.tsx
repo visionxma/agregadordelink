@@ -30,7 +30,7 @@ export function ShortLinksList({ links }: { links: ShortLink[] }) {
   const baseUrl =
     typeof window !== "undefined"
       ? window.location.origin
-      : "https://linkhub.app";
+      : "https://linkbiobr.com";
 
   function shortUrl(code: string) {
     return `${baseUrl}/s/${code}`;

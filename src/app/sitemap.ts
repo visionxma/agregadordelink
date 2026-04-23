@@ -9,7 +9,7 @@ export const revalidate = 3600;
 function getBaseUrl(): string {
   const url = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
   if (url) return url.replace(/\/$/, "");
-  return "https://linkhub.app";
+  return "https://linkbiobr.com";
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -77,7 +77,7 @@ export function QRCodeModal({
   async function nativeShare() {
     try {
       await navigator.share({
-        title: title ?? "LinkHub",
+        title: title ?? "LinkBio BR",
         text: title ? `Acessa meu link: ${title}` : "Confere meu link",
         url,
       });

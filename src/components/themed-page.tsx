@@ -31,6 +31,7 @@ import {
   TestimonialsBlock,
   WhatsappBlock,
 } from "./advanced-blocks";
+import { BrazilFlag } from "./brazil-flag";
 import { cursorCss, playClickSound, TiltWrapper } from "./theme-fx";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
@@ -367,16 +368,16 @@ export function ThemedPage({
           className="linkhub-footer flex flex-col items-center gap-2 pt-8 text-center text-xs"
           style={{ color: theme.mutedForeground }}
         >
-          <span>
+          <span className="inline-flex items-center gap-1">
             Feito com{" "}
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold underline underline-offset-2"
+              className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
               style={{ color: theme.foreground }}
             >
-              LinkHub
+              LinkBio <BrazilFlag className="h-3 w-auto" />
             </a>
           </span>
           {pageSlug && (

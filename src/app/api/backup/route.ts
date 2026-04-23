@@ -152,7 +152,7 @@ export async function GET() {
   zip.file(
     "README.txt",
     [
-      "LinkHub — Backup completo da sua conta",
+      "LinkBio BR — Backup completo da sua conta",
       "",
       `Gerado em: ${new Date().toISOString()}`,
       `Usuário: ${session.user.email}`,
@@ -168,7 +168,7 @@ export async function GET() {
   );
 
   const buffer = await zip.generateAsync({ type: "uint8array" });
-  const filename = `linkhub-backup-${new Date().toISOString().slice(0, 10)}.zip`;
+  const filename = `linkbiobr-backup-${new Date().toISOString().slice(0, 10)}.zip`;
 
   return new NextResponse(new Blob([buffer as BlobPart]), {
     status: 200,

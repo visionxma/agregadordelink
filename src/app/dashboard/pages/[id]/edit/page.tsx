@@ -58,7 +58,7 @@ export default async function EditPage({
             <div className="border-l border-border pl-3">
               <h1 className="text-sm font-bold">{p.title}</h1>
               <p className="text-xs text-muted-foreground">
-                linkhub.app/{p.slug}
+                linkbiobr.com/{p.slug}
               </p>
             </div>
           </div>

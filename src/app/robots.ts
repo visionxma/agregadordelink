@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 function getBaseUrl(): string {
   const url = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL;
   if (url) return url.replace(/\/$/, "");
-  return "https://linkhub.app";
+  return "https://linkbiobr.com";
 }
 
 export default function robots(): MetadataRoute.Robots {

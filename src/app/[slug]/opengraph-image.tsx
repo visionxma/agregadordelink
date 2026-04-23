@@ -6,7 +6,7 @@ import { normalizeTheme } from "@/lib/normalize-theme";
 import type { ThemeBackground } from "@/lib/db/schema";
 
 export const runtime = "nodejs";
-export const alt = "LinkHub";
+export const alt = "LinkBio BR";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 // Cacheia OG por 1 hora — evita regenerar no-demand a cada crawl do Facebook/X/LinkedIn
@@ -58,7 +58,7 @@ export default async function Image({
             fontWeight: 900,
           }}
         >
-          LinkHub
+          LinkBio BR
         </div>
       ),
       { ...size }
@@ -154,7 +154,7 @@ export default async function Image({
           >
             ✨
           </div>
-          linkhub.app/{p.slug}
+          linkbiobr.com/{p.slug}
         </div>
       </div>
     ),

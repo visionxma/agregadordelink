@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 
 const apiKey = process.env.RESEND_API_KEY;
-const fromEmail = process.env.EMAIL_FROM ?? "LinkHub <onboarding@resend.dev>";
+const fromEmail = process.env.EMAIL_FROM ?? "LinkBio BR <onboarding@resend.dev>";
 
 let resend: Resend | null = null;
 function getResend(): Resend | null {
@@ -33,12 +33,12 @@ export async function sendVerifyEmail(to: string, url: string) {
   const html = `
     <div style="${baseStyle}">
       <h1 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 12px;">Confirme seu email</h1>
-      <p style="color: #737373; margin: 0 0 8px;">Clica no botão abaixo pra confirmar seu email e começar a usar o LinkHub.</p>
+      <p style="color: #737373; margin: 0 0 8px;">Clica no botão abaixo pra confirmar seu email e começar a usar o LinkBio BR.</p>
       ${button(url, "Confirmar email")}
-      <p style="color: #a3a3a3; font-size: 12px;">Se você não criou conta no LinkHub, ignora esse email.</p>
+      <p style="color: #a3a3a3; font-size: 12px;">Se você não criou conta no LinkBio BR, ignora esse email.</p>
     </div>
   `;
-  await send(to, "Confirme seu email — LinkHub", html);
+  await send(to, "Confirme seu email — LinkBio BR", html);
 }
 
 export async function sendResetPasswordEmail(to: string, url: string) {
@@ -50,5 +50,5 @@ export async function sendResetPasswordEmail(to: string, url: string) {
       <p style="color: #a3a3a3; font-size: 12px;">Se você não pediu isso, pode ignorar.</p>
     </div>
   `;
-  await send(to, "Resetar senha — LinkHub", html);
+  await send(to, "Resetar senha — LinkBio BR", html);
 }

@@ -78,7 +78,7 @@ export function SlugInput({
           ringClass
         )}
       >
-        <span className="text-sm text-muted-foreground">linkhub.app/</span>
+        <span className="text-sm text-muted-foreground">linkbiobr.com/</span>
         <input
           name={name}
           required={required}

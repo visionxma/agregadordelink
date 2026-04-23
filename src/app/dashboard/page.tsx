@@ -128,7 +128,7 @@ export default async function DashboardPage() {
                 <div className="p-5">
                   <h3 className="truncate font-bold">{p.title}</h3>
                   <p className="truncate text-xs text-muted-foreground">
-                    linkhub.app/{p.slug}
+                    linkbiobr.com/{p.slug}
                   </p>
                   <PageCardActions id={p.id} slug={p.slug} title={p.title} />
                 </div>
