@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, X } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription } from "@/lib/db/schema";
@@ -90,9 +90,9 @@ export default async function BillingPage() {
                     Seu plano
                   </span>
                 )}
-                {!isCurrent && p.highlight && (
+                {!isCurrent && p.badge && (
                   <span className="absolute -top-3 left-6 rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-                    Popular
+                    {p.badge}
                   </span>
                 )}
                 <h3 className="text-xl font-bold">{p.name}</h3>
@@ -118,6 +118,17 @@ export default async function BillingPage() {
                     >
                       <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <Check className="size-2.5" />
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                  {p.notIncluded?.map((f) => (
+                    <li
+                      key={f}
+                      className="flex items-start gap-2 text-xs text-muted-foreground/50 line-through"
+                    >
+                      <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground/50">
+                        <X className="size-2.5" />
                       </span>
                       {f}
                     </li>
