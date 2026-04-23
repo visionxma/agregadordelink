@@ -23,6 +23,34 @@ export function isStorageConfigured(): boolean {
   return !!(supabaseUrl && supabaseServiceKey);
 }
 
+let bucketEnsured = false;
+
+async function ensureBucketExists(
+  client: ReturnType<typeof getStorageClient>
+): Promise<void> {
+  if (bucketEnsured) return;
+
+  const { data: buckets, error: listError } =
+    await client.storage.listBuckets();
+  if (listError) {
+    throw new Error(`Falha ao listar buckets: ${listError.message}`);
+  }
+
+  const exists = buckets?.some((b) => b.name === BUCKET);
+  if (!exists) {
+    const { error: createError } = await client.storage.createBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_IMAGE_SIZE,
+      allowedMimeTypes: [...ALLOWED_IMAGE_TYPES, ...ALLOWED_FONT_TYPES],
+    });
+    if (createError && !/already exists/i.test(createError.message)) {
+      throw new Error(`Falha ao criar bucket: ${createError.message}`);
+    }
+  }
+
+  bucketEnsured = true;
+}
+
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -76,12 +104,38 @@ export async function uploadImage(
   const finalExt = ext ?? "jpg";
   const key = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${finalExt}`;
 
+  try {
+    await ensureBucketExists(client);
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Falha ao preparar storage.",
+    };
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer());
-  const { error } = await client.storage.from(BUCKET).upload(key, buffer, {
+  let { error } = await client.storage.from(BUCKET).upload(key, buffer, {
     contentType: file.type,
     cacheControl: "31536000",
     upsert: false,
   });
+
+  if (error && /bucket not found/i.test(error.message)) {
+    bucketEnsured = false;
+    try {
+      await ensureBucketExists(client);
+    } catch (err) {
+      return {
+        error:
+          err instanceof Error ? err.message : "Falha ao preparar storage.",
+      };
+    }
+    const retry = await client.storage.from(BUCKET).upload(key, buffer, {
+      contentType: file.type,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    error = retry.error;
+  }
 
   if (error) {
     return { error: `Falha no upload: ${error.message}` };
