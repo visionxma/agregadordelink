@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 import { importPageFromUrl } from "./actions";
 
 export default function ImportPage() {
@@ -34,13 +34,8 @@ export default function ImportPage() {
                 <ArrowLeft className="size-4" /> Voltar
               </Link>
             </Button>
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
-                <Sparkles className="size-4" />
-              </span>
-              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
-                LinkBio <BrazilFlag className="h-5 w-auto" />
-              </span>
+            <Link href="/dashboard" className="flex items-center">
+              <LinkBioLogo size="md" />
             </Link>
           </div>
         </div>

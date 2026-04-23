@@ -7,7 +7,7 @@ import { block, page as pageTable, type Block } from "@/lib/db/schema";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { PagePreviewCard } from "@/components/page-preview-card";
-import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 import { Link2, Plus, Sparkles } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { PageCardActions } from "./page-card-actions";
@@ -45,13 +45,8 @@ export default async function DashboardPage() {
       <header className="glass-nav sticky top-0 z-30 border-b border-border/50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
-                <Sparkles className="size-4" />
-              </span>
-              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
-                LinkBio <BrazilFlag className="h-5 w-auto" />
-              </span>
+            <Link href="/dashboard" className="flex items-center">
+              <LinkBioLogo size="md" />
             </Link>
             <nav className="hidden gap-1 sm:flex">
               <Button asChild variant="secondary" size="sm">

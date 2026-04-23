@@ -9,7 +9,7 @@ import { subscription } from "@/lib/db/schema";
 import { PLAN_LIST, getPlan } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 import { BillingButtons } from "./billing-buttons";
 
 export default async function BillingPage() {
@@ -34,13 +34,8 @@ export default async function BillingPage() {
                 <ArrowLeft className="size-4" /> Voltar
               </Link>
             </Button>
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
-                <Sparkles className="size-4" />
-              </span>
-              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
-                LinkBio <BrazilFlag className="h-5 w-auto" />
-              </span>
+            <Link href="/dashboard" className="flex items-center">
+              <LinkBioLogo size="md" />
             </Link>
           </div>
         </div>

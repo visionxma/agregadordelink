@@ -8,7 +8,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 
 function ResetInner() {
   const router = useRouter();
@@ -98,14 +98,9 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-sm">
         <Link
           href="/"
-          className="mb-8 flex items-center justify-center gap-2"
+          className="mb-8 flex items-center justify-center"
         >
-          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
-            <Sparkles className="size-4" />
-          </span>
-          <span className="flex items-center gap-1.5 text-xl font-black tracking-tight">
-            LinkBio <BrazilFlag className="h-5 w-auto" />
-          </span>
+          <LinkBioLogo size="lg" />
         </Link>
 
         <div className="glass-strong rounded-3xl p-8 shadow-ios-lg">

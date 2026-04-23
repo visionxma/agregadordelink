@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 
 export function ClaimSlugLanding({ slug }: { slug: string }) {
   const signupHref = `/signup?slug=${encodeURIComponent(slug)}`;
@@ -23,13 +24,8 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
       >
         <div className="px-4 pt-5 sm:px-8 sm:pt-6">
           <header className="container mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full bg-white/95 px-4 shadow-ios-lg backdrop-blur sm:px-6">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Sparkles className="size-3.5" />
-              </span>
-              <span className="flex items-center gap-1.5 text-base font-black tracking-tight text-foreground">
-                LinkBio <BrazilFlag className="h-4 w-auto" />
-              </span>
+            <Link href="/" className="flex items-center">
+              <LinkBioLogo size="md" />
             </Link>
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm" className="rounded-full">

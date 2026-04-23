@@ -18,6 +18,7 @@ import {
   YoutubeIcon,
 } from "@/components/social-icons";
 import { BrazilFlag } from "@/components/brazil-flag";
+import { LinkBioLogo } from "@/components/linkbio-logo";
 import { themePresets } from "@/lib/themes";
 
 export default function HomePage() {
@@ -33,13 +34,8 @@ export default function HomePage() {
         {/* Navbar rounded pill no topo */}
         <div className="px-4 pt-5 sm:px-8 sm:pt-6">
           <header className="container mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full bg-white/95 px-4 shadow-ios-lg backdrop-blur sm:px-6">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Sparkles className="size-3.5" />
-              </span>
-              <span className="flex items-center gap-1.5 text-base font-black tracking-tight text-foreground">
-                LinkBio <BrazilFlag className="h-4 w-auto" />
-              </span>
+            <Link href="/" className="flex items-center">
+              <LinkBioLogo size="md" />
             </Link>
             <nav className="hidden items-center gap-6 text-sm font-medium text-foreground/80 sm:flex">
               <Link href="#temas" className="hover:text-foreground">
