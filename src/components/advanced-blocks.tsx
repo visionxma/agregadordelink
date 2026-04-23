@@ -1033,6 +1033,7 @@ export function ButtonGridBlock({
   theme: PageTheme;
   onButtonClick?: (label: string, url: string) => void;
 }) {
+  const isPlain = (data.style ?? "filled") === "plain";
   return (
     <div className={`grid ${gridColsClass(data.columns)} gap-2`}>
       {data.items.map((b, i) => {
@@ -1042,6 +1043,9 @@ export function ButtonGridBlock({
             : null;
         const hasLabel = Boolean(b.label && b.label.trim());
         const iconOnly = !hasLabel && Icon !== null;
+        const style: React.CSSProperties = isPlain
+          ? { color: theme.foreground }
+          : { background: theme.accent, color: theme.accentForeground };
         return (
           <a
             key={i}
@@ -1050,20 +1054,30 @@ export function ButtonGridBlock({
             rel="noopener noreferrer"
             onClick={() => onButtonClick?.(b.label || b.icon || "Botão", b.url)}
             className={cn(
-              "flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-transform active:scale-[0.98] hover:scale-[1.02]",
-              iconOnly ? "aspect-square p-3" : "px-3 py-3"
+              "flex items-center justify-center gap-2 text-sm font-semibold transition-transform active:scale-[0.95]",
+              isPlain ? "hover:scale-110" : "hover:scale-[1.02] rounded-xl",
+              iconOnly
+                ? isPlain
+                  ? "aspect-square p-2"
+                  : "aspect-square rounded-xl p-3"
+                : isPlain
+                  ? "py-1"
+                  : "rounded-xl px-3 py-3"
             )}
-            style={{
-              background: theme.accent,
-              color: theme.accentForeground,
-            }}
+            style={style}
             aria-label={b.label || b.icon || "botão"}
           >
             {Icon && (
               <Icon
                 className={cn(
                   "flex-shrink-0",
-                  iconOnly ? "size-6" : "size-4"
+                  iconOnly
+                    ? isPlain
+                      ? "size-10"
+                      : "size-6"
+                    : isPlain
+                      ? "size-5"
+                      : "size-4"
                 )}
               />
             )}

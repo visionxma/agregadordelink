@@ -512,6 +512,7 @@ export type BlockData =
   | {
       kind: "button-grid";
       columns: GridColumns;
+      style?: "filled" | "plain";
       items: { label: string; url: string; icon?: string }[];
     };
 

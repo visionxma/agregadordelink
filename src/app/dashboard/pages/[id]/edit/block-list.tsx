@@ -1303,6 +1303,28 @@ function SortableBlock({
                 value={data.columns}
                 onChange={(columns) => handleUpdate({ ...data, columns })}
               />
+              <div className="flex items-center gap-2">
+                <Label className="text-[11px] text-muted-foreground">
+                  Estilo
+                </Label>
+                <div className="flex gap-1">
+                  {(["filled", "plain"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleUpdate({ ...data, style: s })}
+                      className={cn(
+                        "rounded-md border px-2 py-1 text-[11px] font-semibold transition-colors",
+                        (data.style ?? "filled") === s
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      {s === "filled" ? "Com fundo" : "Só ícone"}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <p className="text-[11px] text-muted-foreground">
                 Deixe o texto vazio para criar um botão só com ícone.
               </p>
