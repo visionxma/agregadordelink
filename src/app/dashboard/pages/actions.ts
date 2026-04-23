@@ -503,12 +503,14 @@ export async function addBlock(pageId: string, type: BlockType) {
     },
     "button-grid": {
       kind: "button-grid",
-      columns: 2,
+      columns: 3,
       items: [
-        { label: "Botão 1", url: "https://" },
-        { label: "Botão 2", url: "https://" },
-        { label: "Botão 3", url: "https://" },
-        { label: "Botão 4", url: "https://" },
+        { label: "", url: "https://wa.me/", icon: "whatsapp" },
+        { label: "", url: "https://instagram.com/", icon: "instagram" },
+        { label: "", url: "https://twitter.com/", icon: "twitter" },
+        { label: "", url: "https://youtube.com/", icon: "youtube" },
+        { label: "", url: "https://facebook.com/", icon: "facebook" },
+        { label: "", url: "https://github.com/", icon: "github" },
       ],
     },
   };

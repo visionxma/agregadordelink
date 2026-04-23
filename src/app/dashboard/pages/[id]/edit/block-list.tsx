@@ -46,6 +46,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { SocialIconPicker } from "@/components/social-icon-picker";
 import { cn } from "@/lib/utils";
 import {
   deleteBlock,
@@ -1302,11 +1303,22 @@ function SortableBlock({
                 value={data.columns}
                 onChange={(columns) => handleUpdate({ ...data, columns })}
               />
+              <p className="text-[11px] text-muted-foreground">
+                Deixe o texto vazio para criar um botão só com ícone.
+              </p>
               {data.items.map((item, i) => (
-                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                <div key={i} className="space-y-1.5 rounded-lg bg-secondary/60 p-2">
+                  <SocialIconPicker
+                    value={item.icon}
+                    onChange={(icon) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, icon };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
                   <Input
                     defaultValue={item.label}
-                    placeholder="Texto do botão"
+                    placeholder="Texto (opcional — vazio = só ícone)"
                     onBlur={(e) => {
                       const next = [...data.items];
                       next[i] = { ...next[i]!, label: e.target.value };
@@ -1317,7 +1329,6 @@ function SortableBlock({
                     type="url"
                     defaultValue={item.url}
                     placeholder="https://"
-                    className="mt-1"
                     onBlur={(e) => {
                       const next = [...data.items];
                       next[i] = { ...next[i]!, url: e.target.value };
@@ -1326,7 +1337,7 @@ function SortableBlock({
                   />
                   <button
                     type="button"
-                    className="mt-1 text-[10px] text-destructive"
+                    className="text-[10px] text-destructive"
                     onClick={() =>
                       handleUpdate({
                         ...data,

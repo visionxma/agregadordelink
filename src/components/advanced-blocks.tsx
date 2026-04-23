@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { BlockData, PageTheme } from "@/lib/db/schema";
+import { socialIconMap, type SocialIconKey } from "@/components/social-icons";
+import { cn } from "@/lib/utils";
 
 // ============== NEWSLETTER ==============
 
@@ -1033,22 +1035,43 @@ export function ButtonGridBlock({
 }) {
   return (
     <div className={`grid ${gridColsClass(data.columns)} gap-2`}>
-      {data.items.map((b, i) => (
-        <a
-          key={i}
-          href={b.url || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => onButtonClick?.(b.label, b.url)}
-          className="truncate rounded-xl px-3 py-3 text-center text-sm font-semibold transition-transform active:scale-[0.98] hover:scale-[1.02]"
-          style={{
-            background: theme.accent,
-            color: theme.accentForeground,
-          }}
-        >
-          {b.label || "Botão"}
-        </a>
-      ))}
+      {data.items.map((b, i) => {
+        const Icon =
+          b.icon && b.icon in socialIconMap
+            ? socialIconMap[b.icon as SocialIconKey]
+            : null;
+        const hasLabel = Boolean(b.label && b.label.trim());
+        const iconOnly = !hasLabel && Icon !== null;
+        return (
+          <a
+            key={i}
+            href={b.url || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onButtonClick?.(b.label || b.icon || "Botão", b.url)}
+            className={cn(
+              "flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-transform active:scale-[0.98] hover:scale-[1.02]",
+              iconOnly ? "aspect-square p-3" : "px-3 py-3"
+            )}
+            style={{
+              background: theme.accent,
+              color: theme.accentForeground,
+            }}
+            aria-label={b.label || b.icon || "botão"}
+          >
+            {Icon && (
+              <Icon
+                className={cn(
+                  "flex-shrink-0",
+                  iconOnly ? "size-6" : "size-4"
+                )}
+              />
+            )}
+            {hasLabel && <span className="truncate">{b.label}</span>}
+            {!Icon && !hasLabel && <span>Botão</span>}
+          </a>
+        );
+      })}
     </div>
   );
 }

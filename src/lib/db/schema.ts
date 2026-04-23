@@ -512,7 +512,7 @@ export type BlockData =
   | {
       kind: "button-grid";
       columns: GridColumns;
-      items: { label: string; url: string }[];
+      items: { label: string; url: string; icon?: string }[];
     };
 
 export type EventType = "view" | "click";
