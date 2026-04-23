@@ -14,7 +14,31 @@ import {
 const requireVerification =
   isEmailConfigured() && process.env.EMAIL_VERIFICATION !== "disabled";
 
+// Origens sempre confiáveis — evita que uma env errada/desatualizada
+// bloqueie login com "Invalid origin". Acrescenta qualquer host extra
+// definido em APP_HOSTS (ex: subdomínios de staging).
+const extraOrigins = (process.env.APP_HOSTS ?? "")
+  .split(",")
+  .map((h) => h.trim())
+  .filter(Boolean)
+  .map((h) => {
+    if (h.startsWith("http")) return h;
+    if (h.startsWith("localhost")) return `http://${h}`;
+    return `https://${h}`;
+  });
+
+const trustedOrigins = Array.from(
+  new Set([
+    "https://linkbiobr.com",
+    "https://www.linkbiobr.com",
+    "http://localhost:3000",
+    ...extraOrigins,
+  ])
+);
+
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL ?? "https://linkbiobr.com",
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: {
