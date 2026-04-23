@@ -172,10 +172,11 @@ export const subscription = pgTable("subscription", {
     .unique()
     .references(() => user.id, { onDelete: "cascade" }),
   plan: text("plan").$type<PlanTier>().notNull().default("free"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  stripePriceId: text("stripe_price_id"),
-  status: text("status"), // active, trialing, canceled, past_due...
+  // Reutiliza colunas stripe_* sem migration (renomeadas só no TS)
+  gatewayCustomerId: text("stripe_customer_id"),
+  gatewaySubscriptionId: text("stripe_subscription_id"),
+  gatewayProductId: text("stripe_price_id"),
+  status: text("status"), // active, pending, canceled, past_due...
   currentPeriodEnd: timestamp("current_period_end"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),

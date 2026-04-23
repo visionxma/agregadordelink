@@ -6,7 +6,12 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription, type PlanTier } from "@/lib/db/schema";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import {
+  isAbacatePayConfigured,
+  createCustomer,
+  createBilling,
+  cancelBilling,
+} from "@/lib/abacatepay";
 import { PLANS } from "@/lib/plans";
 
 async function requireUser() {
@@ -15,13 +20,15 @@ async function requireUser() {
   return session.user;
 }
 
-function baseUrl() {
+function appUrl() {
   return process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 }
 
+// ─── Assinar plano ────────────────────────────────────────────────────────────
+
 export async function createCheckoutSession(plan: PlanTier) {
-  if (!isStripeConfigured()) {
-    return { error: "Billing não configurado. Avise o admin." };
+  if (!isAbacatePayConfigured()) {
+    return { error: "Pagamentos não configurados. Avise o administrador." };
   }
   if (plan === "free") {
     return { error: "Plano free não precisa de checkout." };
@@ -29,61 +36,83 @@ export async function createCheckoutSession(plan: PlanTier) {
 
   const user = await requireUser();
   const planConfig = PLANS[plan];
-  if (!planConfig.stripePriceId) {
-    return { error: `Price ID não configurado pro plano ${plan}.` };
+  if (!planConfig.abacateProductId) {
+    return { error: `Produto não configurado para o plano ${plan}.` };
   }
 
-  const stripe = getStripe()!;
-
-  // Verifica se já tem customer
+  // Busca ou cria subscription record + customer no Abacate Pay
   const [existingSub] = await db
     .select()
     .from(subscription)
     .where(eq(subscription.userId, user.id))
     .limit(1);
 
-  let customerId = existingSub?.stripeCustomerId;
+  let customerId = existingSub?.gatewayCustomerId ?? null;
+
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
+    const customer = await createCustomer({
       name: user.name,
-      metadata: { userId: user.id },
+      email: user.email,
     });
     customerId = customer.id;
+
+    // Salva o customerId antes de criar o checkout
+    if (existingSub) {
+      await db
+        .update(subscription)
+        .set({ gatewayCustomerId: customerId, updatedAt: new Date() })
+        .where(eq(subscription.userId, user.id));
+    } else {
+      await db.insert(subscription).values({
+        userId: user.id,
+        plan: "free",
+        gatewayCustomerId: customerId,
+        status: "pending",
+      });
+    }
   }
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: "subscription",
-    line_items: [{ price: planConfig.stripePriceId, quantity: 1 }],
-    success_url: `${baseUrl()}/dashboard/billing?success=1`,
-    cancel_url: `${baseUrl()}/dashboard/billing?canceled=1`,
-    metadata: { userId: user.id, plan },
-    subscription_data: { metadata: { userId: user.id, plan } },
+  const billing = await createBilling({
+    productId: planConfig.abacateProductId,
+    customerId,
+    userId: user.id,
+    plan,
+    completionUrl: `${appUrl()}/dashboard/billing?success=1`,
+    returnUrl: `${appUrl()}/dashboard/billing`,
   });
 
-  if (!session.url) return { error: "Erro ao criar checkout" };
-  redirect(session.url);
+  redirect(billing.url);
 }
 
-export async function createPortalSession() {
-  if (!isStripeConfigured()) {
-    return { error: "Billing não configurado." };
+// ─── Cancelar assinatura ──────────────────────────────────────────────────────
+
+export async function cancelSubscription() {
+  if (!isAbacatePayConfigured()) {
+    return { error: "Pagamentos não configurados." };
   }
+
   const user = await requireUser();
   const [sub] = await db
     .select()
     .from(subscription)
     .where(eq(subscription.userId, user.id))
     .limit(1);
-  if (!sub?.stripeCustomerId) {
-    return { error: "Você ainda não tem uma assinatura." };
+
+  if (!sub?.gatewaySubscriptionId) {
+    return { error: "Nenhuma assinatura ativa encontrada." };
   }
 
-  const stripe = getStripe()!;
-  const session = await stripe.billingPortal.sessions.create({
-    customer: sub.stripeCustomerId,
-    return_url: `${baseUrl()}/dashboard/billing`,
-  });
-  redirect(session.url);
+  try {
+    await cancelBilling(sub.gatewaySubscriptionId);
+  } catch (err) {
+    console.error("[cancelSubscription] abacatepay error:", err);
+    // Mesmo com erro na API, marca cancelamento no DB
+  }
+
+  await db
+    .update(subscription)
+    .set({ cancelAtPeriodEnd: true, updatedAt: new Date() })
+    .where(eq(subscription.userId, user.id));
+
+  return { ok: true as const };
 }

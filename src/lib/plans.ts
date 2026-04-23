@@ -25,7 +25,7 @@ export type PlanConfig = {
   priceDisplay: string;
   description: string;
   badge?: string;
-  stripePriceId?: string;
+  abacateProductId?: string; // externalId do produto no Abacate Pay dashboard
   features: string[];
   notIncluded?: string[];
   limits: PlanLimits;
@@ -80,7 +80,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
     priceDisplay: "R$ 29/mês",
     description: "Pra criadores que querem crescer de verdade.",
     badge: "Popular",
-    stripePriceId: process.env.STRIPE_PRICE_PRO,
+    abacateProductId: process.env.ABACATEPAY_PRODUCT_PRO,
     features: [
       "5 páginas",
       "Blocos ilimitados",
@@ -122,7 +122,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
     price: 7900,
     priceDisplay: "R$ 79/mês",
     description: "Pra negócios, agências e quem quer o controle total.",
-    stripePriceId: process.env.STRIPE_PRICE_BUSINESS,
+    abacateProductId: process.env.ABACATEPAY_PRODUCT_BUSINESS,
     features: [
       "Páginas ilimitadas",
       "Blocos ilimitados",
