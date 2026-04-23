@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { PLAN_LIST } from "@/lib/plans";
 
 export default function PricingPage() {
@@ -12,7 +13,9 @@ export default function PricingPage() {
             <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
               <Sparkles className="size-4" />
             </span>
-            <span className="text-lg font-black tracking-tight">linkhub</span>
+            <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+              LinkBio <BrazilFlag className="h-5 w-auto" />
+            </span>
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">

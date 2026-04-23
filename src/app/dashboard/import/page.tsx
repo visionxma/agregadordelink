@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { importPageFromUrl } from "./actions";
 
 export default function ImportPage() {
@@ -37,7 +38,9 @@ export default function ImportPage() {
               <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
                 <Sparkles className="size-4" />
               </span>
-              <span className="text-lg font-black tracking-tight">linkhub</span>
+              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+                LinkBio <BrazilFlag className="h-5 w-auto" />
+              </span>
             </Link>
           </div>
         </div>

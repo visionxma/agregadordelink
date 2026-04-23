@@ -9,6 +9,7 @@ import { subscription } from "@/lib/db/schema";
 import { PLAN_LIST, getPlan } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { BillingButtons } from "./billing-buttons";
 
 export default async function BillingPage() {
@@ -37,7 +38,9 @@ export default async function BillingPage() {
               <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
                 <Sparkles className="size-4" />
               </span>
-              <span className="text-lg font-black tracking-tight">linkhub</span>
+              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+                LinkBio <BrazilFlag className="h-5 w-auto" />
+              </span>
             </Link>
           </div>
         </div>

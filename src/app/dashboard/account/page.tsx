@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { SignOutButton } from "../sign-out-button";
 import { AccountForms } from "./account-forms";
 
@@ -25,7 +26,9 @@ export default async function AccountPage() {
               <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
                 <Sparkles className="size-4" />
               </span>
-              <span className="text-lg font-black tracking-tight">linkhub</span>
+              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+                LinkBio <BrazilFlag className="h-5 w-auto" />
+              </span>
             </Link>
           </div>
           <SignOutButton />

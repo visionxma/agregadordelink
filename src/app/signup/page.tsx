@@ -8,6 +8,7 @@ import {
   QrCode, Scissors, Sparkles, Youtube, ClipboardList,
 } from "lucide-react";
 import { GoogleSignInButton } from "@/components/google-sign-in-button";
+import { BrazilFlag } from "@/components/brazil-flag";
 
 type Tag = {
   id: string;
@@ -133,13 +134,19 @@ export default function SignupPage() {
               <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-ios-glow">
                 <Sparkles className="size-5" />
               </span>
-              <span className="text-2xl font-black tracking-tight text-foreground">linkhub</span>
+              <span className="flex items-center gap-2 text-2xl font-black tracking-tight text-foreground">
+                LinkBio <BrazilFlag className="h-6 w-auto" />
+              </span>
             </Link>
           </div>
 
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-black tracking-[-0.03em] text-foreground">
-              Crie sua conta no <span className="text-primary">linkhub.</span>
+              Crie sua conta no{" "}
+              <span className="inline-flex items-center gap-1.5 text-primary">
+                LinkBio <BrazilFlag className="h-5 w-auto" />
+              </span>
+              .
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Grátis pra sempre. Pronto em 30 segundos.

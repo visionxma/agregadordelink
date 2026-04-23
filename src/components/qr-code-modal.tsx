@@ -50,7 +50,7 @@ export function QRCodeModal({
     const canvas = canvasRef.current?.querySelector("canvas");
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = `qr-${encodeURIComponent(title || "linkhub")}.png`;
+    link.download = `qr-${encodeURIComponent(title || "linkbiobr")}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   }
@@ -62,7 +62,7 @@ export function QRCodeModal({
     const source = serializer.serializeToString(svg);
     const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
     const link = document.createElement("a");
-    link.download = `qr-${encodeURIComponent(title || "linkhub")}.svg`;
+    link.download = `qr-${encodeURIComponent(title || "linkbiobr")}.svg`;
     link.href = URL.createObjectURL(blob);
     link.click();
     URL.revokeObjectURL(link.href);

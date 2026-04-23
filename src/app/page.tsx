@@ -37,8 +37,8 @@ export default function HomePage() {
               <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Sparkles className="size-3.5" />
               </span>
-              <span className="text-base font-black tracking-tight text-foreground">
-                linkhub
+              <span className="flex items-center gap-1.5 text-base font-black tracking-tight text-foreground">
+                LinkBio <BrazilFlag className="h-4 w-auto" />
               </span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm font-medium text-foreground/80 sm:flex">

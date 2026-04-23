@@ -20,6 +20,7 @@ import {
 } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BrazilFlag } from "@/components/brazil-flag";
 import { SubmissionCard } from "./submission-card";
 
 export const dynamic = "force-dynamic";
@@ -91,7 +92,9 @@ export default async function SubmissionsPage({
               <span className="flex size-8 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-ios-glow">
                 <Sparkles className="size-4" />
               </span>
-              <span className="text-lg font-black tracking-tight">linkhub</span>
+              <span className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+                LinkBio <BrazilFlag className="h-5 w-auto" />
+              </span>
             </Link>
           </div>
         </div>
