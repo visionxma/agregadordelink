@@ -10,6 +10,7 @@ import {
 import { Loader2, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { cn } from "@/lib/utils";
 
@@ -292,6 +293,7 @@ export function ImageCropDialog({
   const dispH = img ? img.naturalHeight * baseScale * zoom : 0;
 
   return (
+    <ModalPortal>
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/70 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onCancel}
@@ -456,5 +458,6 @@ export function ImageCropDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

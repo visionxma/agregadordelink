@@ -69,7 +69,7 @@ export function LivePreview({
   }, []);
 
   return (
-    <div className="sticky top-20">
+    <div className="sticky top-0">
       {/* Toolbar */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

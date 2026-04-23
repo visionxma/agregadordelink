@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { cn } from "@/lib/utils";
 import {
   avatarStyles,
@@ -29,6 +30,7 @@ export function AvatarPicker({
   if (!open) return null;
 
   return (
+    <ModalPortal>
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
@@ -85,6 +87,7 @@ export function AvatarPicker({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

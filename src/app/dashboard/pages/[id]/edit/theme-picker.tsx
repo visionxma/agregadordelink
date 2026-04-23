@@ -5,6 +5,7 @@ import { Check, Palette, X } from "lucide-react";
 import { themePresets } from "@/lib/themes";
 import { ThemeThumbnail } from "@/components/theme-thumbnail";
 import { Button } from "@/components/ui/button";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { cn } from "@/lib/utils";
 import type { PageTheme } from "@/lib/db/schema";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
@@ -42,6 +43,7 @@ export function ThemePicker({
       </Button>
 
       {open && (
+        <ModalPortal>
         <div
           className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => setOpen(false)}
@@ -99,6 +101,7 @@ export function ThemePicker({
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

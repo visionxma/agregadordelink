@@ -5,6 +5,7 @@ import { Share2, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { Textarea } from "@/components/ui/textarea";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { publishAsTemplate } from "../../actions";
@@ -78,6 +79,7 @@ export function PublishTemplateButton({
       </Button>
 
       {open && (
+        <ModalPortal>
         <div
           className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
           onClick={() => !pending && setOpen(false)}
@@ -214,6 +216,7 @@ export function PublishTemplateButton({
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </>
   );

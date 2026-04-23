@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import {
   TwitchIcon,
   WhatsappIcon,
@@ -121,6 +122,7 @@ export function QRCodeModal({
   // Orientamos o usuário a baixar o QR e postar manualmente.
 
   return (
+    <ModalPortal>
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
@@ -238,6 +240,7 @@ export function QRCodeModal({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

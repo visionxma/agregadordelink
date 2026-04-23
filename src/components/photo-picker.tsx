@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalPortal } from "@/components/ui/modal-portal";
 import { cn } from "@/lib/utils";
 import {
   photoCategories,
@@ -31,6 +32,7 @@ export function PhotoPicker({
     photoCategories.find((c) => c.id === activeCategory) ?? photoCategories[0];
 
   return (
+    <ModalPortal>
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
@@ -87,6 +89,7 @@ export function PhotoPicker({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }
 

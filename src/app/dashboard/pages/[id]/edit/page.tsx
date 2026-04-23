@@ -46,8 +46,8 @@ export default async function EditPage({
   const theme = normalizeTheme(p.theme);
 
   return (
-    <main className="ambient-bg min-h-screen">
-      <header className="glass-nav sticky top-0 z-30 border-b border-border/50">
+    <main className="ambient-bg flex h-screen flex-col overflow-hidden">
+      <header className="glass-nav z-30 shrink-0 border-b border-border/50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="sm">
@@ -91,7 +91,7 @@ export default async function EditPage({
         </div>
       </header>
 
-      <section className="container mx-auto grid gap-6 px-4 py-8 lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,400px)]">
+      <section className="container mx-auto grid flex-1 gap-6 overflow-y-auto px-4 py-8 lg:grid-cols-[minmax(0,1fr)_360px_minmax(0,400px)]">
         <div className="space-y-6 min-w-0">
           <div>
             <h2 className="mb-4 text-lg font-bold tracking-tight">Blocos</h2>
