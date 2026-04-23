@@ -835,31 +835,41 @@ export function ImageCarouselBlock({
   theme: PageTheme;
   onItemClick?: (title: string, url: string) => void;
 }) {
+  const ratio = (data.aspect ?? "3:4").replace(":", "/");
+  const cardStyle: React.CSSProperties = {
+    aspectRatio: ratio,
+    height: "14rem",
+  };
   return (
     <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {data.items.map((it, i) => {
-        const img = it.imageUrl ? (
+        const card = it.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={it.imageUrl}
             alt={it.caption ?? ""}
-            className="h-56 w-44 flex-shrink-0 snap-start rounded-2xl object-cover"
+            className="rounded-2xl object-cover"
+            style={cardStyle}
           />
         ) : (
-          <div className="flex h-56 w-44 flex-shrink-0 snap-start items-center justify-center rounded-2xl bg-black/5 text-xs opacity-50">
+          <div
+            className="flex items-center justify-center rounded-2xl bg-black/5 text-xs opacity-50"
+            style={cardStyle}
+          >
             sem imagem
           </div>
         );
-        const wrap = it.caption ? (
-          <div key={i} className="flex-shrink-0 snap-start space-y-1">
-            {img}
+        const content = it.caption ? (
+          <>
+            {card}
             <p className="truncate px-1 text-center text-[11px] opacity-70">
               {it.caption}
             </p>
-          </div>
+          </>
         ) : (
-          img
+          card
         );
+        const wrapCls = "flex-shrink-0 snap-start space-y-1";
         return it.url ? (
           <a
             key={i}
@@ -867,12 +877,14 @@ export function ImageCarouselBlock({
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => onItemClick?.(it.caption ?? "Imagem", it.url!)}
-            className="flex-shrink-0 snap-start"
+            className={wrapCls}
           >
-            {wrap}
+            {content}
           </a>
         ) : (
-          wrap
+          <div key={i} className={wrapCls}>
+            {content}
+          </div>
         );
       })}
     </div>

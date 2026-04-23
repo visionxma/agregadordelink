@@ -498,6 +498,7 @@ export type BlockData =
     }
   | {
       kind: "image-carousel";
+      aspect?: "1:1" | "3:4" | "12:16" | "9:16" | "4:3" | "16:12" | "16:9";
       items: { imageUrl: string; caption?: string; url?: string }[];
     }
   | {

@@ -1078,6 +1078,30 @@ function SortableBlock({
 
           {data.kind === "image-carousel" && (
             <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label className="text-[11px] text-muted-foreground">
+                  Proporção
+                </Label>
+                <select
+                  value={data.aspect ?? "3:4"}
+                  onChange={(e) =>
+                    handleUpdate({
+                      ...data,
+                      aspect: e.target
+                        .value as NonNullable<typeof data.aspect>,
+                    })
+                  }
+                  className="rounded-md border border-input bg-card px-2 py-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="1:1">Quadrado (1:1)</option>
+                  <option value="3:4">Retrato 3:4</option>
+                  <option value="12:16">Retrato 12:16</option>
+                  <option value="9:16">Vertical 9:16</option>
+                  <option value="4:3">Paisagem 4:3</option>
+                  <option value="16:12">Paisagem 16:12</option>
+                  <option value="16:9">Horizontal 16:9</option>
+                </select>
+              </div>
               {data.items.map((item, i) => (
                 <div key={i} className="rounded-lg bg-secondary/60 p-2">
                   <Input
