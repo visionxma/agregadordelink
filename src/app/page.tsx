@@ -26,10 +26,13 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen text-foreground">
-      {/* HERO — bg azul vibrante estilo Linktree */}
+      {/* HERO — gradiente suave com verde e amarelo da bandeira */}
       <section
         className="relative overflow-hidden"
-        style={{ background: "#99CFFF" }}
+        style={{
+          background:
+            "linear-gradient(135deg, #c8f5d6 0%, #fff4a3 55%, #c8f5d6 100%)",
+        }}
       >
         {/* Navbar rounded pill no topo */}
         <div className="px-4 pt-5 sm:px-8 sm:pt-6">
@@ -69,13 +72,13 @@ export default function HomePage() {
             {/* Copy */}
             <div className="relative z-10">
               <h1
-                className="text-balance font-black leading-[0.9] tracking-[-0.04em] text-[#0a2d5e]"
+                className="text-balance font-black leading-[0.9] tracking-[-0.04em] text-[#002776]"
                 style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
               >
                 Um link na bio<br />
                 feito pra <span className="italic">você</span>.
               </h1>
-              <p className="mt-4 max-w-lg text-pretty text-base text-[#0a2d5e]/80 sm:text-lg">
+              <p className="mt-4 max-w-lg text-pretty text-base text-[#002776]/80 sm:text-lg">
                 Entre 70 mil criadores que usam o LinkBio BR. Um link só
                 pra compartilhar tudo que você cria, coleciona e vende no
                 Instagram, TikTok, YouTube e outras redes.
@@ -104,7 +107,7 @@ export default function HomePage() {
                 </Button>
               </form>
 
-              <p className="mt-3 text-sm text-[#0a2d5e]/70">
+              <p className="mt-3 text-sm text-[#002776]/70">
                 Sem cartão de crédito · Pronto em 30 segundos
               </p>
             </div>
@@ -215,7 +218,7 @@ export default function HomePage() {
             className="relative overflow-hidden rounded-[3rem] px-6 py-24 text-center sm:px-16 sm:py-32"
             style={{
               background:
-                "linear-gradient(135deg, #001f4d 0%, #0a4fa3 40%, #007aff 100%)",
+                "linear-gradient(135deg, #002776 0%, #009c3b 55%, #00b84a 100%)",
             }}
           >
             {/* Stars */}
@@ -231,11 +234,11 @@ export default function HomePage() {
             {/* Glow orbs */}
             <div
               className="pointer-events-none absolute -right-32 -top-32 size-[28rem] rounded-full opacity-50 blur-3xl"
-              style={{ background: "#5ac8fa" }}
+              style={{ background: "#ffdf00" }}
             />
             <div
               className="pointer-events-none absolute -left-40 bottom-0 size-96 rounded-full opacity-40 blur-3xl"
-              style={{ background: "#00b4ff" }}
+              style={{ background: "#00b84a" }}
             />
 
             {/* Floating ornaments */}
@@ -394,7 +397,7 @@ function HeroPhoneMockup() {
           className="relative h-[560px] overflow-hidden rounded-[36px]"
           style={{
             background:
-              "linear-gradient(135deg, #0a4fa3 0%, #007aff 50%, #5ac8fa 100%)",
+              "linear-gradient(135deg, #002776 0%, #009c3b 55%, #ffdf00 100%)",
           }}
         >
           {/* Conteúdo mockado */}
@@ -405,7 +408,7 @@ function HeroPhoneMockup() {
                 className="size-full"
                 style={{
                   background:
-                    "radial-gradient(circle, #fff 0%, #5ac8fa 100%)",
+                    "radial-gradient(circle, #fff 0%, #ffdf00 100%)",
                 }}
               />
             </div>
@@ -433,7 +436,7 @@ function HeroPhoneMockup() {
               ].map((t) => (
                 <div
                   key={t}
-                  className="w-full rounded-2xl bg-white py-3 text-center text-sm font-semibold text-[#0a2d5e] shadow-sm"
+                  className="w-full rounded-2xl bg-white py-3 text-center text-sm font-semibold text-[#002776] shadow-sm"
                 >
                   {t}
                 </div>

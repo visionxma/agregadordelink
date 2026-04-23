@@ -27,7 +27,7 @@ async function send(to: string, subject: string, html: string) {
 const baseStyle = `font-family: -apple-system, 'Segoe UI', sans-serif; max-width: 480px; margin: 40px auto; padding: 40px 32px; background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; color: #0a0a0a;`;
 
 const button = (url: string, label: string) =>
-  `<a href="${url}" style="display: inline-block; background: #007AFF; color: #fff; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 14px; margin: 16px 0;">${label}</a>`;
+  `<a href="${url}" style="display: inline-block; background: #009c3b; color: #fff; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 14px; margin: 16px 0;">${label}</a>`;
 
 export async function sendVerifyEmail(to: string, url: string) {
   const html = `

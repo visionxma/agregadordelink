@@ -690,12 +690,12 @@ function StepComplete({
 function Confetti() {
   const dots = Array.from({ length: 40 });
   const colors = [
-    "#007aff",
-    "#af52de",
-    "#ff375f",
-    "#ff9500",
-    "#34c759",
-    "#ffcc00",
+    "#009c3b",
+    "#ffdf00",
+    "#002776",
+    "#00b84a",
+    "#ffe94d",
+    "#ffffff",
   ];
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">

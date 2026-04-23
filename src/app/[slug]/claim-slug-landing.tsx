@@ -20,7 +20,10 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
     <main className="min-h-screen text-foreground">
       <section
         className="relative overflow-hidden"
-        style={{ background: "#99CFFF" }}
+        style={{
+          background:
+            "linear-gradient(135deg, #c8f5d6 0%, #fff4a3 55%, #c8f5d6 100%)",
+        }}
       >
         <div className="px-4 pt-5 sm:px-8 sm:pt-6">
           <header className="container mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full bg-white/95 px-4 shadow-ios-lg backdrop-blur sm:px-6">
@@ -49,14 +52,14 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
           </div>
 
           <h1
-            className="text-balance font-black leading-[0.95] tracking-[-0.04em] text-[#0a2d5e]"
+            className="text-balance font-black leading-[0.95] tracking-[-0.04em] text-[#002776]"
             style={{ fontSize: "clamp(2rem, 6vw, 4.5rem)" }}
           >
             linkbiobr.com/
             <span className="italic text-primary">{slug}</span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-xl text-balance text-lg font-medium text-[#0a2d5e]/80 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-xl text-balance text-lg font-medium text-[#002776]/80 sm:text-xl">
             Reivindique agora. Crie sua página em 60 segundos, sem cartão, sem
             complicação.
           </p>
@@ -82,7 +85,7 @@ export function ClaimSlugLanding({ slug }: { slug: string }) {
             </Button>
           </div>
 
-          <p className="mt-4 text-sm font-medium text-[#0a2d5e]/70">
+          <p className="mt-4 text-sm font-medium text-[#002776]/70">
             Grátis para sempre • Sem cartão • 2 minutos pra configurar
           </p>
         </div>
