@@ -114,6 +114,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
                 onUploaded={setCoverUrl}
                 label="Upload"
                 className="w-full"
+                crop="cover"
               />
               <Button
                 type="button"
@@ -164,6 +165,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
                 <ImageUploadButton
                   onUploaded={setAvatarUrl}
                   label="Upload"
+                  crop="square"
                 />
                 <Button
                   type="button"

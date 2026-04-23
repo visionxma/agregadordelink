@@ -4,25 +4,32 @@ import { useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  ImageCropDialog,
+  type CropAspect,
+} from "@/components/image-crop-dialog";
 
 export function ImageUploadButton({
   onUploaded,
   label = "Fazer upload",
   variant = "outline",
   className,
+  crop,
+  accept = "image/jpeg,image/png,image/webp,image/gif",
 }: {
   onUploaded: (url: string) => void;
   label?: string;
   variant?: "outline" | "default";
   className?: string;
+  /** Quando definido, abre o editor de crop antes de enviar (só faz sentido pra imagem). */
+  crop?: CropAspect;
+  accept?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
-  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  async function uploadFile(file: File) {
     setUploading(true);
     try {
       const formData = new FormData();
@@ -42,8 +49,21 @@ export function ImageUploadButton({
       toast.error("Falha na conexão");
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
     }
+  }
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    // Limpa o input pra permitir reselecionar o mesmo arquivo.
+    if (inputRef.current) inputRef.current.value = "";
+    if (!file) return;
+
+    if (crop && file.type.startsWith("image/")) {
+      setPendingFile(file);
+      return;
+    }
+
+    await uploadFile(file);
   }
 
   return (
@@ -66,10 +86,21 @@ export function ImageUploadButton({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept={accept}
         onChange={handleChange}
         className="hidden"
       />
+      {crop && pendingFile && (
+        <ImageCropDialog
+          file={pendingFile}
+          aspect={crop}
+          onCancel={() => setPendingFile(null)}
+          onConfirm={async (processed) => {
+            setPendingFile(null);
+            await uploadFile(processed);
+          }}
+        />
+      )}
     </>
   );
 }

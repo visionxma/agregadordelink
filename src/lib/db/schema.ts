@@ -370,6 +370,8 @@ export type CursorStyle =
   | "star";
 export type ClickSound = "none" | "pop" | "click" | "ding" | "tap";
 
+export type BlockLayout = "list" | "grid";
+
 export type PageTheme = {
   preset?: string;
   background: ThemeBackground;
@@ -391,6 +393,7 @@ export type PageTheme = {
   darkModeAuto?: boolean;
   cursor?: CursorStyle;
   clickSound?: ClickSound;
+  layout?: BlockLayout;
 };
 
 export type BlockType =

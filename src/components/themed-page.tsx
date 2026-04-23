@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import type {
   AvatarShape,
   BlockData,
+  BlockLayout,
   BlockStyle,
+  BlockType,
   ButtonStyle,
   Effect,
   PageTheme,
@@ -339,22 +341,35 @@ export function ThemedPage({
           )}
         </header>
 
-        <div className={cn("linkhub-blocks mt-8", blocksGapClass(theme.spacing))}>
+        <div
+          className={cn(
+            "linkhub-blocks mt-8",
+            blocksLayoutClass(theme.spacing, theme.layout)
+          )}
+        >
           {blocks.map((b, i) => (
-            <AnimatedWrap key={b.id} index={i} animation={entryAnim}>
-              <div
-                className={`linkhub-block linkhub-block-${b.type}`}
-                data-block-id={b.id}
-              >
-                <BlockView
-                  block={b}
-                  theme={theme}
-                  pageId={pageId}
-                  pageSlug={pageSlug}
-                  trackEvents={trackEvents}
-                />
-              </div>
-            </AnimatedWrap>
+            <div
+              key={b.id}
+              className={cn(
+                "min-w-0",
+                theme.layout === "grid" && !isGridableBlock(b.type) && "col-span-2"
+              )}
+            >
+              <AnimatedWrap index={i} animation={entryAnim}>
+                <div
+                  className={`linkhub-block linkhub-block-${b.type}`}
+                  data-block-id={b.id}
+                >
+                  <BlockView
+                    block={b}
+                    theme={theme}
+                    pageId={pageId}
+                    pageSlug={pageSlug}
+                    trackEvents={trackEvents}
+                  />
+                </div>
+              </AnimatedWrap>
+            </div>
           ))}
         </div>
 
@@ -423,12 +438,22 @@ function spacingClass(s: Spacing): string {
   return s === "tight" ? "py-4" : s === "loose" ? "py-10" : "py-6";
 }
 
-function blocksGapClass(s: Spacing): string {
-  return s === "tight"
-    ? "flex flex-col gap-2"
-    : s === "loose"
-      ? "flex flex-col gap-5"
-      : "flex flex-col gap-3";
+function blocksLayoutClass(s: Spacing, layout?: BlockLayout): string {
+  const gap = s === "tight" ? "gap-2" : s === "loose" ? "gap-5" : "gap-3";
+  return layout === "grid"
+    ? `grid grid-cols-2 ${gap}`
+    : `flex flex-col ${gap}`;
+}
+
+const GRIDABLE_BLOCKS: ReadonlySet<string> = new Set<BlockType>([
+  "link",
+  "image",
+  "whatsapp",
+  "social-embed",
+]);
+
+function isGridableBlock(t: string): boolean {
+  return GRIDABLE_BLOCKS.has(t);
 }
 
 function AnimatedWrap({

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { ImageIcon, Palette as PaletteIcon, Sparkles } from "lucide-react";
 import type {
   AvatarShape,
+  BlockLayout,
   ButtonHover,
   ButtonStyle,
   ButtonWidth,
@@ -113,6 +114,19 @@ export function CustomizerPanel({
           onChange={(v) => update({ avatarShape: v })}
           options={AVATAR_OPTIONS}
         />
+      </Section>
+
+      <Section title="Layout dos blocos">
+        <OptionGrid<BlockLayout>
+          value={local.layout ?? "list"}
+          onChange={(v) => update({ layout: v })}
+          options={LAYOUT_OPTIONS}
+        />
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Em grade, links, imagens e WhatsApp ficam lado a lado. Blocos
+          maiores (texto, vídeo, formulário…) continuam ocupando a linha
+          toda.
+        </p>
       </Section>
 
       <Section title="Espaçamento">
@@ -395,16 +409,26 @@ function BackgroundControl({
 
       {background.type === "image" && (
         <div className="space-y-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full justify-start gap-2"
-            onClick={() => setPhotoOpen(true)}
-          >
-            <ImageIcon className="size-4" />
-            Banco de fotos
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <ImageUploadButton
+              onUploaded={(url) =>
+                onChange({ type: "image", url, overlay: background.overlay })
+              }
+              label="Upload"
+              crop="portrait"
+              className="w-full"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full justify-center gap-2"
+              onClick={() => setPhotoOpen(true)}
+            >
+              <ImageIcon className="size-4" />
+              Banco
+            </Button>
+          </div>
           {background.url && (
             <div className="overflow-hidden rounded-lg border">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -695,6 +719,11 @@ const SPACING_OPTIONS: { value: Spacing; label: string }[] = [
   { value: "tight", label: "Apertado" },
   { value: "normal", label: "Normal" },
   { value: "loose", label: "Largo" },
+];
+
+const LAYOUT_OPTIONS: { value: BlockLayout; label: string }[] = [
+  { value: "list", label: "Lista" },
+  { value: "grid", label: "Grade 2 colunas" },
 ];
 
 const EFFECT_OPTIONS: { value: Effect; label: string }[] = [
