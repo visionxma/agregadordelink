@@ -370,8 +370,6 @@ export type CursorStyle =
   | "star";
 export type ClickSound = "none" | "pop" | "click" | "ding" | "tap";
 
-export type BlockLayout = "list" | "grid";
-
 export type PageTheme = {
   preset?: string;
   background: ThemeBackground;
@@ -393,7 +391,6 @@ export type PageTheme = {
   darkModeAuto?: boolean;
   cursor?: CursorStyle;
   clickSound?: ClickSound;
-  layout?: BlockLayout;
 };
 
 export type BlockType =
@@ -412,7 +409,14 @@ export type BlockType =
   | "testimonials"
   | "map"
   | "events"
-  | "products";
+  | "products"
+  | "grid"
+  | "image-carousel"
+  | "product-grid"
+  | "product-carousel"
+  | "button-grid";
+
+export type GridColumns = 1 | 2 | 3;
 
 export type FormField = {
   id: string;
@@ -486,6 +490,29 @@ export type BlockData =
   | {
       kind: "products";
       items: { title: string; price?: string; imageUrl?: string; url?: string }[];
+    }
+  | {
+      kind: "grid";
+      columns: GridColumns;
+      items: { title?: string; imageUrl?: string; url?: string }[];
+    }
+  | {
+      kind: "image-carousel";
+      items: { imageUrl: string; caption?: string; url?: string }[];
+    }
+  | {
+      kind: "product-grid";
+      columns: GridColumns;
+      items: { title: string; price?: string; imageUrl?: string; url?: string }[];
+    }
+  | {
+      kind: "product-carousel";
+      items: { title: string; price?: string; imageUrl?: string; url?: string }[];
+    }
+  | {
+      kind: "button-grid";
+      columns: GridColumns;
+      items: { label: string; url: string }[];
     };
 
 export type EventType = "view" | "click";

@@ -465,6 +465,52 @@ export async function addBlock(pageId: string, type: BlockType) {
         { title: "Produto 2", price: "R$ 149", imageUrl: "" },
       ],
     },
+    grid: {
+      kind: "grid",
+      columns: 2,
+      items: [
+        { title: "Item 1", imageUrl: "" },
+        { title: "Item 2", imageUrl: "" },
+        { title: "Item 3", imageUrl: "" },
+        { title: "Item 4", imageUrl: "" },
+      ],
+    },
+    "image-carousel": {
+      kind: "image-carousel",
+      items: [
+        { imageUrl: "", caption: "Foto 1" },
+        { imageUrl: "", caption: "Foto 2" },
+        { imageUrl: "", caption: "Foto 3" },
+      ],
+    },
+    "product-grid": {
+      kind: "product-grid",
+      columns: 2,
+      items: [
+        { title: "Produto 1", price: "R$ 99", imageUrl: "" },
+        { title: "Produto 2", price: "R$ 149", imageUrl: "" },
+        { title: "Produto 3", price: "R$ 199", imageUrl: "" },
+        { title: "Produto 4", price: "R$ 249", imageUrl: "" },
+      ],
+    },
+    "product-carousel": {
+      kind: "product-carousel",
+      items: [
+        { title: "Produto 1", price: "R$ 99", imageUrl: "" },
+        { title: "Produto 2", price: "R$ 149", imageUrl: "" },
+        { title: "Produto 3", price: "R$ 199", imageUrl: "" },
+      ],
+    },
+    "button-grid": {
+      kind: "button-grid",
+      columns: 2,
+      items: [
+        { label: "Botão 1", url: "https://" },
+        { label: "Botão 2", url: "https://" },
+        { label: "Botão 3", url: "https://" },
+        { label: "Botão 4", url: "https://" },
+      ],
+    },
   };
 
   await db.insert(block).values({

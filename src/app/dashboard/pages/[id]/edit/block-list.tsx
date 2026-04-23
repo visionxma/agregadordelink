@@ -1005,6 +1005,354 @@ function SortableBlock({
               </Button>
             </div>
           )}
+
+          {data.kind === "grid" && (
+            <div className="space-y-2">
+              <ColumnSelector
+                value={data.columns}
+                onChange={(columns) => handleUpdate({ ...data, columns })}
+              />
+              {data.items.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                  <Input
+                    defaultValue={item.title ?? ""}
+                    placeholder="Título (opcional)"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, title: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.imageUrl ?? ""}
+                    placeholder="URL da imagem"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, imageUrl: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.url ?? ""}
+                    placeholder="URL de destino (opcional)"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, url: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-[10px] text-destructive"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        items: data.items.filter((_, x) => x !== i),
+                      })
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  handleUpdate({
+                    ...data,
+                    items: [...data.items, { title: "" }],
+                  })
+                }
+              >
+                + Adicionar item
+              </Button>
+            </div>
+          )}
+
+          {data.kind === "image-carousel" && (
+            <div className="space-y-2">
+              {data.items.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                  <Input
+                    type="url"
+                    defaultValue={item.imageUrl}
+                    placeholder="URL da imagem"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, imageUrl: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    defaultValue={item.caption ?? ""}
+                    placeholder="Legenda (opcional)"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, caption: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.url ?? ""}
+                    placeholder="URL de destino (opcional)"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, url: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-[10px] text-destructive"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        items: data.items.filter((_, x) => x !== i),
+                      })
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  handleUpdate({
+                    ...data,
+                    items: [...data.items, { imageUrl: "" }],
+                  })
+                }
+              >
+                + Adicionar imagem
+              </Button>
+            </div>
+          )}
+
+          {data.kind === "product-grid" && (
+            <div className="space-y-2">
+              <ColumnSelector
+                value={data.columns}
+                onChange={(columns) => handleUpdate({ ...data, columns })}
+              />
+              {data.items.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Input
+                      defaultValue={item.title}
+                      placeholder="Produto"
+                      onBlur={(e) => {
+                        const next = [...data.items];
+                        next[i] = { ...next[i]!, title: e.target.value };
+                        handleUpdate({ ...data, items: next });
+                      }}
+                    />
+                    <Input
+                      defaultValue={item.price ?? ""}
+                      placeholder="R$ 99"
+                      onBlur={(e) => {
+                        const next = [...data.items];
+                        next[i] = { ...next[i]!, price: e.target.value };
+                        handleUpdate({ ...data, items: next });
+                      }}
+                    />
+                  </div>
+                  <Input
+                    type="url"
+                    defaultValue={item.imageUrl ?? ""}
+                    placeholder="URL da imagem"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, imageUrl: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.url ?? ""}
+                    placeholder="URL de compra"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, url: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-[10px] text-destructive"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        items: data.items.filter((_, x) => x !== i),
+                      })
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  handleUpdate({
+                    ...data,
+                    items: [...data.items, { title: "", price: "" }],
+                  })
+                }
+              >
+                + Adicionar produto
+              </Button>
+            </div>
+          )}
+
+          {data.kind === "product-carousel" && (
+            <div className="space-y-2">
+              {data.items.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Input
+                      defaultValue={item.title}
+                      placeholder="Produto"
+                      onBlur={(e) => {
+                        const next = [...data.items];
+                        next[i] = { ...next[i]!, title: e.target.value };
+                        handleUpdate({ ...data, items: next });
+                      }}
+                    />
+                    <Input
+                      defaultValue={item.price ?? ""}
+                      placeholder="R$ 99"
+                      onBlur={(e) => {
+                        const next = [...data.items];
+                        next[i] = { ...next[i]!, price: e.target.value };
+                        handleUpdate({ ...data, items: next });
+                      }}
+                    />
+                  </div>
+                  <Input
+                    type="url"
+                    defaultValue={item.imageUrl ?? ""}
+                    placeholder="URL da imagem"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, imageUrl: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.url ?? ""}
+                    placeholder="URL de compra"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, url: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-[10px] text-destructive"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        items: data.items.filter((_, x) => x !== i),
+                      })
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  handleUpdate({
+                    ...data,
+                    items: [...data.items, { title: "", price: "" }],
+                  })
+                }
+              >
+                + Adicionar produto
+              </Button>
+            </div>
+          )}
+
+          {data.kind === "button-grid" && (
+            <div className="space-y-2">
+              <ColumnSelector
+                value={data.columns}
+                onChange={(columns) => handleUpdate({ ...data, columns })}
+              />
+              {data.items.map((item, i) => (
+                <div key={i} className="rounded-lg bg-secondary/60 p-2">
+                  <Input
+                    defaultValue={item.label}
+                    placeholder="Texto do botão"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, label: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <Input
+                    type="url"
+                    defaultValue={item.url}
+                    placeholder="https://"
+                    className="mt-1"
+                    onBlur={(e) => {
+                      const next = [...data.items];
+                      next[i] = { ...next[i]!, url: e.target.value };
+                      handleUpdate({ ...data, items: next });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mt-1 text-[10px] text-destructive"
+                    onClick={() =>
+                      handleUpdate({
+                        ...data,
+                        items: data.items.filter((_, x) => x !== i),
+                      })
+                    }
+                  >
+                    Remover
+                  </button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  handleUpdate({
+                    ...data,
+                    items: [...data.items, { label: "", url: "https://" }],
+                  })
+                }
+              >
+                + Adicionar botão
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -1090,4 +1438,35 @@ function extractVideoId(
     }
   } catch {}
   return trimmed;
+}
+
+function ColumnSelector({
+  value,
+  onChange,
+}: {
+  value: 1 | 2 | 3;
+  onChange: (v: 1 | 2 | 3) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Label className="text-[11px] text-muted-foreground">Colunas</Label>
+      <div className="flex gap-1">
+        {[1, 2, 3].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(n as 1 | 2 | 3)}
+            className={cn(
+              "size-7 rounded-md border text-xs font-semibold transition-colors",
+              value === n
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border bg-card hover:border-primary/50"
+            )}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }

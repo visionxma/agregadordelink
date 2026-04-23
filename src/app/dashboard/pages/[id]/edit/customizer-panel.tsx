@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { ImageIcon, Palette as PaletteIcon, Sparkles } from "lucide-react";
 import type {
   AvatarShape,
-  BlockLayout,
   ButtonHover,
   ButtonStyle,
   ButtonWidth,
@@ -114,19 +113,6 @@ export function CustomizerPanel({
           onChange={(v) => update({ avatarShape: v })}
           options={AVATAR_OPTIONS}
         />
-      </Section>
-
-      <Section title="Layout dos blocos">
-        <OptionGrid<BlockLayout>
-          value={local.layout ?? "list"}
-          onChange={(v) => update({ layout: v })}
-          options={LAYOUT_OPTIONS}
-        />
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          Em grade, links, imagens e WhatsApp ficam lado a lado. Blocos
-          maiores (texto, vídeo, formulário…) continuam ocupando a linha
-          toda.
-        </p>
       </Section>
 
       <Section title="Espaçamento">
@@ -719,11 +705,6 @@ const SPACING_OPTIONS: { value: Spacing; label: string }[] = [
   { value: "tight", label: "Apertado" },
   { value: "normal", label: "Normal" },
   { value: "loose", label: "Largo" },
-];
-
-const LAYOUT_OPTIONS: { value: BlockLayout; label: string }[] = [
-  { value: "list", label: "Lista" },
-  { value: "grid", label: "Grade 2 colunas" },
 ];
 
 const EFFECT_OPTIONS: { value: Effect; label: string }[] = [

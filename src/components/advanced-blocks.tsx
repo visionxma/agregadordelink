@@ -754,3 +754,301 @@ export function ProductsBlock({
     </div>
   );
 }
+
+// ============== GRID (genérico) ==============
+
+function gridColsClass(n: 1 | 2 | 3): string {
+  return n === 1 ? "grid-cols-1" : n === 3 ? "grid-cols-3" : "grid-cols-2";
+}
+
+export function GridBlock({
+  data,
+  theme,
+  onItemClick,
+}: {
+  data: Extract<BlockData, { kind: "grid" }>;
+  theme: PageTheme;
+  onItemClick?: (title: string, url: string) => void;
+}) {
+  return (
+    <div className={`grid ${gridColsClass(data.columns)} gap-2`}>
+      {data.items.map((it, i) => {
+        const inner = (
+          <>
+            {it.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={it.imageUrl}
+                alt={it.title ?? ""}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-black/5 text-xs opacity-50">
+                sem imagem
+              </div>
+            )}
+            {it.title && (
+              <p
+                className="mt-2 truncate text-center text-xs font-semibold"
+                style={{ color: theme.foreground }}
+              >
+                {it.title}
+              </p>
+            )}
+          </>
+        );
+        return it.url ? (
+          <a
+            key={i}
+            href={it.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onItemClick?.(it.title ?? "Item", it.url!)}
+            className="rounded-2xl p-2 transition-transform hover:scale-[1.02]"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </a>
+        ) : (
+          <div
+            key={i}
+            className="rounded-2xl p-2"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============== IMAGE CAROUSEL ==============
+
+export function ImageCarouselBlock({
+  data,
+  onItemClick,
+}: {
+  data: Extract<BlockData, { kind: "image-carousel" }>;
+  theme: PageTheme;
+  onItemClick?: (title: string, url: string) => void;
+}) {
+  return (
+    <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {data.items.map((it, i) => {
+        const img = it.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={it.imageUrl}
+            alt={it.caption ?? ""}
+            className="h-56 w-44 flex-shrink-0 snap-start rounded-2xl object-cover"
+          />
+        ) : (
+          <div className="flex h-56 w-44 flex-shrink-0 snap-start items-center justify-center rounded-2xl bg-black/5 text-xs opacity-50">
+            sem imagem
+          </div>
+        );
+        const wrap = it.caption ? (
+          <div key={i} className="flex-shrink-0 snap-start space-y-1">
+            {img}
+            <p className="truncate px-1 text-center text-[11px] opacity-70">
+              {it.caption}
+            </p>
+          </div>
+        ) : (
+          img
+        );
+        return it.url ? (
+          <a
+            key={i}
+            href={it.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onItemClick?.(it.caption ?? "Imagem", it.url!)}
+            className="flex-shrink-0 snap-start"
+          >
+            {wrap}
+          </a>
+        ) : (
+          wrap
+        );
+      })}
+    </div>
+  );
+}
+
+// ============== PRODUCT GRID (colunas configuráveis) ==============
+
+export function ProductGridBlock({
+  data,
+  theme,
+  onProductClick,
+}: {
+  data: Extract<BlockData, { kind: "product-grid" }>;
+  theme: PageTheme;
+  onProductClick?: (title: string, url: string) => void;
+}) {
+  return (
+    <div className={`grid ${gridColsClass(data.columns)} gap-2`}>
+      {data.items.map((p, i) => {
+        const inner = (
+          <>
+            {p.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.imageUrl}
+                alt={p.title}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-black/5 text-xs opacity-50">
+                sem imagem
+              </div>
+            )}
+            <p
+              className="mt-2 truncate text-xs font-semibold"
+              style={{ color: theme.foreground }}
+            >
+              {p.title}
+            </p>
+            {p.price && (
+              <p
+                className="text-[11px] font-bold"
+                style={{ color: theme.accent }}
+              >
+                {p.price}
+              </p>
+            )}
+          </>
+        );
+        return p.url ? (
+          <a
+            key={i}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onProductClick?.(p.title, p.url!)}
+            className="rounded-2xl p-2 transition-transform hover:scale-[1.02]"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </a>
+        ) : (
+          <div
+            key={i}
+            className="rounded-2xl p-2"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============== PRODUCT CAROUSEL ==============
+
+export function ProductCarouselBlock({
+  data,
+  theme,
+  onProductClick,
+}: {
+  data: Extract<BlockData, { kind: "product-carousel" }>;
+  theme: PageTheme;
+  onProductClick?: (title: string, url: string) => void;
+}) {
+  return (
+    <div className="-mx-2 flex snap-x snap-mandatory gap-3 overflow-x-auto px-2 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {data.items.map((p, i) => {
+        const inner = (
+          <>
+            {p.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={p.imageUrl}
+                alt={p.title}
+                className="aspect-square w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex aspect-square items-center justify-center rounded-xl bg-black/5 text-xs opacity-50">
+                sem imagem
+              </div>
+            )}
+            <p
+              className="mt-2 truncate text-xs font-semibold"
+              style={{ color: theme.foreground }}
+            >
+              {p.title}
+            </p>
+            {p.price && (
+              <p
+                className="text-[11px] font-bold"
+                style={{ color: theme.accent }}
+              >
+                {p.price}
+              </p>
+            )}
+          </>
+        );
+        const card = (
+          <div
+            className="w-40 flex-shrink-0 snap-start rounded-2xl p-2"
+            style={{ background: theme.accent + "10" }}
+          >
+            {inner}
+          </div>
+        );
+        return p.url ? (
+          <a
+            key={i}
+            href={p.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onProductClick?.(p.title, p.url!)}
+            className="flex-shrink-0 snap-start"
+          >
+            {card}
+          </a>
+        ) : (
+          <div key={i} className="flex-shrink-0 snap-start">
+            {card}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============== BUTTON GRID ==============
+
+export function ButtonGridBlock({
+  data,
+  theme,
+  onButtonClick,
+}: {
+  data: Extract<BlockData, { kind: "button-grid" }>;
+  theme: PageTheme;
+  onButtonClick?: (label: string, url: string) => void;
+}) {
+  return (
+    <div className={`grid ${gridColsClass(data.columns)} gap-2`}>
+      {data.items.map((b, i) => (
+        <a
+          key={i}
+          href={b.url || "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => onButtonClick?.(b.label, b.url)}
+          className="truncate rounded-xl px-3 py-3 text-center text-sm font-semibold transition-transform active:scale-[0.98] hover:scale-[1.02]"
+          style={{
+            background: theme.accent,
+            color: theme.accentForeground,
+          }}
+        >
+          {b.label || "Botão"}
+        </a>
+      ))}
+    </div>
+  );
+}

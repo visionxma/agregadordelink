@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type {
   AvatarShape,
   BlockData,
-  BlockLayout,
   BlockStyle,
-  BlockType,
   ButtonStyle,
   Effect,
   PageTheme,
@@ -16,13 +14,18 @@ import type {
 import { fontCssVarMap } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import {
+  ButtonGridBlock,
   CountdownBlock,
   EventsBlock,
   FaqBlock,
   FormBlock,
+  GridBlock,
+  ImageCarouselBlock,
   MapBlock,
   MusicBlock,
   NewsletterBlock,
+  ProductCarouselBlock,
+  ProductGridBlock,
   ProductsBlock,
   SocialEmbedBlock,
   TestimonialsBlock,
@@ -341,35 +344,22 @@ export function ThemedPage({
           )}
         </header>
 
-        <div
-          className={cn(
-            "linkhub-blocks mt-8",
-            blocksLayoutClass(theme.spacing, theme.layout)
-          )}
-        >
+        <div className={cn("linkhub-blocks mt-8", blocksGapClass(theme.spacing))}>
           {blocks.map((b, i) => (
-            <div
-              key={b.id}
-              className={cn(
-                "min-w-0",
-                theme.layout === "grid" && !isGridableBlock(b.type) && "col-span-2"
-              )}
-            >
-              <AnimatedWrap index={i} animation={entryAnim}>
-                <div
-                  className={`linkhub-block linkhub-block-${b.type}`}
-                  data-block-id={b.id}
-                >
-                  <BlockView
-                    block={b}
-                    theme={theme}
-                    pageId={pageId}
-                    pageSlug={pageSlug}
-                    trackEvents={trackEvents}
-                  />
-                </div>
-              </AnimatedWrap>
-            </div>
+            <AnimatedWrap key={b.id} index={i} animation={entryAnim}>
+              <div
+                className={`linkhub-block linkhub-block-${b.type}`}
+                data-block-id={b.id}
+              >
+                <BlockView
+                  block={b}
+                  theme={theme}
+                  pageId={pageId}
+                  pageSlug={pageSlug}
+                  trackEvents={trackEvents}
+                />
+              </div>
+            </AnimatedWrap>
           ))}
         </div>
 
@@ -438,22 +428,12 @@ function spacingClass(s: Spacing): string {
   return s === "tight" ? "py-4" : s === "loose" ? "py-10" : "py-6";
 }
 
-function blocksLayoutClass(s: Spacing, layout?: BlockLayout): string {
-  const gap = s === "tight" ? "gap-2" : s === "loose" ? "gap-5" : "gap-3";
-  return layout === "grid"
-    ? `grid grid-cols-2 ${gap}`
-    : `flex flex-col ${gap}`;
-}
-
-const GRIDABLE_BLOCKS: ReadonlySet<string> = new Set<BlockType>([
-  "link",
-  "image",
-  "whatsapp",
-  "social-embed",
-]);
-
-function isGridableBlock(t: string): boolean {
-  return GRIDABLE_BLOCKS.has(t);
+function blocksGapClass(s: Spacing): string {
+  return s === "tight"
+    ? "flex flex-col gap-2"
+    : s === "loose"
+      ? "flex flex-col gap-5"
+      : "flex flex-col gap-3";
 }
 
 function AnimatedWrap({
@@ -954,6 +934,56 @@ function BlockView({
         data={d}
         theme={theme}
         onProductClick={(title, url) => trackClick(title, url)}
+      />
+    );
+  }
+
+  if (d.kind === "grid") {
+    return (
+      <GridBlock
+        data={d}
+        theme={theme}
+        onItemClick={(title, url) => trackClick(title, url)}
+      />
+    );
+  }
+
+  if (d.kind === "image-carousel") {
+    return (
+      <ImageCarouselBlock
+        data={d}
+        theme={theme}
+        onItemClick={(title, url) => trackClick(title, url)}
+      />
+    );
+  }
+
+  if (d.kind === "product-grid") {
+    return (
+      <ProductGridBlock
+        data={d}
+        theme={theme}
+        onProductClick={(title, url) => trackClick(title, url)}
+      />
+    );
+  }
+
+  if (d.kind === "product-carousel") {
+    return (
+      <ProductCarouselBlock
+        data={d}
+        theme={theme}
+        onProductClick={(title, url) => trackClick(title, url)}
+      />
+    );
+  }
+
+  if (d.kind === "button-grid") {
+    return (
+      <ButtonGridBlock
+        data={d}
+        theme={theme}
+        onButtonClick={(label, url) => trackClick(label, url)}
       />
     );
   }
