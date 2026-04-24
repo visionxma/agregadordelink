@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import { allFontVariables, inter } from "@/lib/fonts";
+import { MonetagSW } from "@/components/monetag-sw";
 import "./globals.css";
 
 const ADSENSE_CLIENT =
@@ -29,6 +30,7 @@ export default function RootLayout({
     >
       <body className={inter.className} suppressHydrationWarning>
         {children}
+        <MonetagSW />
         <Script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
