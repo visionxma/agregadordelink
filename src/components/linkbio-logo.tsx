@@ -1,55 +1,36 @@
 import type { SVGProps } from "react";
 import { cn } from "@/lib/utils";
 
-// Brasil — cores oficiais
 const GREEN = "#009c3b";
 const YELLOW = "#ffdf00";
-const BLUE = "#002776";
 
-// Mark: losango amarelo da bandeira com cantos levemente suavizados,
-// círculo azul central com um símbolo de link em branco. Tudo dentro de
-// um quadrado verde arredondado — Brasil + serviço de link numa só peça.
 export function LinkBioMark({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 40 40"
       role="img"
-      aria-label="LinkBio BR"
+      aria-label="LinkBio"
       className={cn("shrink-0", className)}
       {...props}
     >
-      {/* fundo verde arredondado */}
+      {/* fundo verde */}
       <rect width="40" height="40" rx="10" ry="10" fill={GREEN} />
-      {/* losango amarelo (cantos suavizados com path) */}
-      <path
-        d="M20 5.5 L33.8 20 L20 34.5 L6.2 20 Z"
-        fill={YELLOW}
-        stroke={YELLOW}
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      {/* círculo azul central */}
-      <circle cx="20" cy="20" r="6.6" fill={BLUE} />
-      {/* símbolo de link em branco dentro do círculo */}
-      <g
-        stroke="#ffffff"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        fill="none"
-      >
-        <path d="M17.6 22.4 L22.4 17.6" />
-        <path d="M18.1 24.4 A2.6 2.6 0 0 1 15.6 21.9 L17 20.5" />
-        <path d="M21.9 15.6 A2.6 2.6 0 0 1 24.4 18.1 L23 19.5" />
+      {/* ícone de corrente/link em amarelo */}
+      <g stroke={YELLOW} strokeWidth="3" strokeLinecap="round" fill="none">
+        {/* anel esquerdo */}
+        <path d="M14 23 A5 5 0 0 1 14 17 L18 17" />
+        <path d="M14 23 L18 23" />
+        {/* anel direito */}
+        <path d="M26 17 A5 5 0 0 1 26 23 L22 23" />
+        <path d="M26 17 L22 17" />
+        {/* barra central */}
+        <line x1="16" y1="20" x2="24" y2="20" />
       </g>
     </svg>
   );
 }
 
-// Logo completa: mark + texto "LinkBio" com "Bio" no verde da bandeira.
-// A integração das formas acontece pelas cores compartilhadas (verde no
-// texto casa com o mark) e pelo losango/círculo que já remete à bandeira
-// sem precisar de uma bandeira separada no final.
 type LogoSize = "sm" | "md" | "lg" | "xl";
 
 const SIZES: Record<
