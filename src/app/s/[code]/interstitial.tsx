@@ -95,7 +95,7 @@ export function AdInterstitial({
             <p className="border-b border-border/60 bg-secondary/30 px-4 py-1.5 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Publicidade
             </p>
-            <div className="flex min-h-[250px] items-center justify-center p-4">
+            <div className="min-h-[250px]">
               <MonotagBanner />
             </div>
           </div>
@@ -118,13 +118,16 @@ export function AdInterstitial({
 }
 
 function MonotagBanner() {
-  const srcdoc = `<!DOCTYPE html><html><head><style>*{margin:0;padding:0;}</style></head><body><script>(function(s){s.dataset.zone='10921578',s.src='https://nap5k.com/tag.min.js'})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))<\/script></body></html>`;
+  const srcdoc = `<!DOCTYPE html><html><head><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent;}</style></head><body><script>(function(s){s.dataset.zone='10921578',s.src='https://nap5k.com/tag.min.js'})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))<\/script></body></html>`;
 
   return (
     <iframe
       srcDoc={srcdoc}
-      style={{ width: "100%", height: "250px", border: "none" }}
+      width="100%"
+      height="300"
+      style={{ border: "none", display: "block" }}
       scrolling="no"
+      allow="autoplay; encrypted-media"
     />
   );
 }
