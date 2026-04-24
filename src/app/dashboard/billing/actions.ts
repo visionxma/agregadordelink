@@ -6,11 +6,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription, type PlanTier } from "@/lib/db/schema";
-import {
-  isAbacatePayConfigured,
-  createSubscription,
-  cancelSubscriptionById,
-} from "@/lib/abacatepay";
+import { isAbacatePayConfigured, createSubscription, cancelSubscriptionById } from "@/lib/abacatepay";
 import { PLANS } from "@/lib/plans";
 
 async function requireUser() {
@@ -38,30 +34,33 @@ export async function createCheckoutSession(
   const user = await requireUser();
   const planConfig = PLANS[plan];
 
-  console.log(`[billing] criando subscription para userId=${user.id} plano=${plan} preço=${planConfig.price}`);
+  const productId = planConfig.abacateProductId;
+  if (!productId) {
+    return { error: `ID do produto não configurado para o plano ${plan}. Configure ABACATEPAY_PRODUCT_${plan.toUpperCase()} na Vercel.` };
+  }
+
+  console.log(`[billing] userId=${user.id} plan=${plan} productId=${productId}`);
 
   let billing: { id: string; url: string };
   try {
     billing = await createSubscription({
-      plan,
-      planName: planConfig.name,
-      priceInCents: planConfig.price,
+      productId,
       userId: user.id,
+      plan,
       completionUrl: `${appUrl()}/dashboard/billing?success=1`,
       returnUrl: `${appUrl()}/dashboard/billing`,
     });
   } catch (err) {
     const msg = (err as Error).message ?? "Erro desconhecido";
     console.error("[billing] createSubscription falhou:", msg);
-    return { error: `Erro ao criar checkout: ${msg}` };
+    return { error: msg };
   }
 
   if (!billing?.url) {
-    console.error("[billing] Abacate Pay não retornou url:", billing);
-    return { error: "Resposta inválida do gateway de pagamento." };
+    console.error("[billing] sem url na resposta:", billing);
+    return { error: "Gateway não retornou URL de pagamento." };
   }
 
-  // Persiste o pending no banco
   try {
     const [existing] = await db
       .select({ id: subscription.id })
@@ -70,8 +69,7 @@ export async function createCheckoutSession(
       .limit(1);
 
     if (existing) {
-      await db
-        .update(subscription)
+      await db.update(subscription)
         .set({ gatewaySubscriptionId: billing.id, status: "pending", updatedAt: new Date() })
         .where(eq(subscription.userId, user.id));
     } else {
@@ -83,41 +81,29 @@ export async function createCheckoutSession(
       });
     }
   } catch (dbErr) {
-    // Não bloqueia o checkout por erro de DB
-    console.error("[billing] erro ao salvar pending no DB:", dbErr);
+    console.error("[billing] erro DB (não bloqueia checkout):", dbErr);
   }
 
-  console.log(`[billing] redirecionando para ${billing.url}`);
   return { url: billing.url };
 }
 
 // ─── Cancelar assinatura ──────────────────────────────────────────────────────
 
 export async function cancelSubscription(): Promise<{ ok: true } | { error: string }> {
-  if (!isAbacatePayConfigured()) {
-    return { error: "Pagamentos não configurados." };
-  }
+  if (!isAbacatePayConfigured()) return { error: "Pagamentos não configurados." };
 
   const user = await requireUser();
-  const [sub] = await db
-    .select()
-    .from(subscription)
-    .where(eq(subscription.userId, user.id))
-    .limit(1);
+  const [sub] = await db.select().from(subscription).where(eq(subscription.userId, user.id)).limit(1);
 
-  if (!sub?.gatewaySubscriptionId) {
-    return { error: "Nenhuma assinatura ativa encontrada." };
-  }
+  if (!sub?.gatewaySubscriptionId) return { error: "Nenhuma assinatura ativa encontrada." };
 
   try {
     await cancelSubscriptionById(sub.gatewaySubscriptionId);
   } catch (err) {
-    console.error("[billing] cancelSubscriptionById falhou:", (err as Error).message);
-    // Não bloqueia — marca no DB de qualquer forma
+    console.error("[billing] cancel error:", (err as Error).message);
   }
 
-  await db
-    .update(subscription)
+  await db.update(subscription)
     .set({ cancelAtPeriodEnd: true, updatedAt: new Date() })
     .where(eq(subscription.userId, user.id));
 

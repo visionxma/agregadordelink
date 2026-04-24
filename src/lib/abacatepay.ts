@@ -42,11 +42,9 @@ export type AbacateWebhookEvent = {
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
-  const url = `${BASE_V2}${path}`;
   let res: Response;
-
   try {
-    res = await fetch(url, {
+    res = await fetch(`${BASE_V2}${path}`, {
       ...init,
       headers: { ...reqHeaders(), ...(init.headers as object) },
     });
@@ -58,7 +56,7 @@ async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
   let json: unknown = null;
   try { json = JSON.parse(text); } catch { /* noop */ }
 
-  console.log(`[AbacatePay] ${String(init.method)} ${path} → ${res.status}`, text.slice(0, 500));
+  console.log(`[AbacatePay] ${String(init.method)} ${path} → ${res.status}`, text.slice(0, 800));
 
   if (!res.ok) {
     const apiError = (json as Record<string, unknown> | null)?.error ?? text;
@@ -71,31 +69,20 @@ async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
 // ─── Criar assinatura mensal ──────────────────────────────────────────────────
 
 export async function createSubscription(params: {
-  plan: string;
-  planName: string;
-  priceInCents: number;  // ex: 2900 = R$29,00
+  productId: string;   // ID do plano/produto no painel Abacate Pay (prod_...)
   userId: string;
+  plan: string;
   completionUrl: string;
   returnUrl: string;
 }): Promise<AbacateSubscription> {
-  // Usa produto inline — não depende de IDs pré-criados no dashboard
   const body = {
-    frequency: "MONTHLY",
-    items: [
-      {
-        externalId: `linkbiobr-${params.plan}`,
-        name: `LinkBio BR ${params.planName}`,
-        description: `Assinatura mensal LinkBio BR ${params.planName}`,
-        price: params.priceInCents,
-        quantity: 1,
-      },
-    ],
+    items: [{ id: params.productId, quantity: 1 }],
     completionUrl: params.completionUrl,
     returnUrl: params.returnUrl,
     metadata: { userId: params.userId, plan: params.plan },
   };
 
-  console.log("[AbacatePay] createSubscription:", JSON.stringify(body));
+  console.log("[AbacatePay] createSubscription payload:", JSON.stringify(body));
   return apiFetch<AbacateSubscription>("/subscriptions/create", {
     method: "POST",
     body: JSON.stringify(body),
