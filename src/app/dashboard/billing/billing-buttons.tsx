@@ -17,8 +17,18 @@ export function SubscribeButton({
 
   function subscribe() {
     startTransition(async () => {
-      const result = await createCheckoutSession(planId);
-      if (result && "error" in result) toast.error(result.error);
+      try {
+        const result = await createCheckoutSession(planId);
+        if ("error" in result) {
+          toast.error(result.error);
+          return;
+        }
+        // Redireciona para o checkout da Abacate Pay
+        window.location.href = result.url;
+      } catch (err) {
+        console.error("[SubscribeButton]", err);
+        toast.error("Erro inesperado. Tente novamente.");
+      }
     });
   }
 
@@ -40,7 +50,7 @@ export function SubscribeButton({
       {disabled
         ? "Plano atual"
         : pending
-          ? "Redirecionando..."
+          ? "Aguarde..."
           : `Assinar ${planId === "pro" ? "Pro" : "Business"}`}
     </Button>
   );
@@ -50,13 +60,26 @@ export function CancelSubscriptionButton() {
   const [pending, startTransition] = useTransition();
 
   function cancel() {
-    if (!confirm("Tem certeza que quer cancelar sua assinatura? Você perderá os benefícios ao fim do período.")) return;
+    if (
+      !confirm(
+        "Tem certeza que quer cancelar sua assinatura? Você mantém o acesso até o fim do período pago."
+      )
+    )
+      return;
+
     startTransition(async () => {
-      const result = await cancelSubscription();
-      if (result && "error" in result) {
-        toast.error(result.error);
-      } else {
-        toast.success("Assinatura cancelada. Você mantém o acesso até o fim do período pago.");
+      try {
+        const result = await cancelSubscription();
+        if ("error" in result) {
+          toast.error(result.error);
+        } else {
+          toast.success(
+            "Assinatura cancelada. Você mantém o acesso até o fim do período."
+          );
+        }
+      } catch (err) {
+        console.error("[CancelSubscriptionButton]", err);
+        toast.error("Erro inesperado. Tente novamente.");
       }
     });
   }

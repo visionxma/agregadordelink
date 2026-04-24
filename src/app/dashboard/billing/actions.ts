@@ -25,7 +25,9 @@ function appUrl() {
 
 // ─── Assinar plano ────────────────────────────────────────────────────────────
 
-export async function createCheckoutSession(plan: PlanTier) {
+export async function createCheckoutSession(
+  plan: PlanTier
+): Promise<{ url: string } | { error: string }> {
   if (!isAbacatePayConfigured()) {
     return { error: "Pagamentos não configurados. Avise o administrador." };
   }
@@ -35,46 +37,67 @@ export async function createCheckoutSession(plan: PlanTier) {
 
   const user = await requireUser();
   const planConfig = PLANS[plan];
+
   if (!planConfig.abacateProductId) {
+    console.error(`[billing] abacateProductId não configurado para plano ${plan}`);
     return { error: `Produto não configurado para o plano ${plan}.` };
   }
 
-  // Cria a subscription sem customerId — usuário preenche dados no checkout
-  const billing = await createSubscription({
-    productId: planConfig.abacateProductId,
-    userId: user.id,
-    plan,
-    completionUrl: `${appUrl()}/dashboard/billing?success=1`,
-    returnUrl: `${appUrl()}/dashboard/billing`,
-  });
+  console.log(`[billing] criando subscription para userId=${user.id} plano=${plan} productId=${planConfig.abacateProductId}`);
 
-  // Garante que existe um registro na tabela
-  const [existingSub] = await db
-    .select({ id: subscription.id })
-    .from(subscription)
-    .where(eq(subscription.userId, user.id))
-    .limit(1);
-
-  if (!existingSub) {
-    await db.insert(subscription).values({
+  let billing: { id: string; url: string };
+  try {
+    billing = await createSubscription({
+      productId: planConfig.abacateProductId,
       userId: user.id,
-      plan: "free",
-      gatewaySubscriptionId: billing.id,
-      status: "pending",
+      plan,
+      completionUrl: `${appUrl()}/dashboard/billing?success=1`,
+      returnUrl: `${appUrl()}/dashboard/billing`,
     });
-  } else {
-    await db
-      .update(subscription)
-      .set({ gatewaySubscriptionId: billing.id, status: "pending", updatedAt: new Date() })
-      .where(eq(subscription.userId, user.id));
+  } catch (err) {
+    const msg = (err as Error).message ?? "Erro desconhecido";
+    console.error("[billing] createSubscription falhou:", msg);
+    return { error: `Erro ao criar checkout: ${msg}` };
   }
 
-  redirect(billing.url);
+  if (!billing?.url) {
+    console.error("[billing] Abacate Pay não retornou url:", billing);
+    return { error: "Resposta inválida do gateway de pagamento." };
+  }
+
+  // Persiste o pending no banco
+  try {
+    const [existing] = await db
+      .select({ id: subscription.id })
+      .from(subscription)
+      .where(eq(subscription.userId, user.id))
+      .limit(1);
+
+    if (existing) {
+      await db
+        .update(subscription)
+        .set({ gatewaySubscriptionId: billing.id, status: "pending", updatedAt: new Date() })
+        .where(eq(subscription.userId, user.id));
+    } else {
+      await db.insert(subscription).values({
+        userId: user.id,
+        plan: "free",
+        gatewaySubscriptionId: billing.id,
+        status: "pending",
+      });
+    }
+  } catch (dbErr) {
+    // Não bloqueia o checkout por erro de DB
+    console.error("[billing] erro ao salvar pending no DB:", dbErr);
+  }
+
+  console.log(`[billing] redirecionando para ${billing.url}`);
+  return { url: billing.url };
 }
 
 // ─── Cancelar assinatura ──────────────────────────────────────────────────────
 
-export async function cancelSubscription() {
+export async function cancelSubscription(): Promise<{ ok: true } | { error: string }> {
   if (!isAbacatePayConfigured()) {
     return { error: "Pagamentos não configurados." };
   }
@@ -93,7 +116,8 @@ export async function cancelSubscription() {
   try {
     await cancelSubscriptionById(sub.gatewaySubscriptionId);
   } catch (err) {
-    console.error("[cancelSubscription] abacatepay error:", err);
+    console.error("[billing] cancelSubscriptionById falhou:", (err as Error).message);
+    // Não bloqueia — marca no DB de qualquer forma
   }
 
   await db
@@ -101,5 +125,5 @@ export async function cancelSubscription() {
     .set({ cancelAtPeriodEnd: true, updatedAt: new Date() })
     .where(eq(subscription.userId, user.id));
 
-  return { ok: true as const };
+  return { ok: true };
 }
