@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import { LinkBioLogo } from "@/components/linkbio-logo";
 
@@ -96,8 +96,7 @@ export function AdInterstitial({
               Publicidade
             </p>
             <div className="flex min-h-[250px] items-center justify-center p-4">
-              {/* Google AdSense slot — configure NEXT_PUBLIC_ADSENSE_CLIENT + SLOT */}
-              <AdSlot />
+              <Quge5Banner />
             </div>
           </div>
 
@@ -118,47 +117,24 @@ export function AdInterstitial({
   );
 }
 
-function AdSlot() {
-  // Script is loaded from src/app/s/[code]/layout.tsx
-  const client =
-    process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "ca-pub-1736873321168592";
-  const slot = process.env.NEXT_PUBLIC_ADSENSE_SLOT;
+function Quge5Banner() {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!slot) return;
-    try {
-      // @ts-expect-error — injected by AdSense script
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch {}
-  }, [slot]);
+    const container = ref.current;
+    if (!container) return;
+    const script = document.createElement("script");
+    script.src = "https://quge5.com/88/tag.min.js";
+    script.setAttribute("data-zone", "233238");
+    script.setAttribute("data-cfasync", "false");
+    script.async = true;
+    container.appendChild(script);
+    return () => {
+      if (container.contains(script)) container.removeChild(script);
+    };
+  }, []);
 
-  if (!slot) {
-    return (
-      <div className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/60 py-10 text-center">
-        <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <ExternalLink className="size-4" />
-        </div>
-        <p className="text-xs font-semibold text-muted-foreground">
-          Anúncio em aprovação
-        </p>
-        <p className="px-6 text-[10px] text-muted-foreground/70">
-          Assim que o Google AdSense aprovar sua conta e você configurar{" "}
-          <code>NEXT_PUBLIC_ADSENSE_SLOT</code>, o anúncio aparece aqui.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <ins
-      className="adsbygoogle"
-      style={{ display: "block", width: "100%", minHeight: 250 }}
-      data-ad-client={client}
-      data-ad-slot={slot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    />
-  );
+  return <div ref={ref} className="w-full min-h-[250px]" />;
 }
 
 function safeHostname(url: string): string {
