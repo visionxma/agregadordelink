@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Block, BlockData, PageTheme } from "@/lib/db/schema";
 import { ThemedPage } from "@/components/themed-page";
 import { cn } from "@/lib/utils";
@@ -12,21 +12,16 @@ type CameraStyle = "dynamic-island" | "punch-hole" | "punch-hole-left" | "home-b
 type PhoneModel = {
   id: string;
   label: string;
-  // Outer frame
   frameGradient: string;
   frameBoxShadow: string;
   outerRadius: number;
-  bezelPx: number;          // bezel between outer shell and screen
-  // Screen
+  bezelPx: number;
   screenRadius: number;
   screenW: number;
   screenH: number;
-  // Camera
   camera: CameraStyle;
-  // Side buttons positions (top offsets)
   leftButtons: { top: number; height: number }[];
   rightButtons: { top: number; height: number }[];
-  // Optional home button at bottom
   hasHomeButton?: boolean;
 };
 
@@ -138,6 +133,33 @@ export function LivePreview({
   const [modelId, setModelId] = useState("iphone15");
   const model = MODELS.find((m) => m.id === modelId) ?? MODELS[0]!;
 
+  // Responsive scaling
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  const phoneOuterW = model.screenW + model.bezelPx * 2 + 8;
+  const phoneOuterH =
+    model.screenH + model.bezelPx * 2 + 8 + (model.hasHomeButton ? 52 : 0);
+  // Total height includes picker bar (44px) + gap (20px) + shadow (28px)
+  const totalContentH = phoneOuterH + 92;
+  const totalContentW = phoneOuterW;
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const { height, width } = entry.contentRect;
+      const availH = height - 32; // vertical padding
+      const availW = width - 48;  // horizontal padding
+      const scaleH = availH / totalContentH;
+      const scaleW = availW / totalContentW;
+      setScale(Math.min(scaleH, scaleW, 1));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [totalContentH, totalContentW]);
+
   const previewBlocks = useMemo(
     () =>
       blocks.map((b) => ({
@@ -177,54 +199,68 @@ export function LivePreview({
   }, []);
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Model picker */}
-      <div className="mb-5 flex items-center gap-1 rounded-full border border-border bg-card/90 p-1 backdrop-blur-sm shadow-ios-sm">
-        {MODELS.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            onClick={() => setModelId(m.id)}
-            className={cn(
-              "rounded-full px-3 py-1 text-[11px] font-semibold transition-all",
-              modelId === m.id
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {m.label}
-          </button>
-        ))}
-      </div>
+    <div
+      ref={containerRef}
+      className="flex h-full w-full items-center justify-center overflow-hidden"
+    >
+      {/* Scale wrapper — origin top-center keeps picker visible */}
+      <div
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        {/* Model picker */}
+        <div className="mb-5 flex items-center gap-1 rounded-full border border-border bg-card/90 p-1 backdrop-blur-sm shadow-ios-sm">
+          {MODELS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => setModelId(m.id)}
+              className={cn(
+                "rounded-full px-3 py-1 text-[11px] font-semibold transition-all",
+                modelId === m.id
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
 
-      {/* Ambient glow */}
-      <div className="relative">
-        <div
-          className="pointer-events-none absolute -inset-10 -z-10 opacity-50 blur-3xl"
-          style={{
-            background: `radial-gradient(circle at 50% 40%, ${theme.accent}44 0%, transparent 65%)`,
-          }}
-        />
-
-        <PhoneFrame model={model} time={time}>
-          <PreviewContent
-            pageId={pageId}
-            title={title}
-            description={description}
-            avatarUrl={avatarUrl}
-            coverUrl={coverUrl}
-            theme={theme}
-            previewBlocks={previewBlocks}
-            scopedCss={scopedCss}
+        {/* Ambient glow */}
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute -inset-10 -z-10 opacity-50 blur-3xl"
+            style={{
+              background: `radial-gradient(circle at 50% 40%, ${theme.accent}44 0%, transparent 65%)`,
+            }}
           />
-        </PhoneFrame>
-      </div>
 
-      {customJs && (
-        <p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-center text-[10px] text-amber-700 dark:text-amber-300">
-          JS custom roda só na página pública
-        </p>
-      )}
+          <PhoneFrame model={model} time={time}>
+            <PreviewContent
+              pageId={pageId}
+              title={title}
+              description={description}
+              avatarUrl={avatarUrl}
+              coverUrl={coverUrl}
+              theme={theme}
+              previewBlocks={previewBlocks}
+              scopedCss={scopedCss}
+            />
+          </PhoneFrame>
+        </div>
+
+        {customJs && (
+          <p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-center text-[10px] text-amber-700 dark:text-amber-300">
+            JS custom roda só na página pública
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -241,10 +277,11 @@ function PhoneFrame({
   children: React.ReactNode;
 }) {
   const outerW = model.screenW + model.bezelPx * 2 + 8;
-  const outerH = model.screenH + model.bezelPx * 2 + 8 + (model.hasHomeButton ? 52 : 0);
+  const outerH =
+    model.screenH + model.bezelPx * 2 + 8 + (model.hasHomeButton ? 52 : 0);
 
   return (
-    <div className="flex flex-col items-center">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       {/* Outer shell */}
       <div
         style={{
@@ -255,6 +292,7 @@ function PhoneFrame({
           boxShadow: model.frameBoxShadow,
           padding: 4,
           position: "relative",
+          flexShrink: 0,
         }}
       >
         {/* Side buttons — left */}
@@ -298,6 +336,8 @@ function PhoneFrame({
             background: "#0a0a0a",
             padding: model.bezelPx - 4,
             overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           {/* Screen */}
@@ -309,29 +349,40 @@ function PhoneFrame({
               background: "#fff",
               overflow: "hidden",
               position: "relative",
+              flexShrink: 0,
             }}
           >
             {/* Status bar */}
             <div
-              className="absolute inset-x-0 top-0 z-20 flex items-center justify-between"
               style={{
-                padding: model.camera === "home-button" ? "6px 14px" : "10px 18px 4px",
+                position: "absolute",
+                inset: "0 0 auto 0",
+                zIndex: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding:
+                  model.camera === "home-button"
+                    ? "6px 14px"
+                    : "10px 18px 4px",
                 color: "#000",
               }}
             >
-              <span className="text-[10px] font-semibold tracking-tight">{time}</span>
-              <div className="flex items-center gap-1 text-black">
+              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "-0.02em" }}>
+                {time}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
                 <SignalIcon />
                 <WifiIcon />
                 <BatteryIcon />
               </div>
             </div>
 
-            {/* Camera cutout */}
+            {/* Camera — Dynamic Island */}
             {model.camera === "dynamic-island" && (
               <div
-                className="absolute z-30"
                 style={{
+                  position: "absolute",
                   top: 10,
                   left: "50%",
                   transform: "translateX(-50%)",
@@ -339,14 +390,16 @@ function PhoneFrame({
                   height: 30,
                   borderRadius: 20,
                   background: "#000",
+                  zIndex: 30,
                 }}
               />
             )}
 
+            {/* Camera — Punch-hole center */}
             {model.camera === "punch-hole" && (
               <div
-                className="absolute z-30"
                 style={{
+                  position: "absolute",
                   top: 12,
                   left: "50%",
                   transform: "translateX(-50%)",
@@ -354,44 +407,54 @@ function PhoneFrame({
                   height: 12,
                   borderRadius: "50%",
                   background: "#000",
+                  zIndex: 30,
                 }}
               />
             )}
 
+            {/* Camera — Punch-hole left */}
             {model.camera === "punch-hole-left" && (
               <div
-                className="absolute z-30"
                 style={{
+                  position: "absolute",
                   top: 13,
-                  left: "50%",
-                  transform: "translateX(-30px)",
+                  left: "calc(50% - 30px)",
                   width: 12,
                   height: 12,
                   borderRadius: "50%",
                   background: "#000",
+                  zIndex: 30,
                 }}
               />
             )}
 
-            {/* Content scrollable area */}
-            <div className="absolute inset-0">
-              {children}
-            </div>
+            {/* Scrollable content */}
+            <div style={{ position: "absolute", inset: 0 }}>{children}</div>
 
             {/* Screen gloss */}
             <div
-              className="pointer-events-none absolute inset-0 z-40"
               style={{
+                position: "absolute",
+                inset: 0,
                 borderRadius: model.screenRadius,
                 background:
                   "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 100%)",
+                pointerEvents: "none",
+                zIndex: 40,
               }}
             />
           </div>
 
-          {/* Home button area for iPhone SE */}
+          {/* Home button (iPhone SE) */}
           {model.hasHomeButton && (
-            <div className="flex items-center justify-center" style={{ height: 52 }}>
+            <div
+              style={{
+                height: 52,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <div
                 style={{
                   width: 36,
@@ -399,7 +462,8 @@ function PhoneFrame({
                   borderRadius: "50%",
                   border: "2px solid rgba(255,255,255,0.15)",
                   background: "rgba(255,255,255,0.05)",
-                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06)",
+                  boxShadow:
+                    "inset 0 1px 2px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.06)",
                 }}
               />
             </div>
@@ -414,9 +478,10 @@ function PhoneFrame({
           height: 20,
           marginTop: 8,
           borderRadius: "50%",
-          background: "radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 70%)",
+          background:
+            "radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 70%)",
           filter: "blur(6px)",
-          opacity: 0.35,
+          opacity: 0.3,
         }}
       />
     </div>
@@ -481,8 +546,20 @@ function WifiIcon() {
   return (
     <svg width="13" height="10" viewBox="0 0 14 10" fill="currentColor">
       <path d="M7 9.5C7.55228 9.5 8 9.05228 8 8.5C8 7.94772 7.55228 7.5 7 7.5C6.44772 7.5 6 7.94772 6 8.5C6 9.05228 6.44772 9.5 7 9.5Z" />
-      <path d="M4.5 5.5C5.2 4.9 6.1 4.5 7 4.5C7.9 4.5 8.8 4.9 9.5 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-      <path d="M2 3C3.4 1.8 5.1 1 7 1C8.9 1 10.6 1.8 12 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path
+        d="M4.5 5.5C5.2 4.9 6.1 4.5 7 4.5C7.9 4.5 8.8 4.9 9.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path
+        d="M2 3C3.4 1.8 5.1 1 7 1C8.9 1 10.6 1.8 12 3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -490,9 +567,25 @@ function WifiIcon() {
 function BatteryIcon() {
   return (
     <svg width="23" height="11" viewBox="0 0 24 11" fill="none">
-      <rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="currentColor" strokeOpacity="0.3" />
+      <rect
+        x="0.5"
+        y="0.5"
+        width="20"
+        height="10"
+        rx="2.5"
+        stroke="currentColor"
+        strokeOpacity="0.3"
+      />
       <rect x="2" y="2" width="17" height="7" rx="1.5" fill="currentColor" />
-      <rect x="21.5" y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor" fillOpacity="0.4" />
+      <rect
+        x="21.5"
+        y="3.5"
+        width="1.5"
+        height="4"
+        rx="0.5"
+        fill="currentColor"
+        fillOpacity="0.4"
+      />
     </svg>
   );
 }

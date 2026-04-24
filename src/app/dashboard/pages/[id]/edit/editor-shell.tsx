@@ -214,20 +214,18 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
       </aside>
 
       {/* CENTER — live preview canvas */}
-      <main className="flex flex-1 flex-col items-center justify-start overflow-y-auto bg-secondary/30 px-6 py-6">
-        <div className="w-full max-w-sm">
-          <LivePreview
-            pageId={page.id}
-            title={page.title}
-            description={page.description}
-            avatarUrl={page.avatarUrl}
-            coverUrl={page.coverUrl}
-            theme={theme}
-            blocks={blocks}
-            customCss={page.customCss}
-            customJs={page.customJs}
-          />
-        </div>
+      <main className="flex flex-1 overflow-hidden bg-secondary/30">
+        <LivePreview
+          pageId={page.id}
+          title={page.title}
+          description={page.description}
+          avatarUrl={page.avatarUrl}
+          coverUrl={page.coverUrl}
+          theme={theme}
+          blocks={blocks}
+          customCss={page.customCss}
+          customJs={page.customJs}
+        />
       </main>
 
       {/* RIGHT PANEL — contextual properties */}
