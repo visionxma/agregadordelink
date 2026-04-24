@@ -2,11 +2,16 @@
 
 import { useMemo, useState, useTransition } from "react";
 import {
-  ArrowRight,
-  Flame,
-  Search,
-  Sparkles,
-  User as UserIcon,
+  Activity, Armchair, ArrowRight, Baby, Bitcoin, BookOpen, Brain,
+  Briefcase, Building2, Camera, Car, Church, Clapperboard, Code, Coffee,
+  Construction, Crown, Drama, DollarSign, Dumbbell, Flame, Folder,
+  Gamepad2, GraduationCap, HardHat, Heart, Home, Landmark, Leaf,
+  Map as MapIcon, Megaphone, Mic, Music, Newspaper, Package, Paintbrush,
+  Palette, PawPrint, Pencil, Plane, Podcast, Rocket, Scale, Scissors,
+  Search, Shirt, ShoppingBag, ShoppingCart, Sparkle, Sparkles, Star,
+  Store, Target, Theater, Trophy, Truck, Tv, User as UserIcon,
+  UserCog, Users, UtensilsCrossed, Waves, Wine, Wrench,
+  type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,70 +25,71 @@ import { createPageFromTemplate } from "../actions";
 
 // ─── Category icons ──────────────────────────────────────────────────────────
 
-const CATEGORY_ICONS: Record<string, string> = {
-  populares: "🔥",
-  todos: "✨",
-  criador: "🎨",
-  música: "🎵",
-  "negócio local": "🏪",
-  comércio: "🛍️",
-  mídia: "📺",
-  portfólio: "💼",
-  fitness: "💪",
-  educação: "🎓",
-  beleza: "💄",
-  outros: "📦",
-  "estilo plataforma": "🎯",
-  delivery: "🛵",
-  jurídico: "⚖️",
-  saúde: "❤️",
-  cantores: "🎤",
-  política: "🏛️",
-  "copa do mundo": "⚽",
-  "visual premium": "✨",
-  fotografia: "📸",
-  "moda & estilo": "👗",
-  "casamento & eventos": "💒",
-  "pet & animais": "🐾",
-  imóveis: "🏠",
-  "finanças & investimentos": "💰",
-  "crypto & web3": "🪙",
-  "marketing digital": "📣",
-  "design & criativo": "🖌️",
-  "podcast & áudio": "🎙️",
-  "dança & teatro": "💃",
-  "artesanato & diy": "🧵",
-  sustentabilidade: "🌱",
-  "gastronomia especial": "🍽️",
-  "saúde mental": "🧠",
-  "esportes radicais": "🏄",
-  "games & e-sports": "🎮",
-  "turismo & hotelaria": "✈️",
-  "religião & espiritualidade": "🙏",
-  "startup & inovação": "🚀",
-  "cinema & audiovisual": "🎬",
-  "jornalismo & mídia": "📰",
-  "automóveis & mobilidade": "🚗",
-  "construção civil": "🏗️",
-  "decoração & interiores": "🛋️",
-  "loja virtual & e-commerce": "🛒",
-  "serviços locais & profissionais": "🔧",
-  "crianças & família": "👨‍👩‍👧",
-  "rh & carreira": "💼",
-  "cultura & arte": "🎭",
-  "tecnologia & programação": "💻",
-  "social & comunidade": "👥",
-  "franquias & negócios": "🏢",
-  "beleza & estética": "💅",
-  "fitness & esporte": "🏋️",
-  "educação especial": "📚",
-  "café & restaurantes": "☕",
-  "viagem & lifestyle": "🗺️",
-  "bebidas & gastronomia": "🍷",
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  populares: Flame,
+  todos: Sparkles,
+  criador: Palette,
+  música: Music,
+  "negócio local": Store,
+  comércio: ShoppingBag,
+  mídia: Tv,
+  portfólio: Briefcase,
+  fitness: Dumbbell,
+  educação: GraduationCap,
+  beleza: Sparkle,
+  outros: Package,
+  "estilo plataforma": Target,
+  delivery: Truck,
+  jurídico: Scale,
+  saúde: Heart,
+  cantores: Mic,
+  política: Landmark,
+  "copa do mundo": Trophy,
+  "visual premium": Crown,
+  fotografia: Camera,
+  "moda & estilo": Shirt,
+  "casamento & eventos": Heart,
+  "pet & animais": PawPrint,
+  imóveis: Home,
+  "finanças & investimentos": DollarSign,
+  "crypto & web3": Bitcoin,
+  "marketing digital": Megaphone,
+  "design & criativo": Paintbrush,
+  "podcast & áudio": Podcast,
+  "dança & teatro": Drama,
+  "artesanato & diy": Scissors,
+  sustentabilidade: Leaf,
+  "gastronomia especial": UtensilsCrossed,
+  "saúde mental": Brain,
+  "esportes radicais": Waves,
+  "games & e-sports": Gamepad2,
+  "turismo & hotelaria": Plane,
+  "religião & espiritualidade": Church,
+  "startup & inovação": Rocket,
+  "cinema & audiovisual": Clapperboard,
+  "jornalismo & mídia": Newspaper,
+  "automóveis & mobilidade": Car,
+  "construção civil": HardHat,
+  "decoração & interiores": Armchair,
+  "loja virtual & e-commerce": ShoppingCart,
+  "serviços locais & profissionais": Wrench,
+  "crianças & família": Baby,
+  "rh & carreira": UserCog,
+  "cultura & arte": Theater,
+  "tecnologia & programação": Code,
+  "social & comunidade": Users,
+  "franquias & negócios": Building2,
+  "beleza & estética": Star,
+  "fitness & esporte": Activity,
+  "educação especial": BookOpen,
+  "café & restaurantes": Coffee,
+  "viagem & lifestyle": MapIcon,
+  "bebidas & gastronomia": Wine,
+  construction: Construction,
 };
 
-function getCategoryIcon(category: string): string {
-  return CATEGORY_ICONS[category.toLowerCase()] ?? "📁";
+function getCategoryIcon(category: string): LucideIcon {
+  return CATEGORY_ICONS[category.toLowerCase()] ?? Folder;
 }
 
 // ─── Main wizard ─────────────────────────────────────────────────────────────
@@ -159,14 +165,13 @@ function TemplatePicker({
     return list;
   }, [templates, activeCategory, search]);
 
-  const sidebarItems = [
-    { id: "populares", label: "Populares", icon: "🔥", highlighted: true },
-    { id: "todos", label: "Todos", icon: "✨" },
+  const sidebarItems: { id: string; label: string; Icon: LucideIcon }[] = [
+    { id: "populares", label: "Populares", Icon: Flame },
+    { id: "todos", label: "Todos", Icon: Sparkles },
     ...categories.map((c) => ({
       id: c,
       label: c.charAt(0).toUpperCase() + c.slice(1),
-      icon: getCategoryIcon(c),
-      highlighted: false,
+      Icon: getCategoryIcon(c),
     })),
   ];
 
@@ -193,6 +198,7 @@ function TemplatePicker({
         <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5">
           {sidebarItems.map((item) => {
             const active = activeCategory === item.id;
+            const Icon = item.Icon;
             return (
               <button
                 key={item.id}
@@ -205,7 +211,7 @@ function TemplatePicker({
                     : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
                 )}
               >
-                <span className="shrink-0 text-base">{item.icon}</span>
+                <Icon className="size-4 shrink-0" />
                 <span className="truncate">{item.label}</span>
               </button>
             );
@@ -219,8 +225,8 @@ function TemplatePicker({
             onClick={() => onPick(blank)}
             className="group flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-background/60 p-3 text-left transition-colors hover:border-primary hover:bg-card"
           >
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-base">
-              ✍️
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary">
+              <Pencil className="size-4" />
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-xs font-bold">Em branco</h3>
