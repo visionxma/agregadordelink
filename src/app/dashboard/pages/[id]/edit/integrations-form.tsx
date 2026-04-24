@@ -12,6 +12,8 @@ import {
   TiktokIcon,
 } from "@/components/social-icons";
 import { updateIntegrations } from "../../actions";
+import { PlanGate } from "@/components/plan-gate";
+import type { PlanTier } from "@/lib/db/schema";
 
 type Field = {
   key: keyof PageIntegrations;
@@ -57,7 +59,7 @@ const fields: Field[] = [
   },
 ];
 
-export function IntegrationsForm({ page }: { page: Page }) {
+export function IntegrationsForm({ page, planTier = "free" }: { page: Page; planTier?: PlanTier }) {
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [values, setValues] = useState<PageIntegrations>({
@@ -79,6 +81,12 @@ export function IntegrationsForm({ page }: { page: Page }) {
   }
 
   return (
+    <PlanGate
+      required="pro"
+      currentPlan={planTier}
+      label="Pixels e Analytics"
+      description="Meta Pixel, GA4, TikTok Pixel e Google Tag Manager"
+    >
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -122,5 +130,6 @@ export function IntegrationsForm({ page }: { page: Page }) {
         </form>
       </CardContent>
     </Card>
+    </PlanGate>
   );
 }

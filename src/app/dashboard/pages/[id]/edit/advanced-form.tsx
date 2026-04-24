@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateAdvanced } from "../../actions";
+import { PlanGate, LockedLabel } from "@/components/plan-gate";
+import type { PlanTier } from "@/lib/db/schema";
 
-export function AdvancedForm({ page }: { page: Page }) {
+export function AdvancedForm({ page, planTier = "free" }: { page: Page; planTier?: PlanTier }) {
   const [pending, startTransition] = useTransition();
   const cssRef = useRef<HTMLTextAreaElement>(null);
   const jsRef = useRef<HTMLTextAreaElement>(null);
@@ -62,8 +64,16 @@ export function AdvancedForm({ page }: { page: Page }) {
         </button>
         {showRef && <SelectorReference onInsert={insertToCss} />}
 
+        <PlanGate
+          required="pro"
+          currentPlan={planTier}
+          label="CSS personalizado"
+          description="Estilize sua página com código CSS próprio"
+        >
         <div className="space-y-2">
-          <Label htmlFor="css">CSS custom</Label>
+          <Label htmlFor="css">
+            <LockedLabel required="pro" currentPlan={planTier}>CSS custom</LockedLabel>
+          </Label>
           <textarea
             ref={cssRef}
             id="css"
@@ -85,9 +95,18 @@ export function AdvancedForm({ page }: { page: Page }) {
             <code className="rounded bg-secondary px-1">!important</code>.
           </p>
         </div>
+        </PlanGate>
 
+        <PlanGate
+          required="business"
+          currentPlan={planTier}
+          label="JavaScript personalizado"
+          description="Execute código JS na sua página pública"
+        >
         <div className="space-y-2">
-          <Label htmlFor="js">JavaScript custom</Label>
+          <Label htmlFor="js">
+            <LockedLabel required="business" currentPlan={planTier}>JavaScript custom</LockedLabel>
+          </Label>
           <textarea
             ref={jsRef}
             id="js"
@@ -108,6 +127,7 @@ export function AdvancedForm({ page }: { page: Page }) {
             Roda na página pública depois dos pixels.
           </p>
         </div>
+        </PlanGate>
 
         <Button onClick={save} disabled={pending} className="w-full">
           {pending ? "Salvando..." : "Salvar avançado"}

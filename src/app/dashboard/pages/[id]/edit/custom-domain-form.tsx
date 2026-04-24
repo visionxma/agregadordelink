@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateCustomDomain } from "../../actions";
+import { PlanGate } from "@/components/plan-gate";
+import type { PlanTier } from "@/lib/db/schema";
 
-export function CustomDomainForm({ page }: { page: Page }) {
+export function CustomDomainForm({ page, planTier = "free" }: { page: Page; planTier?: PlanTier }) {
   const [pending, startTransition] = useTransition();
   const [domain, setDomain] = useState(page.customDomain ?? "");
   const [showInstructions, setShowInstructions] = useState(false);
@@ -32,6 +34,12 @@ export function CustomDomainForm({ page }: { page: Page }) {
   }
 
   return (
+    <PlanGate
+      required="pro"
+      currentPlan={planTier}
+      label="Domínio próprio"
+      description="Conecte meusite.com.br à sua página"
+    >
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,5 +141,6 @@ export function CustomDomainForm({ page }: { page: Page }) {
         </form>
       </CardContent>
     </Card>
+    </PlanGate>
   );
 }

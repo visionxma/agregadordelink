@@ -11,6 +11,8 @@ import { CustomDomainForm } from "./custom-domain-form";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { block, page } from "@/lib/db/schema";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
+import { getPlan } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { normalizeTheme } from "@/lib/normalize-theme";
 import { PageSettingsForm } from "./page-settings-form";
@@ -44,6 +46,11 @@ export default async function EditPage({
     .orderBy(asc(block.position));
 
   const theme = normalizeTheme(p.theme);
+  const limits = await getUserPlanLimits(session.user.id);
+
+  // Descobre o tier a partir dos limites (compara com os planos)
+  const planTier =
+    limits.customJs ? "business" : limits.customCss ? "pro" : "free";
 
   return (
     <main className="ambient-bg flex h-screen flex-col overflow-hidden">
@@ -143,19 +150,19 @@ export default async function EditPage({
                 content: (
                   <div className="space-y-4">
                     <PageSettingsForm page={p} />
-                    <CustomDomainForm page={p} />
+                    <CustomDomainForm page={p} planTier={planTier} />
                   </div>
                 ),
               },
               {
                 id: "integrations",
                 label: "Pixels",
-                content: <IntegrationsForm page={p} />,
+                content: <IntegrationsForm page={p} planTier={planTier} />,
               },
               {
                 id: "advanced",
                 label: "Avançado",
-                content: <AdvancedForm page={p} />,
+                content: <AdvancedForm page={p} planTier={planTier} />,
               },
             ]}
           />
