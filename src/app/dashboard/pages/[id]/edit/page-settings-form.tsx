@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ImageIcon, Trash2, User, X } from "lucide-react";
+import { ImageIcon, Search, Trash2, User, X } from "lucide-react";
 import type { Page } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,6 +195,74 @@ export function PageSettingsForm({ page }: { page: Page }) {
             />
             <span className="text-sm">Página pública</span>
           </label>
+
+          {/* SEO */}
+          <div className="space-y-4 rounded-xl border border-border bg-secondary/40 p-4">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <Search className="size-3.5" />
+              SEO
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="seoTitle" className="text-xs">
+                  Título para buscadores
+                </Label>
+                <span className="text-[10px] text-muted-foreground">
+                  máx. 60 caracteres
+                </span>
+              </div>
+              <Input
+                id="seoTitle"
+                name="seoTitle"
+                defaultValue={page.seoTitle ?? ""}
+                maxLength={60}
+                placeholder={page.title}
+                className="text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Deixe vazio para usar o título da página.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="seoDescription" className="text-xs">
+                  Descrição para buscadores
+                </Label>
+                <span className="text-[10px] text-muted-foreground">
+                  máx. 160 caracteres
+                </span>
+              </div>
+              <Textarea
+                id="seoDescription"
+                name="seoDescription"
+                defaultValue={page.seoDescription ?? ""}
+                maxLength={160}
+                rows={2}
+                placeholder={page.description ?? "Descreva sua página para aparecer no Google"}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ogImageUrl" className="text-xs">
+                Imagem para redes sociais (OG Image)
+              </Label>
+              <Input
+                id="ogImageUrl"
+                name="ogImageUrl"
+                type="url"
+                defaultValue={page.ogImageUrl ?? ""}
+                placeholder="https://... (1200×630px recomendado)"
+                className="text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Aparece ao compartilhar no WhatsApp, Instagram etc. Gerada
+                automaticamente se vazio.
+              </p>
+            </div>
+          </div>
 
           <div className="flex gap-2 pt-2">
             <Button type="submit" disabled={pending} className="flex-1">

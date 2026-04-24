@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LinkBioLogo } from "@/components/linkbio-logo";
 import { PLAN_LIST } from "@/lib/plans";
+
+export const metadata: Metadata = {
+  title: "Planos e Preços",
+  description:
+    "Compare os planos do LinkBio: Grátis, Pro e Business. Comece sem cartão — upgrade quando precisar de mais.",
+  alternates: { canonical: "https://linkbiobr.com/pricing" },
+  openGraph: {
+    title: "Planos e Preços · LinkBio",
+    description:
+      "Compare os planos do LinkBio: Grátis, Pro e Business. Comece sem cartão.",
+    url: "https://linkbiobr.com/pricing",
+    type: "website",
+    siteName: "LinkBio",
+    locale: "pt_BR",
+  },
+};
 
 export default function PricingPage() {
   return (

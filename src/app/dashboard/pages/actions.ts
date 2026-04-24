@@ -479,12 +479,17 @@ export async function updateCustomDomain(
   return { ok: true as const };
 }
 
+const urlOrEmpty = z.string().url().optional().nullable().or(z.literal(""));
+
 const updatePageSchema = z.object({
   title: z.string().min(1).max(80),
   description: z.string().max(200).optional().nullable(),
-  avatarUrl: z.string().url().optional().nullable().or(z.literal("")),
-  coverUrl: z.string().url().optional().nullable().or(z.literal("")),
+  avatarUrl: urlOrEmpty,
+  coverUrl: urlOrEmpty,
   published: z.boolean().optional(),
+  seoTitle: z.string().max(60).optional().nullable(),
+  seoDescription: z.string().max(160).optional().nullable(),
+  ogImageUrl: urlOrEmpty,
 });
 
 export async function updatePage(pageId: string, formData: FormData) {
@@ -493,6 +498,7 @@ export async function updatePage(pageId: string, formData: FormData) {
 
   const rawAvatar = formData.get("avatarUrl");
   const rawCover = formData.get("coverUrl");
+  const rawOgImage = formData.get("ogImageUrl");
   const parsed = updatePageSchema.safeParse({
     title: String(formData.get("title") ?? "").trim(),
     description: formData.get("description")
@@ -501,23 +507,28 @@ export async function updatePage(pageId: string, formData: FormData) {
     avatarUrl: rawAvatar ? String(rawAvatar).trim() : null,
     coverUrl: rawCover ? String(rawCover).trim() : null,
     published: formData.get("published") === "on",
+    seoTitle: formData.get("seoTitle") ? String(formData.get("seoTitle")).trim() : null,
+    seoDescription: formData.get("seoDescription")
+      ? String(formData.get("seoDescription")).trim()
+      : null,
+    ogImageUrl: rawOgImage ? String(rawOgImage).trim() : null,
   });
   if (!parsed.success) return { error: "Dados inválidos" };
+
+  const nullIfEmpty = (v: string | null | undefined) =>
+    v && v.length > 0 ? v : null;
 
   await db
     .update(page)
     .set({
       title: parsed.data.title,
       description: parsed.data.description,
-      avatarUrl:
-        parsed.data.avatarUrl && parsed.data.avatarUrl.length > 0
-          ? parsed.data.avatarUrl
-          : null,
-      coverUrl:
-        parsed.data.coverUrl && parsed.data.coverUrl.length > 0
-          ? parsed.data.coverUrl
-          : null,
+      avatarUrl: nullIfEmpty(parsed.data.avatarUrl),
+      coverUrl: nullIfEmpty(parsed.data.coverUrl),
       published: parsed.data.published ?? false,
+      seoTitle: nullIfEmpty(parsed.data.seoTitle),
+      seoDescription: nullIfEmpty(parsed.data.seoDescription),
+      ogImageUrl: nullIfEmpty(parsed.data.ogImageUrl),
       updatedAt: new Date(),
     })
     .where(eq(page.id, pageId));

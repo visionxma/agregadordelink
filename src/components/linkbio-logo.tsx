@@ -4,43 +4,43 @@ import { cn } from "@/lib/utils";
 const GREEN = "#009c3b";
 const YELLOW = "#ffdf00";
 
-export function LinkBioMark({ className, ...props }: SVGProps<SVGSVGElement>) {
+// Dois anéis interligados sem fundo — verde + amarelo da paleta
+export function LinkBioMark({ className, style, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 40 40"
+      viewBox="0 0 44 28"
       role="img"
       aria-label="LinkBio"
       className={cn("shrink-0", className)}
+      style={{ height: "auto", ...style }}
       {...props}
     >
-      {/* fundo verde */}
-      <rect width="40" height="40" rx="10" ry="10" fill={GREEN} />
-      {/* ícone de corrente/link em amarelo */}
-      <g stroke={YELLOW} strokeWidth="3" strokeLinecap="round" fill="none">
-        {/* anel esquerdo */}
-        <path d="M14 23 A5 5 0 0 1 14 17 L18 17" />
-        <path d="M14 23 L18 23" />
-        {/* anel direito */}
-        <path d="M26 17 A5 5 0 0 1 26 23 L22 23" />
-        <path d="M26 17 L22 17" />
-        {/* barra central */}
-        <line x1="16" y1="20" x2="24" y2="20" />
-      </g>
+      <defs>
+        <clipPath id="lbm-top">
+          <rect x="0" y="0" width="44" height="14" />
+        </clipPath>
+        <clipPath id="lbm-bot">
+          <rect x="0" y="14" width="44" height="14" />
+        </clipPath>
+      </defs>
+      {/* Anel amarelo — metade inferior (atrás do verde) */}
+      <circle clipPath="url(#lbm-bot)" cx="32" cy="14" r="10" fill="none" stroke={YELLOW} strokeWidth="6" />
+      {/* Anel verde — completo, camada do meio */}
+      <circle cx="12" cy="14" r="10" fill="none" stroke={GREEN} strokeWidth="6" />
+      {/* Anel amarelo — metade superior (na frente do verde) */}
+      <circle clipPath="url(#lbm-top)" cx="32" cy="14" r="10" fill="none" stroke={YELLOW} strokeWidth="6" />
     </svg>
   );
 }
 
 type LogoSize = "sm" | "md" | "lg" | "xl";
 
-const SIZES: Record<
-  LogoSize,
-  { mark: number; text: string; gap: string }
-> = {
-  sm: { mark: 22, text: "text-sm", gap: "gap-1.5" },
-  md: { mark: 28, text: "text-base", gap: "gap-2" },
-  lg: { mark: 36, text: "text-xl", gap: "gap-2" },
-  xl: { mark: 44, text: "text-2xl", gap: "gap-2.5" },
+const SIZES: Record<LogoSize, { markW: number; text: string; gap: string }> = {
+  sm: { markW: 28, text: "text-sm", gap: "gap-1.5" },
+  md: { markW: 36, text: "text-base", gap: "gap-2" },
+  lg: { markW: 46, text: "text-xl", gap: "gap-2" },
+  xl: { markW: 58, text: "text-2xl", gap: "gap-2.5" },
 };
 
 export function LinkBioLogo({
@@ -62,7 +62,7 @@ export function LinkBioLogo({
         className
       )}
     >
-      <LinkBioMark width={s.mark} height={s.mark} />
+      <LinkBioMark width={s.markW} />
       <span className="leading-none">
         <span>Link</span>
         <span style={accentBio ? { color: GREEN } : undefined}>Bio</span>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,6 +9,29 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "LinkBio — Sua bio, muito além do link",
+  description:
+    "Crie sua mini-landing page grátis: links, checkout, formulários, QR code e analytics. A alternativa brasileira ao Linktree.",
+  alternates: { canonical: "https://linkbiobr.com" },
+  openGraph: {
+    title: "LinkBio — Sua bio, muito além do link",
+    description:
+      "Crie sua mini-landing page grátis: links, checkout, formulários, QR code e analytics.",
+    url: "https://linkbiobr.com",
+    type: "website",
+    siteName: "LinkBio",
+    locale: "pt_BR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "LinkBio" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LinkBio — Sua bio, muito além do link",
+    description: "Crie sua mini-landing page grátis: links, checkout, formulários, QR code e analytics.",
+    images: ["/og-default.png"],
+  },
+};
 import { Button } from "@/components/ui/button";
 import { ThemeThumbnail } from "@/components/theme-thumbnail";
 import {
