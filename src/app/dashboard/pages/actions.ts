@@ -21,7 +21,7 @@ import { slugify } from "@/lib/utils";
 import { getPresetById } from "@/lib/themes";
 import { getPaletteById } from "@/lib/palettes";
 import { getTemplateById, getTemplateTheme } from "@/lib/templates";
-import { validatePageSlug } from "@/lib/slug";
+import { validatePageSlug, generateUniquePageSlug } from "@/lib/slug";
 import { sql, count } from "drizzle-orm";
 import { getUserPlanLimits } from "@/lib/get-plan-limits";
 import { isUnlimited } from "@/lib/plans";
@@ -197,6 +197,130 @@ export async function createPageFromTemplate(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/pages/new");
   redirect(`/dashboard/pages/${created.id}/edit`);
+}
+
+// ============== CRIAR PÁGINA COM QUIZ ==============
+
+const createWithQuizSchema = z.object({
+  templateId: z.string().optional(),
+  category: z.enum(["creator", "business", "personal"]),
+  themeId: z.string().optional(),
+  name: z.string().min(1).max(80),
+  bio: z.string().max(200).optional(),
+  avatarUrl: z.string().url().optional().nullable(),
+  platforms: z.array(
+    z.object({ id: z.string(), label: z.string(), url: z.string().url() })
+  ),
+});
+
+export async function createPageWithQuiz(
+  raw: z.infer<typeof createWithQuizSchema>
+) {
+  const user = await requireUser();
+  const parsed = createWithQuizSchema.safeParse(raw);
+  if (!parsed.success) return { error: "Dados inválidos." };
+
+  const limits = await getUserPlanLimits(user.id);
+  if (!isUnlimited(limits.pages)) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(page)
+      .where(eq(page.userId, user.id));
+    if (total >= limits.pages) {
+      return {
+        error: `Seu plano permite até ${limits.pages} página${limits.pages > 1 ? "s" : ""}. Faça upgrade.`,
+      };
+    }
+  }
+
+  const { templateId, name, bio, avatarUrl, platforms, themeId } = parsed.data;
+
+  let theme: PageTheme;
+  let templateBlocks: { type: BlockType; data: BlockData }[] = [];
+
+  if (templateId) {
+    const isUser = templateId.startsWith("user:");
+    if (isUser) {
+      const [tpl] = await db
+        .select()
+        .from(userTemplate)
+        .where(eq(userTemplate.id, templateId.slice(5)))
+        .limit(1);
+      if (!tpl || !tpl.published) return { error: "Modelo não encontrado." };
+      theme = tpl.theme;
+      templateBlocks = tpl.blocks;
+    } else {
+      const tpl = getTemplateById(templateId);
+      if (!tpl) return { error: "Modelo não encontrado." };
+      theme = getTemplateTheme(tpl);
+      templateBlocks = tpl.blocks;
+    }
+  } else {
+    const preset = themeId ? getPresetById(themeId) : null;
+    theme = preset?.theme ?? {
+      preset: "minimal-white",
+      background: { type: "solid", color: "#ffffff" },
+      foreground: "#0f172a",
+      mutedForeground: "#64748b",
+      accent: "#6366f1",
+      accentForeground: "#ffffff",
+      font: "inter",
+      titleFont: "inter",
+      buttonStyle: "rounded",
+      avatarShape: "circle",
+      spacing: "normal",
+      effect: "none",
+    };
+  }
+
+  const slug = await generateUniquePageSlug(name);
+
+  const [created] = await db
+    .insert(page)
+    .values({
+      userId: user.id,
+      slug,
+      title: name,
+      description: bio ?? null,
+      avatarUrl: avatarUrl ?? null,
+      theme,
+      published: true,
+    })
+    .returning();
+
+  // Platform link blocks come first, then template blocks
+  const platformBlockValues = platforms.map((p, i) => ({
+    pageId: created.id,
+    type: "link" as const,
+    data: { kind: "link" as const, label: p.label, url: p.url } satisfies BlockData,
+    position: i,
+  }));
+
+  const templateBlockValues = templateBlocks.map((b, i) => ({
+    pageId: created.id,
+    type: b.type,
+    data: b.data,
+    position: platforms.length + i,
+  }));
+
+  const allBlocks = [...platformBlockValues, ...templateBlockValues];
+  if (allBlocks.length > 0) {
+    await db.insert(block).values(allBlocks);
+  }
+
+  // Increment template usage if from template
+  if (templateId && !templateId.startsWith("user:")) {
+    await db
+      .insert(templateStat)
+      .values({ templateId, usageCount: 1 })
+      .onConflictDoUpdate({
+        target: templateStat.templateId,
+        set: { usageCount: sql`${templateStat.usageCount} + 1`, updatedAt: new Date() },
+      });
+  }
+
+  revalidatePath("/dashboard");
+  return { ok: true as const, pageId: created.id, slug };
 }
 
 // ============== PUBLICAR COMO TEMPLATE ==============
