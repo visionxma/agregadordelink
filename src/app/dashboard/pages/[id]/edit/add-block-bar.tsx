@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { toast } from "sonner";
 import {
   CalendarDays,
   Clock,
@@ -169,7 +170,12 @@ export function AddBlockBar({ pageId }: { pageId: string }) {
                   variant="outline"
                   size="sm"
                   disabled={pending}
-                  onClick={() => startTransition(() => addBlock(pageId, b.type))}
+                  onClick={() =>
+                    startTransition(async () => {
+                      const res = await addBlock(pageId, b.type);
+                      if (res && "error" in res) toast.error(res.error);
+                    })
+                  }
                 >
                   {b.icon} {b.label}
                 </Button>

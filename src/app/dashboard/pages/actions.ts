@@ -22,7 +22,9 @@ import { getPresetById } from "@/lib/themes";
 import { getPaletteById } from "@/lib/palettes";
 import { getTemplateById, getTemplateTheme } from "@/lib/templates";
 import { validatePageSlug } from "@/lib/slug";
-import { sql } from "drizzle-orm";
+import { sql, count } from "drizzle-orm";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
+import { isUnlimited } from "@/lib/plans";
 
 async function requireUser() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -52,6 +54,20 @@ export async function createPage(formData: FormData) {
   });
   if (!parsed.success) {
     return { error: "Dados inválidos." };
+  }
+
+  // ── Limite de páginas ──
+  const limits = await getUserPlanLimits(user.id);
+  if (!isUnlimited(limits.pages)) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(page)
+      .where(eq(page.userId, user.id));
+    if (total >= limits.pages) {
+      return {
+        error: `Seu plano permite até ${limits.pages} página${limits.pages > 1 ? "s" : ""}. Faça upgrade para criar mais.`,
+      };
+    }
   }
 
   const validation = await validatePageSlug(parsed.data.slug);
@@ -88,6 +104,20 @@ export async function createPageFromTemplate(formData: FormData) {
   });
   if (!parsed.success) {
     return { error: "Dados inválidos." };
+  }
+
+  // ── Limite de páginas ──
+  const limits = await getUserPlanLimits(user.id);
+  if (!isUnlimited(limits.pages)) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(page)
+      .where(eq(page.userId, user.id));
+    if (total >= limits.pages) {
+      return {
+        error: `Seu plano permite até ${limits.pages} página${limits.pages > 1 ? "s" : ""}. Faça upgrade para criar mais.`,
+      };
+    }
   }
 
   const templateId = parsed.data.templateId;
@@ -284,6 +314,25 @@ export async function updateCustomDomain(
 
   const domain = parsed.data.domain || null;
 
+  // ── Limite de domínios personalizados ──
+  if (domain) {
+    const limits = await getUserPlanLimits(user.id);
+    if (limits.customDomains === 0) {
+      return { error: "Seu plano não inclui domínio próprio. Faça upgrade para usar." };
+    }
+    if (!isUnlimited(limits.customDomains)) {
+      const [{ total }] = await db
+        .select({ total: count() })
+        .from(page)
+        .where(and(eq(page.userId, user.id), sql`${page.customDomain} IS NOT NULL`));
+      // Só conta se estiver trocando de null para um domínio
+      const isNew = !existing.customDomain;
+      if (isNew && total >= limits.customDomains) {
+        return { error: `Seu plano permite até ${limits.customDomains} domínio próprio. Faça upgrade para adicionar mais.` };
+      }
+    }
+  }
+
   // Checa se já existe em outra página
   if (domain) {
     const [conflict] = await db
@@ -369,6 +418,20 @@ export async function deletePage(pageId: string) {
 export async function addBlock(pageId: string, type: BlockType) {
   const user = await requireUser();
   await loadUserPage(pageId, user.id);
+
+  // ── Limite de blocos por página ──
+  const limits = await getUserPlanLimits(user.id);
+  if (!isUnlimited(limits.blocksPerPage)) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(block)
+      .where(eq(block.pageId, pageId));
+    if (total >= limits.blocksPerPage) {
+      return {
+        error: `Seu plano permite até ${limits.blocksPerPage} blocos por página. Faça upgrade para adicionar mais.`,
+      };
+    }
+  }
 
   const [row] = await db
     .select({ maxPos: max(block.position) })
@@ -626,6 +689,14 @@ export async function updateAdvanced(
   const parsed = advancedSchema.safeParse(input);
   if (!parsed.success) return { error: "Dados inválidos" };
 
+  const limits = await getUserPlanLimits(user.id);
+  if (parsed.data.customCss && !limits.customCss) {
+    return { error: "CSS personalizado está disponível a partir do plano Pro." };
+  }
+  if (parsed.data.customJs && !limits.customJs) {
+    return { error: "JS personalizado está disponível apenas no plano Business." };
+  }
+
   await db
     .update(page)
     .set({
@@ -648,6 +719,12 @@ export async function updateIntegrations(
   await loadUserPage(pageId, user.id);
   const parsed = integrationsSchema.safeParse(input);
   if (!parsed.success) return { error: "Dados inválidos" };
+
+  const limits = await getUserPlanLimits(user.id);
+  const hasPixel = parsed.data.metaPixelId || parsed.data.gaId || parsed.data.gtmId || parsed.data.tiktokPixelId;
+  if (hasPixel && !limits.pixelIntegrations) {
+    return { error: "Integrações de pixels estão disponíveis a partir do plano Pro." };
+  }
 
   // Remove campos vazios
   const cleaned: PageIntegrations = {};

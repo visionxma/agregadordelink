@@ -139,6 +139,7 @@ export function ThemedPage({
   verified = false,
   trackEvents = true,
   showAvatarPlaceholder = false,
+  showBranding = true,
 }: {
   pageId: string;
   pageSlug?: string;
@@ -151,6 +152,7 @@ export function ThemedPage({
   verified?: boolean;
   trackEvents?: boolean;
   showAvatarPlaceholder?: boolean;
+  showBranding?: boolean;
 }) {
   const viewed = useRef(false);
   useEffect(() => {
@@ -368,18 +370,20 @@ export function ThemedPage({
           className="linkhub-footer flex flex-col items-center gap-2 pt-8 text-center text-xs"
           style={{ color: theme.mutedForeground }}
         >
-          <span className="inline-flex items-center gap-1">
-            Feito com{" "}
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
-              style={{ color: theme.foreground }}
-            >
-              LinkBio <BrazilFlag className="h-3 w-auto" />
-            </a>
-          </span>
+          {showBranding && (
+            <span className="inline-flex items-center gap-1">
+              Feito com{" "}
+              <a
+                href="/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold underline underline-offset-2"
+                style={{ color: theme.foreground }}
+              >
+                LinkBio <BrazilFlag className="h-3 w-auto" />
+              </a>
+            </span>
+          )}
           {pageSlug && (
             <ReportButton pageId={pageId} pageSlug={pageSlug} />
           )}

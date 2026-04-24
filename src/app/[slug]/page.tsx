@@ -8,6 +8,7 @@ import { PixelScripts } from "@/components/pixel-scripts";
 import { normalizeTheme } from "@/lib/normalize-theme";
 import { RESERVED_SLUGS } from "@/lib/slug";
 import { ClaimSlugLanding } from "./claim-slug-landing";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
 
 const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$|^[a-z0-9]{1,2}$/;
 
@@ -83,6 +84,9 @@ export default async function PublicSlugPage({
     style: b.style,
   }));
 
+  const limits = await getUserPlanLimits(data.page.userId);
+  const showBranding = !limits.removeBranding;
+
   return (
     <>
       <PixelScripts integrations={data.page.integrations ?? {}} />
@@ -105,6 +109,7 @@ export default async function PublicSlugPage({
         theme={normalizeTheme(data.page.theme)}
         blocks={blocksData}
         verified={data.verified}
+        showBranding={showBranding}
       />
     </>
   );

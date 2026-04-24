@@ -3,11 +3,13 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { shortLink } from "@/lib/db/schema";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
+import { isUnlimited } from "@/lib/plans";
 import {
   generateUniqueShortCode,
   isShortCodeAvailable,
@@ -28,6 +30,20 @@ const createSchema = z.object({
 
 export async function createShortLink(formData: FormData) {
   const user = await requireUser();
+
+  // ── Limite de links encurtados ──
+  const limits = await getUserPlanLimits(user.id);
+  if (!isUnlimited(limits.shortLinks)) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(shortLink)
+      .where(eq(shortLink.userId, user.id));
+    if (total >= limits.shortLinks) {
+      return {
+        error: `Seu plano permite até ${limits.shortLinks} links encurtados. Faça upgrade para criar mais.`,
+      };
+    }
+  }
 
   const rawUrl = String(formData.get("url") ?? "").trim();
   const rawTitle = String(formData.get("title") ?? "").trim();

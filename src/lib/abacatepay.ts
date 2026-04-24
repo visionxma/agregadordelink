@@ -1,4 +1,4 @@
-const BASE = "https://api.abacatepay.com/v1";
+const BASE = "https://api.abacatepay.com/v2";
 
 function apiKey() {
   const k = process.env.ABACATEPAY_API_KEY;

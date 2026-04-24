@@ -4,6 +4,7 @@ import { and, asc, eq, gte } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { event, page } from "@/lib/db/schema";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
 
 export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -23,8 +24,9 @@ export async function GET(req: NextRequest) {
     .limit(1);
   if (!p) return NextResponse.json({ error: "not found" }, { status: 404 });
 
+  const limits = await getUserPlanLimits(session.user.id);
   const since = new Date();
-  since.setDate(since.getDate() - 90);
+  since.setDate(since.getDate() - limits.analyticsRetentionDays);
 
   const events = await db
     .select()
