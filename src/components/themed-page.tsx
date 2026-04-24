@@ -409,10 +409,14 @@ function backgroundStyle(bg: ThemeBackground): React.CSSProperties {
       : `${bg.from}, ${bg.to}`;
     return { background: `linear-gradient(${dir}, ${stops})` };
   }
+  const imgLayers = bg.overlay
+    ? `linear-gradient(${bg.overlay}, ${bg.overlay}), url(${bg.url})`
+    : `url(${bg.url})`;
   return {
-    backgroundImage: `url(${bg.url})`,
+    backgroundImage: imgLayers,
     backgroundSize: "cover",
     backgroundPosition: "center",
+    backgroundAttachment: "fixed",
   };
 }
 

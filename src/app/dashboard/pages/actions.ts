@@ -126,6 +126,7 @@ export async function createPageFromTemplate(formData: FormData) {
   let theme: PageTheme;
   let blocks: { type: BlockType; data: BlockData }[];
   let suggestedBio: string | null;
+  let suggestedCoverUrl: string | null = null;
 
   if (isUserTemplate) {
     const [tpl] = await db
@@ -145,6 +146,7 @@ export async function createPageFromTemplate(formData: FormData) {
     theme = getTemplateTheme(tpl);
     blocks = tpl.blocks;
     suggestedBio = tpl.suggestedBio || null;
+    suggestedCoverUrl = tpl.suggestedCoverUrl ?? null;
   }
 
   const validation = await validatePageSlug(parsed.data.slug);
@@ -159,6 +161,7 @@ export async function createPageFromTemplate(formData: FormData) {
       slug: validation.slug,
       title: parsed.data.title,
       description: suggestedBio,
+      coverUrl: suggestedCoverUrl,
       theme,
       published: true,
     })
@@ -237,6 +240,7 @@ export async function createPageWithQuiz(
 
   let theme: PageTheme;
   let templateBlocks: { type: BlockType; data: BlockData }[] = [];
+  let templateCoverUrl: string | null = null;
 
   if (templateId) {
     const isUser = templateId.startsWith("user:");
@@ -254,6 +258,7 @@ export async function createPageWithQuiz(
       if (!tpl) return { error: "Modelo não encontrado." };
       theme = getTemplateTheme(tpl);
       templateBlocks = tpl.blocks;
+      templateCoverUrl = tpl.suggestedCoverUrl ?? null;
     }
   } else {
     const preset = themeId ? getPresetById(themeId) : null;
@@ -283,6 +288,7 @@ export async function createPageWithQuiz(
       title: name,
       description: bio ?? null,
       avatarUrl: avatarUrl ?? null,
+      coverUrl: templateCoverUrl,
       theme,
       published: true,
     })
