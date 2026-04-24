@@ -119,51 +119,45 @@ export function AdInterstitial({
 }
 
 function AdSlot() {
-  const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+  // Script is loaded globally from src/app/layout.tsx
+  const client =
+    process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "ca-pub-1736873321168592";
   const slot = process.env.NEXT_PUBLIC_ADSENSE_SLOT;
 
   useEffect(() => {
-    if (!client || !slot) return;
+    if (!slot) return;
     try {
       // @ts-expect-error — injected by AdSense script
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {}
-  }, [client, slot]);
+  }, [slot]);
 
-  if (!client || !slot) {
+  if (!slot) {
     return (
       <div className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/60 py-10 text-center">
         <div className="flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
           <ExternalLink className="size-4" />
         </div>
         <p className="text-xs font-semibold text-muted-foreground">
-          Espaço reservado para anúncio
+          Anúncio em aprovação
         </p>
         <p className="px-6 text-[10px] text-muted-foreground/70">
-          Configure NEXT_PUBLIC_ADSENSE_CLIENT e NEXT_PUBLIC_ADSENSE_SLOT
-          para exibir Google AdSense aqui.
+          Assim que o Google AdSense aprovar sua conta e você configurar{" "}
+          <code>NEXT_PUBLIC_ADSENSE_SLOT</code>, o anúncio aparece aqui.
         </p>
       </div>
     );
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-sync-scripts
-    <>
-      <script
-        async
-        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`}
-        crossOrigin="anonymous"
-      />
-      <ins
-        className="adsbygoogle"
-        style={{ display: "block", width: "100%", minHeight: 250 }}
-        data-ad-client={client}
-        data-ad-slot={slot}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
-    </>
+    <ins
+      className="adsbygoogle"
+      style={{ display: "block", width: "100%", minHeight: 250 }}
+      data-ad-client={client}
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
   );
 }
 
