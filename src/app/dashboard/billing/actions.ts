@@ -8,7 +8,6 @@ import { db } from "@/lib/db";
 import { subscription, type PlanTier } from "@/lib/db/schema";
 import {
   isAbacatePayConfigured,
-  createCustomer,
   createSubscription,
   cancelSubscriptionById,
 } from "@/lib/abacatepay";
@@ -40,46 +39,35 @@ export async function createCheckoutSession(plan: PlanTier) {
     return { error: `Produto não configurado para o plano ${plan}.` };
   }
 
-  // Busca ou cria subscription record + customer no Abacate Pay
-  const [existingSub] = await db
-    .select()
-    .from(subscription)
-    .where(eq(subscription.userId, user.id))
-    .limit(1);
-
-  let customerId = existingSub?.gatewayCustomerId ?? null;
-
-  if (!customerId) {
-    const customer = await createCustomer({
-      name: user.name,
-      email: user.email,
-    });
-    customerId = customer.id;
-
-    // Salva o customerId antes de criar o checkout
-    if (existingSub) {
-      await db
-        .update(subscription)
-        .set({ gatewayCustomerId: customerId, updatedAt: new Date() })
-        .where(eq(subscription.userId, user.id));
-    } else {
-      await db.insert(subscription).values({
-        userId: user.id,
-        plan: "free",
-        gatewayCustomerId: customerId,
-        status: "pending",
-      });
-    }
-  }
-
+  // Cria a subscription sem customerId — usuário preenche dados no checkout
   const billing = await createSubscription({
     productId: planConfig.abacateProductId,
-    customerId,
     userId: user.id,
     plan,
     completionUrl: `${appUrl()}/dashboard/billing?success=1`,
     returnUrl: `${appUrl()}/dashboard/billing`,
   });
+
+  // Garante que existe um registro na tabela
+  const [existingSub] = await db
+    .select({ id: subscription.id })
+    .from(subscription)
+    .where(eq(subscription.userId, user.id))
+    .limit(1);
+
+  if (!existingSub) {
+    await db.insert(subscription).values({
+      userId: user.id,
+      plan: "free",
+      gatewaySubscriptionId: billing.id,
+      status: "pending",
+    });
+  } else {
+    await db
+      .update(subscription)
+      .set({ gatewaySubscriptionId: billing.id, status: "pending", updatedAt: new Date() })
+      .where(eq(subscription.userId, user.id));
+  }
 
   redirect(billing.url);
 }
@@ -106,7 +94,6 @@ export async function cancelSubscription() {
     await cancelSubscriptionById(sub.gatewaySubscriptionId);
   } catch (err) {
     console.error("[cancelSubscription] abacatepay error:", err);
-    // Mesmo com erro na API, marca cancelamento no DB
   }
 
   await db

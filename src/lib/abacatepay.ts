@@ -86,10 +86,10 @@ export async function createCustomer(params: {
   });
 }
 
-/** Cria uma assinatura mensal (v2). */
+/** Cria uma assinatura mensal (v2). customerId é opcional. */
 export async function createSubscription(params: {
   productId: string;   // ID do produto no Abacate Pay (prod_...)
-  customerId: string;
+  customerId?: string;
   userId: string;
   plan: string;
   completionUrl: string;
@@ -100,7 +100,7 @@ export async function createSubscription(params: {
     body: JSON.stringify({
       items: [{ id: params.productId, quantity: 1 }],
       methods: ["PIX", "CREDIT_CARD"],
-      customerId: params.customerId,
+      ...(params.customerId ? { customerId: params.customerId } : {}),
       completionUrl: params.completionUrl,
       returnUrl: params.returnUrl,
       metadata: { userId: params.userId, plan: params.plan },
