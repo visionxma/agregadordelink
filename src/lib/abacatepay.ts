@@ -1,4 +1,6 @@
-const BASE = "https://api.abacatepay.com/v1";
+// Abacate Pay usa endpoints mistos: customer=v1, subscription=v2
+const BASE_V1 = "https://api.abacatepay.com/v1";
+const BASE_V2 = "https://api.abacatepay.com/v2";
 
 function apiKey() {
   const k = process.env.ABACATEPAY_API_KEY;
@@ -17,41 +19,50 @@ export function isAbacatePayConfigured() {
   return Boolean(process.env.ABACATEPAY_API_KEY);
 }
 
-// ─── Tipos de resposta ───────────────────────────────────────────────────────
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
 export type AbacateCustomer = {
   id: string;
   metadata: { name: string; email: string };
 };
 
-export type AbacateBilling = {
+export type AbacateSubscription = {
   id: string;
   url: string;
   status: string;
+  amount: number;
 };
 
 export type AbacateWebhookEvent = {
   id: string;
   event: string;
+  apiVersion: number;
   devMode: boolean;
   data: {
-    id: string;
-    status: string;
-    amount: number;
-    customer?: { id: string };
-    customerId?: string;
-    products?: { externalId: string }[];
+    subscription?: {
+      id: string;
+      amount: number;
+      status: string;
+      frequency: string;
+    };
+    customer?: {
+      id: string;
+      name: string;
+      email: string;
+    };
+    payment?: {
+      id: string;
+      amount: number;
+      status: string;
+    };
     metadata?: Record<string, string>;
-    nextBillingDate?: string;
-    expiresAt?: string;
   };
 };
 
-// ─── Cliente ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
-  const url = `${BASE}${path}`;
-  const res = await fetch(url, {
+async function apiFetch<T>(base: string, path: string, init: RequestInit): Promise<T> {
+  const res = await fetch(`${base}${path}`, {
     ...init,
     headers: { ...reqHeaders(), ...(init.headers as object) },
   });
@@ -62,43 +73,45 @@ async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
   return (json?.data ?? json) as T;
 }
 
-/** Cria um cliente no Abacate Pay. */
+// ─── API ─────────────────────────────────────────────────────────────────────
+
+/** Cria um cliente (v1). Corpo é flat, sem wrapper metadata. */
 export async function createCustomer(params: {
   name: string;
   email: string;
 }): Promise<AbacateCustomer> {
-  return apiFetch<AbacateCustomer>("/customer/create", {
+  return apiFetch<AbacateCustomer>(BASE_V1, "/customer/create", {
     method: "POST",
-    body: JSON.stringify({
-      metadata: { name: params.name, email: params.email },
-    }),
+    body: JSON.stringify({ name: params.name, email: params.email }),
   });
 }
 
-/** Cria um billing (assinatura mensal) e retorna a URL de pagamento. */
-export async function createBilling(params: {
-  productId: string;
+/** Cria uma assinatura mensal (v2). */
+export async function createSubscription(params: {
+  productId: string;   // ID do produto no Abacate Pay (prod_...)
   customerId: string;
   userId: string;
   plan: string;
   completionUrl: string;
   returnUrl: string;
-}): Promise<AbacateBilling> {
-  return apiFetch<AbacateBilling>("/billing/create", {
+}): Promise<AbacateSubscription> {
+  return apiFetch<AbacateSubscription>(BASE_V2, "/subscriptions/create", {
     method: "POST",
     body: JSON.stringify({
-      frequency: "MONTHLY",
+      items: [{ id: params.productId, quantity: 1 }],
       methods: ["PIX", "CREDIT_CARD"],
-      products: [{ externalId: params.productId, quantity: 1 }],
-      customer: { id: params.customerId },
-      metadata: { userId: params.userId, plan: params.plan },
+      customerId: params.customerId,
       completionUrl: params.completionUrl,
       returnUrl: params.returnUrl,
+      metadata: { userId: params.userId, plan: params.plan },
     }),
   });
 }
 
-/** Cancela uma assinatura ativa. */
-export async function cancelBilling(billingId: string): Promise<void> {
-  await apiFetch<unknown>(`/billing/${billingId}/cancel`, { method: "DELETE" });
+/** Cancela uma assinatura ativa (v2). */
+export async function cancelSubscriptionById(subscriptionId: string): Promise<void> {
+  await apiFetch<unknown>(BASE_V2, "/subscriptions/cancel", {
+    method: "POST",
+    body: JSON.stringify({ id: subscriptionId }),
+  });
 }

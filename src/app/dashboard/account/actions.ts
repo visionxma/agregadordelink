@@ -8,7 +8,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription, user } from "@/lib/db/schema";
-import { isAbacatePayConfigured, cancelBilling } from "@/lib/abacatepay";
+import { isAbacatePayConfigured, cancelSubscriptionById } from "@/lib/abacatepay";
 
 async function requireUser() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -50,7 +50,7 @@ export async function deleteAccount() {
         .limit(1);
 
       if (sub?.gatewaySubscriptionId) {
-        await cancelBilling(sub.gatewaySubscriptionId).catch((err) => {
+        await cancelSubscriptionById(sub.gatewaySubscriptionId).catch((err) => {
           console.error("[deleteAccount] cancelBilling failed:", err);
         });
       }

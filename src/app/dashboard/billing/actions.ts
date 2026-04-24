@@ -9,8 +9,8 @@ import { subscription, type PlanTier } from "@/lib/db/schema";
 import {
   isAbacatePayConfigured,
   createCustomer,
-  createBilling,
-  cancelBilling,
+  createSubscription,
+  cancelSubscriptionById,
 } from "@/lib/abacatepay";
 import { PLANS } from "@/lib/plans";
 
@@ -72,7 +72,7 @@ export async function createCheckoutSession(plan: PlanTier) {
     }
   }
 
-  const billing = await createBilling({
+  const billing = await createSubscription({
     productId: planConfig.abacateProductId,
     customerId,
     userId: user.id,
@@ -103,7 +103,7 @@ export async function cancelSubscription() {
   }
 
   try {
-    await cancelBilling(sub.gatewaySubscriptionId);
+    await cancelSubscriptionById(sub.gatewaySubscriptionId);
   } catch (err) {
     console.error("[cancelSubscription] abacatepay error:", err);
     // Mesmo com erro na API, marca cancelamento no DB
