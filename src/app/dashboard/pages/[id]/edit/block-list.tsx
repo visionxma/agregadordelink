@@ -21,6 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   CalendarDays,
+  ChevronDown,
   Clock,
   FileText,
   GripVertical,
@@ -187,6 +188,7 @@ function SortableBlock({
   };
 
   const [pending, startTransition] = useTransition();
+  const [collapsed, setCollapsed] = useState(false);
   const data = block.data as BlockData;
 
   function handleUpdate(next: BlockData) {
@@ -199,21 +201,38 @@ function SortableBlock({
       style={style}
       className={cn(isDragging && "shadow-ios-lg ring-2 ring-primary")}
     >
-      <CardContent className="flex gap-3 p-4">
+      <CardContent className="flex gap-2 p-3">
         {/* Drag handle */}
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className="flex size-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:cursor-grabbing"
+          className="flex size-7 shrink-0 cursor-grab items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:cursor-grabbing"
           aria-label="Arrastar pra reordenar"
         >
           <GripVertical className="size-4" />
         </button>
 
-        <BlockIcon type={block.type} />
+        <div className="flex-1 min-w-0">
+          {/* Header clicável para colapsar */}
+          <button
+            type="button"
+            onClick={() => setCollapsed((s) => !s)}
+            className="flex w-full items-center gap-2 rounded-lg px-1 py-0.5 text-left transition-colors hover:bg-secondary/60"
+          >
+            <BlockIcon type={block.type} />
+            <span className="flex-1 truncate text-xs font-medium text-foreground">
+              {getBlockLabel(data)}
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-3.5 shrink-0 text-muted-foreground transition-transform duration-150",
+                !collapsed && "rotate-180"
+              )}
+            />
+          </button>
 
-        <div className="flex-1 space-y-2">
+        {!collapsed && <div className="mt-2 space-y-2">
           {data.kind === "link" && (
             <>
               <div className="space-y-1">
@@ -1410,6 +1429,7 @@ function SortableBlock({
               </Button>
             </div>
           )}
+        </div>}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -1417,7 +1437,7 @@ function SortableBlock({
             variant="ghost"
             size="icon"
             className={cn(
-              "size-8 shrink-0",
+              "size-7 shrink-0",
               block.isGoal
                 ? "bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25"
                 : "text-muted-foreground"
@@ -1435,7 +1455,7 @@ function SortableBlock({
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 shrink-0 text-destructive"
+            className="size-7 shrink-0 text-destructive"
             disabled={pending}
             onClick={onDelete}
           >
@@ -1447,8 +1467,35 @@ function SortableBlock({
   );
 }
 
+function getBlockLabel(data: BlockData): string {
+  switch (data.kind) {
+    case "link":       return data.label || "Link";
+    case "text":       return data.content?.slice(0, 40) || "Texto";
+    case "image":      return "Imagem";
+    case "video":      return data.videoId ? `Vídeo (${data.provider})` : "Vídeo";
+    case "divider":    return "Divisor";
+    case "newsletter": return data.title || "Newsletter";
+    case "whatsapp":   return data.label || "WhatsApp";
+    case "music":      return `Música · ${data.provider}`;
+    case "social-embed": return `Embed · ${data.provider}`;
+    case "form":       return data.title || "Formulário";
+    case "countdown":  return data.title || "Contagem regressiva";
+    case "faq":        return `FAQ (${data.items.length})`;
+    case "testimonials": return `Depoimentos (${data.items.length})`;
+    case "map":        return data.label || data.query?.slice(0, 30) || "Mapa";
+    case "events":     return `Eventos (${data.items.length})`;
+    case "products":   return `Produtos (${data.items.length})`;
+    case "grid":       return `Grade (${data.items.length})`;
+    case "image-carousel": return `Carrossel (${data.items.length})`;
+    case "product-grid": return `Grade produtos (${data.items.length})`;
+    case "product-carousel": return `Carrossel produtos (${data.items.length})`;
+    case "button-grid": return `Botões (${data.items.length})`;
+    default:           return "Bloco";
+  }
+}
+
 function BlockIcon({ type }: { type: string }) {
-  const cls = "size-5 shrink-0 text-muted-foreground mt-1";
+  const cls = "size-3.5 shrink-0 text-muted-foreground";
   if (type === "link") return <Link2 className={cls} />;
   if (type === "text") return <Type className={cls} />;
   if (type === "image") return <ImageIcon className={cls} />;
