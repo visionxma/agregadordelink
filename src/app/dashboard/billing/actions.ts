@@ -38,19 +38,15 @@ export async function createCheckoutSession(
   const user = await requireUser();
   const planConfig = PLANS[plan];
 
-  if (!planConfig.abacateProductId) {
-    console.error(`[billing] abacateProductId não configurado para plano ${plan}`);
-    return { error: `Produto não configurado para o plano ${plan}.` };
-  }
-
-  console.log(`[billing] criando subscription para userId=${user.id} plano=${plan} productId=${planConfig.abacateProductId}`);
+  console.log(`[billing] criando subscription para userId=${user.id} plano=${plan} preço=${planConfig.price}`);
 
   let billing: { id: string; url: string };
   try {
     billing = await createSubscription({
-      productId: planConfig.abacateProductId,
-      userId: user.id,
       plan,
+      planName: planConfig.name,
+      priceInCents: planConfig.price,
+      userId: user.id,
       completionUrl: `${appUrl()}/dashboard/billing?success=1`,
       returnUrl: `${appUrl()}/dashboard/billing`,
     });

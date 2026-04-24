@@ -1,4 +1,3 @@
-const BASE_V1 = "https://api.abacatepay.com/v1";
 const BASE_V2 = "https://api.abacatepay.com/v2";
 
 function apiKey() {
@@ -40,14 +39,10 @@ export type AbacateWebhookEvent = {
   };
 };
 
-// ─── Helper interno ───────────────────────────────────────────────────────────
+// ─── Helper ───────────────────────────────────────────────────────────────────
 
-async function apiFetch<T>(
-  base: string,
-  path: string,
-  init: RequestInit
-): Promise<T> {
-  const url = `${base}${path}`;
+async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
+  const url = `${BASE_V2}${path}`;
   let res: Response;
 
   try {
@@ -56,19 +51,14 @@ async function apiFetch<T>(
       headers: { ...reqHeaders(), ...(init.headers as object) },
     });
   } catch (networkErr) {
-    console.error(`[AbacatePay] network error ${path}:`, networkErr);
-    throw new Error(`Falha de rede ao contatar Abacate Pay: ${(networkErr as Error).message}`);
+    throw new Error(`Falha de rede: ${(networkErr as Error).message}`);
   }
 
   const text = await res.text();
-  let json: unknown;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    json = null;
-  }
+  let json: unknown = null;
+  try { json = JSON.parse(text); } catch { /* noop */ }
 
-  console.log(`[AbacatePay] ${init.method ?? "GET"} ${path} → ${res.status}`, JSON.stringify(json));
+  console.log(`[AbacatePay] ${String(init.method)} ${path} → ${res.status}`, text.slice(0, 500));
 
   if (!res.ok) {
     const apiError = (json as Record<string, unknown> | null)?.error ?? text;
@@ -78,50 +68,45 @@ async function apiFetch<T>(
   return ((json as Record<string, unknown>)?.data ?? json) as T;
 }
 
-// ─── Criar assinatura (v2) ────────────────────────────────────────────────────
+// ─── Criar assinatura mensal ──────────────────────────────────────────────────
 
 export async function createSubscription(params: {
-  productId: string;
-  customerId?: string;
-  userId: string;
   plan: string;
+  planName: string;
+  priceInCents: number;  // ex: 2900 = R$29,00
+  userId: string;
   completionUrl: string;
   returnUrl: string;
 }): Promise<AbacateSubscription> {
-  const body: Record<string, unknown> = {
-    items: [{ id: params.productId, quantity: 1 }],
+  // Usa produto inline — não depende de IDs pré-criados no dashboard
+  const body = {
+    frequency: "MONTHLY",
+    items: [
+      {
+        externalId: `linkbiobr-${params.plan}`,
+        name: `LinkBio BR ${params.planName}`,
+        description: `Assinatura mensal LinkBio BR ${params.planName}`,
+        price: params.priceInCents,
+        quantity: 1,
+      },
+    ],
     completionUrl: params.completionUrl,
     returnUrl: params.returnUrl,
     metadata: { userId: params.userId, plan: params.plan },
   };
-  if (params.customerId) body.customerId = params.customerId;
 
-  console.log("[AbacatePay] createSubscription payload:", JSON.stringify(body));
-  return apiFetch<AbacateSubscription>(BASE_V2, "/subscriptions/create", {
+  console.log("[AbacatePay] createSubscription:", JSON.stringify(body));
+  return apiFetch<AbacateSubscription>("/subscriptions/create", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-// ─── Cancelar assinatura (v2) ─────────────────────────────────────────────────
+// ─── Cancelar assinatura ──────────────────────────────────────────────────────
 
 export async function cancelSubscriptionById(subscriptionId: string): Promise<void> {
-  await apiFetch<unknown>(BASE_V2, "/subscriptions/cancel", {
+  await apiFetch<unknown>("/subscriptions/cancel", {
     method: "POST",
     body: JSON.stringify({ id: subscriptionId }),
-  });
-}
-
-// ─── Criar cliente v1 (reservado para uso futuro) ─────────────────────────────
-
-export async function createCustomer(params: {
-  name: string;
-  email: string;
-  cellphone: string;
-  taxId?: string;
-}) {
-  return apiFetch<{ id: string }>(BASE_V1, "/customer/create", {
-    method: "POST",
-    body: JSON.stringify(params),
   });
 }
