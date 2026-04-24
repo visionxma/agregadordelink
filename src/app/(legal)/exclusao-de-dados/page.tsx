@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Exclusão de Conta e Dados · LinkBio BR",
+  title: "Exclusão de Conta e Dados",
   description:
-    "Procedimentos, prazos e limites aplicáveis à solicitação de eliminação de dados pessoais na LinkBio BR, conforme a LGPD.",
+    "Procedimentos, prazos e limites aplicáveis à solicitação de eliminação de dados pessoais no LinkBio, conforme a LGPD.",
+  alternates: { canonical: "https://linkbiobr.com/exclusao-de-dados" },
 };
 
 export default function ExclusaoPage() {

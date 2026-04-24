@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade · LinkBio BR",
+  title: "Política de Privacidade",
   description:
-    "Saiba como a LinkBio BR coleta, trata e protege seus dados pessoais em conformidade com a LGPD e o Marco Civil da Internet.",
+    "Saiba como o LinkBio coleta, trata e protege seus dados pessoais em conformidade com a LGPD e o Marco Civil da Internet.",
+  alternates: { canonical: "https://linkbiobr.com/privacidade" },
 };
 
 export default function PrivacidadePage() {

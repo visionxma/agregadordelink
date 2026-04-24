@@ -399,6 +399,12 @@ export default function HomePage() {
             pela VisionX no Maranhão, Brasil.
           </p>
           <div className="flex gap-6">
+            <Link href="/privacidade" className="hover:text-foreground">
+              Privacidade
+            </Link>
+            <Link href="/termos" className="hover:text-foreground">
+              Termos
+            </Link>
             <Link href="/login" className="hover:text-foreground">
               Entrar
             </Link>

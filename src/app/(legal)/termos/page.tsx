@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Termos de Uso · LinkBio BR",
+  title: "Termos de Uso",
   description:
-    "Termos de Uso da plataforma LinkBio BR — condições de cadastro, responsabilidades, limitação de responsabilidade e uso aceitável.",
+    "Termos de Uso do LinkBio — condições de cadastro, responsabilidades, limitação de responsabilidade e uso aceitável.",
+  alternates: { canonical: "https://linkbiobr.com/termos" },
 };
 
 export default function TermosPage() {
