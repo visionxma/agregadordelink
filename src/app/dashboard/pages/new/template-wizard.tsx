@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { ArrowRight, Check, Flame, Sparkles, User as UserIcon } from "lucide-react";
+import {
+  ArrowRight,
+  Flame,
+  Search,
+  Sparkles,
+  User as UserIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +17,76 @@ import { cn, slugify } from "@/lib/utils";
 import type { PageTemplate } from "@/lib/templates";
 import type { GalleryTemplate } from "@/lib/load-templates";
 import { createPageFromTemplate } from "../actions";
+
+// ─── Category icons ──────────────────────────────────────────────────────────
+
+const CATEGORY_ICONS: Record<string, string> = {
+  populares: "🔥",
+  todos: "✨",
+  criador: "🎨",
+  música: "🎵",
+  "negócio local": "🏪",
+  comércio: "🛍️",
+  mídia: "📺",
+  portfólio: "💼",
+  fitness: "💪",
+  educação: "🎓",
+  beleza: "💄",
+  outros: "📦",
+  "estilo plataforma": "🎯",
+  delivery: "🛵",
+  jurídico: "⚖️",
+  saúde: "❤️",
+  cantores: "🎤",
+  política: "🏛️",
+  "copa do mundo": "⚽",
+  "visual premium": "✨",
+  fotografia: "📸",
+  "moda & estilo": "👗",
+  "casamento & eventos": "💒",
+  "pet & animais": "🐾",
+  imóveis: "🏠",
+  "finanças & investimentos": "💰",
+  "crypto & web3": "🪙",
+  "marketing digital": "📣",
+  "design & criativo": "🖌️",
+  "podcast & áudio": "🎙️",
+  "dança & teatro": "💃",
+  "artesanato & diy": "🧵",
+  sustentabilidade: "🌱",
+  "gastronomia especial": "🍽️",
+  "saúde mental": "🧠",
+  "esportes radicais": "🏄",
+  "games & e-sports": "🎮",
+  "turismo & hotelaria": "✈️",
+  "religião & espiritualidade": "🙏",
+  "startup & inovação": "🚀",
+  "cinema & audiovisual": "🎬",
+  "jornalismo & mídia": "📰",
+  "automóveis & mobilidade": "🚗",
+  "construção civil": "🏗️",
+  "decoração & interiores": "🛋️",
+  "loja virtual & e-commerce": "🛒",
+  "serviços locais & profissionais": "🔧",
+  "crianças & família": "👨‍👩‍👧",
+  "rh & carreira": "💼",
+  "cultura & arte": "🎭",
+  "tecnologia & programação": "💻",
+  "social & comunidade": "👥",
+  "franquias & negócios": "🏢",
+  "beleza & estética": "💅",
+  "fitness & esporte": "🏋️",
+  "educação especial": "📚",
+  "café & restaurantes": "☕",
+  "viagem & lifestyle": "🗺️",
+  "bebidas & gastronomia": "🍷",
+};
+
+function getCategoryIcon(category: string): string {
+  return CATEGORY_ICONS[category.toLowerCase()] ?? "📁";
+}
+
+// ─── Main wizard ─────────────────────────────────────────────────────────────
 
 export function TemplateWizard({
   templates,
@@ -33,10 +109,10 @@ export function TemplateWizard({
       />
     );
   }
-  return (
-    <NameForm template={selected} onBack={() => setSelected(null)} />
-  );
+  return <NameForm template={selected} onBack={() => setSelected(null)} />;
 }
+
+// ─── Canva-style picker ──────────────────────────────────────────────────────
 
 function TemplatePicker({
   templates,
@@ -52,7 +128,6 @@ function TemplatePicker({
   const [activeCategory, setActiveCategory] = useState<string>("populares");
   const [search, setSearch] = useState("");
 
-  // Populares: top 8 por usageCount + featured como fallback
   const popular = useMemo(() => {
     const scored = templates
       .map((t) => ({
@@ -64,7 +139,7 @@ function TemplatePicker({
       }))
       .filter((t) => t.score > 0);
     scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, 8);
+    return scored.slice(0, 12);
   }, [templates]);
 
   const filtered = useMemo(() => {
@@ -84,116 +159,160 @@ function TemplatePicker({
     return list;
   }, [templates, activeCategory, search]);
 
-  const tabs = [
-    { id: "populares", label: "🔥 Populares" },
-    { id: "todos", label: "Todos" },
-    ...categories.map((c) => ({ id: c, label: c })),
+  const sidebarItems = [
+    { id: "populares", label: "Populares", icon: "🔥", highlighted: true },
+    { id: "todos", label: "Todos", icon: "✨" },
+    ...categories.map((c) => ({
+      id: c,
+      label: c.charAt(0).toUpperCase() + c.slice(1),
+      icon: getCategoryIcon(c),
+      highlighted: false,
+    })),
   ];
 
+  const currentTitle =
+    sidebarItems.find((i) => i.id === activeCategory)?.label ??
+    "Escolha um modelo";
+
+  const showingPopular =
+    activeCategory === "populares" && !search && popular.length > 0;
+
   return (
-    <div>
-      <div className="mb-10 max-w-3xl">
-        <h1 className="text-5xl font-black tracking-[-0.03em] sm:text-6xl">
-          Escolha um <span className="brand-gradient-text">modelo</span>
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          {templates.length} modelos prontos + da comunidade. Customize tudo
-          depois.
-        </p>
-      </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <Input
-          type="search"
-          placeholder="Buscar por nome ou categoria..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-11 max-w-md"
-        />
-      </div>
-
-      {/* Category tabs */}
-      <div className="mb-8 flex flex-wrap gap-2">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setActiveCategory(t.id)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-semibold transition-all",
-              activeCategory === t.id
-                ? "bg-foreground text-background"
-                : "bg-card/70 text-muted-foreground backdrop-blur-sm hover:bg-card hover:text-foreground"
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Populares (só mostra na aba Populares e sem search) */}
-      {activeCategory === "populares" && !search && popular.length > 0 && (
-        <section className="mb-12">
-          <div className="mb-4 flex items-center gap-2">
-            <Flame className="size-4 text-primary" />
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-primary">
-              Mais usados agora
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {popular.map((t) => (
-              <TemplateCard key={t.id} template={t} onPick={onPick} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Lista filtrada */}
-      {(activeCategory !== "populares" || search) && (
-        <section>
-          <p className="mb-4 text-sm text-muted-foreground">
-            {filtered.length} modelo{filtered.length !== 1 ? "s" : ""}
+    <div className="flex flex-1 overflow-hidden">
+      {/* LEFT SIDEBAR — categories */}
+      <aside className="flex w-64 shrink-0 flex-col border-r border-border/50 bg-card/40 backdrop-blur-xl overflow-hidden">
+        <div className="shrink-0 px-5 pt-6 pb-4">
+          <h1 className="text-2xl font-black tracking-[-0.02em]">
+            <span className="brand-gradient-text">Modelos</span>
+          </h1>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            {templates.length} prontos para usar
           </p>
-          {filtered.length === 0 ? (
-            <div className="rounded-3xl border-2 border-dashed border-border p-12 text-center text-muted-foreground">
-              Nenhum modelo encontrado. Tente outra busca.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {filtered.map((t) => (
-                <TemplateCard key={t.id} template={t} onPick={onPick} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+        </div>
 
-      {/* Blank option no rodapé */}
-      <section className="mt-16 border-t border-border pt-10">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-          Ou comece do zero
-        </h2>
-        <button
-          type="button"
-          onClick={() => onPick(blank)}
-          className="group flex items-center gap-4 rounded-2xl border-2 border-dashed border-border bg-card/60 p-5 text-left backdrop-blur-xl transition-all hover:border-primary hover:bg-card"
-        >
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-2xl">
-            ✍️
+        <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-0.5">
+          {sidebarItems.map((item) => {
+            const active = activeCategory === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveCategory(item.id)}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-all",
+                  active
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground"
+                )}
+              >
+                <span className="shrink-0 text-base">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Blank option */}
+        <div className="shrink-0 border-t border-border/40 p-3">
+          <button
+            type="button"
+            onClick={() => onPick(blank)}
+            className="group flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-background/60 p-3 text-left transition-colors hover:border-primary hover:bg-card"
+          >
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-base">
+              ✍️
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xs font-bold">Em branco</h3>
+              <p className="truncate text-[10px] text-muted-foreground">
+                Começar do zero
+              </p>
+            </div>
+            <ArrowRight className="size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </button>
+        </div>
+      </aside>
+
+      {/* MAIN — templates grid */}
+      <main className="flex flex-1 flex-col overflow-hidden">
+        {/* Sticky header with title + search */}
+        <div className="shrink-0 border-b border-border/40 bg-background/60 backdrop-blur-xl">
+          <div className="mx-auto max-w-6xl px-6 pt-6 pb-4">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-black tracking-[-0.025em]">
+                  {currentTitle}
+                </h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {search
+                    ? `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""} pra "${search}"`
+                    : activeCategory === "populares"
+                      ? "Os mais usados agora na plataforma"
+                      : `${filtered.length} modelo${filtered.length !== 1 ? "s" : ""}`}
+                </p>
+              </div>
+              <div className="relative w-full max-w-xs">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar modelos..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-10 pl-9"
+                />
+              </div>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold">Página em branco</h3>
-            <p className="text-sm text-muted-foreground">
-              Começa sem nada pré-preenchido.
-            </p>
+        </div>
+
+        {/* Scrollable grid */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-6xl px-6 py-6">
+            {showingPopular && (
+              <>
+                <div className="mb-4 flex items-center gap-2">
+                  <Flame className="size-4 text-primary" />
+                  <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary">
+                    Em alta
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  {popular.map((t) => (
+                    <TemplateCard key={t.id} template={t} onPick={onPick} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {!showingPopular && (
+              <>
+                {filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border py-24 text-center">
+                    <Search className="mb-3 size-8 text-muted-foreground/50" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Nenhum modelo encontrado
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground/70">
+                      Tente outra busca ou categoria.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    {filtered.map((t) => (
+                      <TemplateCard key={t.id} template={t} onPick={onPick} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
-          <ArrowRight className="size-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
-        </button>
-      </section>
+        </div>
+      </main>
     </div>
   );
 }
+
+// ─── Template card ───────────────────────────────────────────────────────────
 
 function TemplateCard({
   template,
@@ -206,32 +325,37 @@ function TemplateCard({
     <button
       type="button"
       onClick={() => onPick(template)}
-      className="group overflow-hidden rounded-3xl border-2 border-border bg-card/80 backdrop-blur-xl text-left transition-all hover:-translate-y-1 hover:border-primary hover:shadow-ios-lg"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card/80 text-left backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-ios-lg"
     >
       <div className="relative">
         <TemplateThumbnail template={template} />
         {template.source === "user" && (
-          <span className="absolute left-3 top-3 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground backdrop-blur">
+          <span className="absolute left-2 top-2 rounded-full bg-primary/95 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow-sm backdrop-blur">
             Comunidade
           </span>
         )}
         {template.featured && template.source === "system" && (
-          <span className="absolute left-3 top-3 rounded-full bg-amber-500/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
+          <span className="absolute left-2 top-2 rounded-full bg-amber-500/95 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur">
             Destaque
           </span>
         )}
-      </div>
-      <div className="p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{template.emoji}</span>
-          <h3 className="truncate font-bold">{template.name}</h3>
+        <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="mb-3 rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
+            Usar modelo →
+          </span>
         </div>
-        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+      </div>
+      <div className="flex-1 p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm">{template.emoji}</span>
+          <h3 className="truncate text-[13px] font-bold">{template.name}</h3>
+        </div>
+        <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-muted-foreground">
           {template.description}
         </p>
         {template.usageCount > 0 && (
-          <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-primary">
-            <UserIcon className="size-3" />
+          <p className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold text-primary">
+            <UserIcon className="size-2.5" />
             {template.usageCount} uso{template.usageCount !== 1 ? "s" : ""}
           </p>
         )}
@@ -239,6 +363,8 @@ function TemplateCard({
     </button>
   );
 }
+
+// ─── Name form (after template picked) ───────────────────────────────────────
 
 function NameForm({
   template,
@@ -264,88 +390,88 @@ function NameForm({
   }
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-10 lg:grid-cols-[320px_1fr]">
-      <div>
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary hover:underline"
-        >
-          ← Trocar modelo
-        </button>
-        <div className="overflow-hidden rounded-3xl border border-border bg-card/80 backdrop-blur-xl shadow-ios">
-          <TemplateThumbnail template={template} />
-          <div className="p-5">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{template.emoji}</span>
-              <h3 className="font-bold">{template.name}</h3>
+    <div className="flex flex-1 items-center justify-center overflow-y-auto p-6">
+      <div className="mx-auto grid w-full max-w-4xl gap-10 lg:grid-cols-[320px_1fr]">
+        <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-3 text-xs font-semibold uppercase tracking-widest text-primary hover:underline"
+          >
+            ← Trocar modelo
+          </button>
+          <div className="overflow-hidden rounded-3xl border border-border bg-card/80 backdrop-blur-xl shadow-ios">
+            <TemplateThumbnail template={template} />
+            <div className="p-5">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{template.emoji}</span>
+                <h3 className="font-bold">{template.name}</h3>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {template.description}
+              </p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {template.blocks.length} blocos pré-configurados
+              </p>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {template.description}
-            </p>
-            <p className="mt-3 text-xs text-muted-foreground">
-              {template.blocks.length} blocos pré-configurados
-            </p>
           </div>
         </div>
-      </div>
 
-      <div>
-        <h2 className="text-4xl font-black tracking-[-0.03em]">Quase lá</h2>
-        <p className="mt-1 text-muted-foreground">
-          Só preciso do nome e do link.
-        </p>
+        <div>
+          <h2 className="text-4xl font-black tracking-[-0.03em]">Quase lá</h2>
+          <p className="mt-1 text-muted-foreground">
+            Só preciso do nome e do link.
+          </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="title">Título</Label>
-            <Input
-              id="title"
-              name="title"
-              required
-              maxLength={80}
-              className="h-12"
-              placeholder="Seu nome"
-              value={title}
-              onChange={(e) => {
-                const v = e.target.value;
-                setTitle(v);
-                setSlug(slugify(v));
-              }}
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                name="title"
+                required
+                maxLength={80}
+                className="h-12"
+                placeholder="Seu nome"
+                value={title}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setTitle(v);
+                  setSlug(slugify(v));
+                }}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Slug (URL)</Label>
-            <SlugInput value={slug} onChange={setSlug} />
-          </div>
+            <div className="space-y-2">
+              <Label>Slug (URL)</Label>
+              <SlugInput value={slug} onChange={setSlug} />
+            </div>
 
-          {error && (
-            <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {error}
-            </p>
-          )}
-
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={pending}
-          >
-            {pending ? (
-              "Criando..."
-            ) : (
-              <>
-                Criar página <ArrowRight className="size-4" />
-              </>
+            {error && (
+              <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+              </p>
             )}
-          </Button>
-        </form>
+
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={pending}
+            >
+              {pending ? (
+                "Criando..."
+              ) : (
+                <>
+                  Criar página <ArrowRight className="size-4" />
+                </>
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
 }
 
-// suprime warning de import não usado caso tree-shaking
-void Check;
 void Sparkles;
