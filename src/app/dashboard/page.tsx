@@ -87,23 +87,47 @@ export default async function DashboardPage() {
               Suas páginas e o que tá rolando com elas.
             </p>
           </div>
-          {atPageLimit ? (
-            <Button asChild size="lg" variant="outline">
-              <Link href="/dashboard/billing">
-                {pageUpgrade === "pro"
-                  ? <><Star className="size-4 fill-amber-400 text-amber-400" /> Upgrade Pro</>
-                  : <><Crown className="size-4 fill-purple-500 text-purple-500" /> Upgrade Business</>
-                }
-              </Link>
-            </Button>
-          ) : (
-            <Button asChild size="lg">
-              <Link href="/dashboard/pages/new">
-                <Plus className="size-4" /> Nova página
-              </Link>
-            </Button>
-          )}
+          <Button asChild size="lg">
+            <Link href="/dashboard/pages/new">
+              <Plus className="size-4" /> Nova página
+            </Link>
+          </Button>
         </div>
+
+        {atPageLimit && (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600">
+                {pageUpgrade === "pro" ? (
+                  <Star className="size-4 fill-amber-400 text-amber-500" />
+                ) : (
+                  <Crown className="size-4 fill-purple-500 text-purple-500" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold">
+                  Você atingiu o limite do plano gratuito
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Para criar mais páginas,{" "}
+                  {pageUpgrade === "pro"
+                    ? "assine o plano Pro"
+                    : "faça upgrade para Business"}
+                  . Você ainda pode explorar os modelos livremente.
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" variant="outline" className="shrink-0 border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/15">
+              <Link href="/dashboard/billing">
+                {pageUpgrade === "pro" ? (
+                  <><Star className="size-3.5 fill-amber-400 text-amber-500" /> Assinar Pro</>
+                ) : (
+                  <><Crown className="size-3.5 fill-purple-500 text-purple-500" /> Upgrade Business</>
+                )}
+              </Link>
+            </Button>
+          </div>
+        )}
 
         {pages.length === 0 ? (
           <div className="glass rounded-3xl p-16 text-center shadow-ios">
