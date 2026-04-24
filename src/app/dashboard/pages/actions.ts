@@ -195,6 +195,7 @@ export async function createPageFromTemplate(formData: FormData) {
         pageId: created.id,
         type: b.type,
         data: b.data,
+        style: "style" in b && b.style ? b.style : {},
         position: i,
       }))
     );
@@ -261,7 +262,7 @@ export async function createPageWithQuiz(
   const { templateId, name, bio, avatarUrl, platforms, themeId } = parsed.data;
 
   let theme: PageTheme;
-  let templateBlocks: { type: BlockType; data: BlockData }[] = [];
+  let templateBlocks: { type: BlockType; data: BlockData; style?: import("@/lib/db/schema").BlockStyle }[] = [];
   let templateCoverUrl: string | null = null;
 
   if (templateId) {
@@ -328,6 +329,7 @@ export async function createPageWithQuiz(
     pageId: created.id,
     type: b.type,
     data: b.data,
+    style: b.style ?? {},
     position: platforms.length + i,
   }));
 
