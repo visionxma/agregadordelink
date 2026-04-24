@@ -44,9 +44,9 @@ export function PageCardActions({
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     const MENU_W = 192;
-    // Align menu's right edge to button's right edge
+    // Align menu's right edge to button's right edge; open upward
     setMenuPos({
-      top: rect.bottom + 6,
+      top: rect.top - 6,
       left: Math.max(8, rect.right - MENU_W),
     });
     setMenuOpen(true);
@@ -122,7 +122,7 @@ export function PageCardActions({
         <ModalPortal>
           <div
             ref={menuRef}
-            style={{ position: "fixed", top: menuPos.top, left: menuPos.left }}
+            style={{ position: "fixed", top: menuPos.top, left: menuPos.left, transform: "translateY(-100%)" }}
             className="z-50 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-ios-lg backdrop-blur-xl animate-slide-up"
           >
             <MenuItem
