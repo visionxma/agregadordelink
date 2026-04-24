@@ -37,6 +37,13 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://quge5.com/88/tag.min.js"
+          data-zone="233238"
+          async
+          data-cfasync="false"
+          strategy="afterInteractive"
+        />
         <Toaster
           position="bottom-right"
           richColors
