@@ -16,11 +16,18 @@ import { cn } from "@/lib/utils";
 import type { Block, BlockData, FormField } from "@/lib/db/schema";
 import { updateBlock } from "../../actions";
 
-export function BlockEditorForm({ block }: { block: Block }) {
+export function BlockEditorForm({
+  block,
+  onUpdate,
+}: {
+  block: Block;
+  onUpdate?: (data: BlockData) => void;
+}) {
   const [, startTransition] = useTransition();
   const data = block.data as BlockData;
 
   function handleUpdate(next: BlockData) {
+    onUpdate?.(next);
     startTransition(() => updateBlock(block.id, next));
   }
 

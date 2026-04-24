@@ -82,6 +82,12 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
     setRightTab("block");
   }
 
+  function handleBlockDataUpdate(blockId: string, data: BlockData) {
+    setBlocks((curr) =>
+      curr.map((b) => (b.id === blockId ? { ...b, data } : b))
+    );
+  }
+
   function handleDeleteWithUndo(blockId: string) {
     const existing = pendingDeletions.current.get(blockId);
     if (existing) clearTimeout(existing);
@@ -259,6 +265,11 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
             <BlockTab
               block={selectedBlock}
               onDelete={selectedBlock ? () => handleDeleteWithUndo(selectedBlock.id) : undefined}
+              onBlockUpdate={
+                selectedBlock
+                  ? (data) => handleBlockDataUpdate(selectedBlock.id, data)
+                  : undefined
+              }
             />
           )}
 
@@ -406,9 +417,11 @@ function CompactBlockRow({
 function BlockTab({
   block,
   onDelete,
+  onBlockUpdate,
 }: {
   block: Block | null;
   onDelete?: () => void;
+  onBlockUpdate?: (data: BlockData) => void;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -470,7 +483,7 @@ function BlockTab({
       </div>
 
       {/* Block editor form */}
-      <BlockEditorForm block={block} />
+      <BlockEditorForm block={block} onUpdate={onBlockUpdate} />
     </div>
   );
 }
