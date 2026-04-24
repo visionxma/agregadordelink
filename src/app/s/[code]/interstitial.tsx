@@ -96,7 +96,7 @@ export function AdInterstitial({
               Publicidade
             </p>
             <div className="flex min-h-[250px] items-center justify-center p-4">
-              <Quge5Banner />
+              <MonotagBanner />
             </div>
           </div>
 
@@ -117,17 +117,15 @@ export function AdInterstitial({
   );
 }
 
-function Quge5Banner() {
+function MonotagBanner() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = ref.current;
     if (!container) return;
     const script = document.createElement("script");
-    script.src = "https://quge5.com/88/tag.min.js";
-    script.setAttribute("data-zone", "233238");
-    script.setAttribute("data-cfasync", "false");
-    script.async = true;
+    script.dataset.zone = "10921578";
+    script.src = "https://nap5k.com/tag.min.js";
     container.appendChild(script);
     return () => {
       if (container.contains(script)) container.removeChild(script);
