@@ -83,7 +83,7 @@ export async function createSubscription(params: {
   };
 
   console.log("[AbacatePay] createSubscription payload:", JSON.stringify(body));
-  return apiFetch<AbacateSubscription>("/subscriptions/create", {
+  return apiFetch<AbacateSubscription>("/checkouts/create", {
     method: "POST",
     body: JSON.stringify(body),
   });
