@@ -18,6 +18,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { page } from "@/lib/db/schema";
 import { getPageAnalytics } from "@/lib/analytics";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RealtimeWidget } from "./realtime-widget";
@@ -37,7 +38,11 @@ export default async function AnalyticsPage({
     .where(and(eq(page.id, id), eq(page.userId, session.user.id)));
   if (!p) notFound();
 
-  const analytics = await getPageAnalytics(p.id, 30);
+  const limits = await getUserPlanLimits(session.user.id);
+  const retentionDays = limits.analyticsRetentionDays;
+  const canExportCsv = limits.apiAccess; // Business only
+
+  const analytics = await getPageAnalytics(p.id, retentionDays);
 
   const maxTimeline = Math.max(
     1,
@@ -56,15 +61,23 @@ export default async function AnalyticsPage({
             </Button>
             <div className="border-l border-border pl-3">
               <h1 className="text-sm font-bold">{p.title} · Analytics</h1>
-              <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
+              <p className="text-xs text-muted-foreground">Últimos {retentionDays} dias</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <a href={`/api/analytics/export?pageId=${p.id}`} download>
-                <Download className="size-4" /> CSV
-              </a>
-            </Button>
+            {canExportCsv ? (
+              <Button asChild variant="outline" size="sm">
+                <a href={`/api/analytics/export?pageId=${p.id}`} download>
+                  <Download className="size-4" /> CSV
+                </a>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/dashboard/billing" title="Exportar CSV disponível no plano Business">
+                  <Download className="size-4" /> CSV 👑
+                </Link>
+              </Button>
+            )}
             <Button asChild variant="outline" size="sm">
               <a href={`/api/export-html?pageId=${p.id}`} download>
                 <Download className="size-4" /> HTML
