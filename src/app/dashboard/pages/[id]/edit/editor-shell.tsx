@@ -31,6 +31,7 @@ import {
   Star,
   Target,
   Trash2,
+  Users,
   Zap,
 } from "lucide-react";
 import type { Block, BlockData, Page, PageTheme } from "@/lib/db/schema";
@@ -44,6 +45,8 @@ import { CustomDomainForm } from "./custom-domain-form";
 import { IntegrationsForm } from "./integrations-form";
 import { AdvancedForm } from "./advanced-form";
 import { AddBlockBar } from "./add-block-bar";
+import { TeamPanel } from "./team-panel";
+import { useCollabPresence, lockBlock, unlockBlock } from "@/hooks/use-collab-presence";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -60,11 +63,25 @@ interface EditorShellProps {
   initialBlocks: Block[];
   theme: PageTheme;
   planTier: PlanTier;
+  isOwner?: boolean;
+  canManageTeam?: boolean;
+  currentUserId?: string;
 }
 
-type RightTab = "block" | "themes" | "customize" | "settings" | "pixels" | "advanced";
+type RightTab = "block" | "themes" | "customize" | "settings" | "pixels" | "advanced" | "team";
 
-export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShellProps) {
+export function EditorShell({
+  page,
+  initialBlocks,
+  theme,
+  planTier,
+  isOwner = true,
+  canManageTeam = true,
+  currentUserId = "",
+}: EditorShellProps) {
+  const collabEnabled = planTier === "pro" || planTier === "business";
+  const { online, locks } = useCollabPresence(page.id, collabEnabled);
+  const lockedByMap = new Map(locks.map((l) => [l.blockId, l.userId]));
   const [blocks, setBlocks] = useState(initialBlocks);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rightTab, setRightTab] = useState<RightTab>("block");
@@ -78,9 +95,23 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
   const selectedBlock = blocks.find((b) => b.id === selectedId) ?? null;
 
   function handleSelect(id: string) {
-    setSelectedId((prev) => (prev === id ? null : id));
+    setSelectedId((prev) => {
+      const next = prev === id ? null : id;
+      if (collabEnabled) {
+        if (prev && prev !== next) unlockBlock(prev);
+        if (next) lockBlock(next);
+      }
+      return next;
+    });
     setRightTab("block");
   }
+
+  // Libera lock quando usuário sai do editor
+  useEffect(() => {
+    return () => {
+      if (collabEnabled && selectedId) unlockBlock(selectedId);
+    };
+  }, [collabEnabled, selectedId]);
 
   function handleBlockDataUpdate(blockId: string, data: BlockData) {
     setBlocks((curr) =>
@@ -162,6 +193,12 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
       icon: <Settings className="size-3.5" />,
       badge: planTier === "free" ? "pro" : planTier === "pro" ? "business" : undefined,
     },
+    {
+      id: "team",
+      label: "Equipe",
+      icon: <Users className="size-3.5" />,
+      badge: planTier === "free" ? "pro" : undefined,
+    },
   ];
 
   return (
@@ -172,9 +209,35 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Blocos
           </span>
-          <span className="text-[10px] text-muted-foreground bg-secondary rounded-full px-1.5 py-0.5">
-            {blocks.length}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {collabEnabled && online.length > 0 && (
+              <div className="flex -space-x-1.5" title={`${online.length} online`}>
+                {online.slice(0, 3).map((u) =>
+                  u.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={u.userId}
+                      src={u.avatarUrl}
+                      alt={u.name}
+                      title={u.name}
+                      className="size-5 rounded-full object-cover ring-2 ring-card"
+                    />
+                  ) : (
+                    <div
+                      key={u.userId}
+                      title={u.name}
+                      className="flex size-5 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground ring-2 ring-card"
+                    >
+                      {u.name.charAt(0).toUpperCase()}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+            <span className="text-[10px] text-muted-foreground bg-secondary rounded-full px-1.5 py-0.5">
+              {blocks.length}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto py-2 px-2">
@@ -193,15 +256,23 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-0.5">
-                  {blocks.map((b) => (
-                    <CompactBlockRow
-                      key={b.id}
-                      block={b}
-                      selected={selectedId === b.id}
-                      onSelect={() => handleSelect(b.id)}
-                      onDelete={() => handleDeleteWithUndo(b.id)}
-                    />
-                  ))}
+                  {blocks.map((b) => {
+                    const lockUserId = lockedByMap.get(b.id);
+                    const lockUser =
+                      lockUserId && lockUserId !== currentUserId
+                        ? online.find((o) => o.userId === lockUserId)
+                        : null;
+                    return (
+                      <CompactBlockRow
+                        key={b.id}
+                        block={b}
+                        selected={selectedId === b.id}
+                        onSelect={() => handleSelect(b.id)}
+                        onDelete={() => handleDeleteWithUndo(b.id)}
+                        lockedBy={lockUser ?? null}
+                      />
+                    );
+                  })}
                 </div>
               </SortableContext>
             </DndContext>
@@ -301,6 +372,16 @@ export function EditorShell({ page, initialBlocks, theme, planTier }: EditorShel
           {rightTab === "advanced" && (
             <AdvancedForm page={page} planTier={planTier} />
           )}
+
+          {rightTab === "team" && (
+            <TeamPanel
+              pageId={page.id}
+              planTier={planTier}
+              canManageTeam={canManageTeam}
+              currentUserId={currentUserId}
+              online={online}
+            />
+          )}
         </div>
       </aside>
     </div>
@@ -314,11 +395,13 @@ function CompactBlockRow({
   selected,
   onSelect,
   onDelete,
+  lockedBy,
 }: {
   block: Block;
   selected: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  lockedBy?: { userId: string; name: string; avatarUrl: string | null } | null;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: block.id });
@@ -367,6 +450,27 @@ function CompactBlockRow({
           {getBlockLabel(data)}
         </span>
       </button>
+
+      {/* Indicador de lock por outro colaborador */}
+      {lockedBy && (
+        <div
+          className="shrink-0 flex size-5 items-center justify-center"
+          title={`${lockedBy.name} está editando`}
+        >
+          {lockedBy.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={lockedBy.avatarUrl}
+              alt=""
+              className="size-4 rounded-full object-cover ring-2 ring-amber-400"
+            />
+          ) : (
+            <div className="flex size-4 items-center justify-center rounded-full bg-amber-400 text-[8px] font-bold text-white ring-2 ring-amber-200">
+              {lockedBy.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action buttons — shown on hover or when selected */}
       <div className={cn(

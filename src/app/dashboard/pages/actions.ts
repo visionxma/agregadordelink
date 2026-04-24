@@ -25,6 +25,7 @@ import { validatePageSlug, generateUniquePageSlug } from "@/lib/slug";
 import { sql, count } from "drizzle-orm";
 import { getUserPlanLimits } from "@/lib/get-plan-limits";
 import { isUnlimited } from "@/lib/plans";
+import { resolvePageAccess } from "@/lib/collab-auth";
 
 async function requireUser() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -32,6 +33,7 @@ async function requireUser() {
   return session.user;
 }
 
+/** Carrega página garantindo que o usuário é dono — usado em ações que devem ser apenas do dono. */
 async function loadUserPage(pageId: string, userId: string) {
   const [p] = await db
     .select()
@@ -39,6 +41,26 @@ async function loadUserPage(pageId: string, userId: string) {
     .where(and(eq(page.id, pageId), eq(page.userId, userId)));
   if (!p) throw new Error("Página não encontrada");
   return p;
+}
+
+/** Carrega página se o usuário é dono OU colaborador com permissão de edição. */
+async function loadEditablePage(pageId: string, userId: string) {
+  const access = await resolvePageAccess(pageId, userId);
+  if (!access || !access.canEdit) throw new Error("Página não encontrada");
+  return access.page;
+}
+
+/** Retorna bloco + pageId se o usuário pode editá-lo (dono ou colaborador editor). */
+async function loadEditableBlock(blockId: string, userId: string) {
+  const [b] = await db
+    .select({ id: block.id, pageId: block.pageId })
+    .from(block)
+    .where(eq(block.id, blockId))
+    .limit(1);
+  if (!b) return null;
+  const access = await resolvePageAccess(b.pageId, userId);
+  if (!access || !access.canEdit) return null;
+  return { blockId: b.id, pageId: b.pageId };
 }
 
 const createPageSchema = z.object({
@@ -500,7 +522,7 @@ const updatePageSchema = z.object({
 
 export async function updatePage(pageId: string, formData: FormData) {
   const user = await requireUser();
-  const existing = await loadUserPage(pageId, user.id);
+  const existing = await loadEditablePage(pageId, user.id);
 
   const rawAvatar = formData.get("avatarUrl");
   const rawCover = formData.get("coverUrl");
@@ -558,10 +580,10 @@ export async function deletePage(pageId: string) {
 
 export async function addBlock(pageId: string, type: BlockType) {
   const user = await requireUser();
-  await loadUserPage(pageId, user.id);
+  const pageRow = await loadEditablePage(pageId, user.id);
 
-  // ── Limite de blocos por página ──
-  const limits = await getUserPlanLimits(user.id);
+  // ── Limite de blocos por página (baseado no plano do DONO) ──
+  const limits = await getUserPlanLimits(pageRow.userId);
   if (!isUnlimited(limits.blocksPerPage)) {
     const [{ total }] = await db
       .select({ total: count() })
@@ -734,12 +756,8 @@ export async function updateBlock(
   data: BlockData
 ) {
   const user = await requireUser();
-  const [b] = await db
-    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
-    .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
-    .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) return;
+  const b = await loadEditableBlock(blockId, user.id);
+  if (!b) return;
 
   await db
     .update(block)
@@ -754,12 +772,8 @@ export async function updateBlockStyle(
   style: import("@/lib/db/schema").BlockStyle
 ) {
   const user = await requireUser();
-  const [b] = await db
-    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
-    .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
-    .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) return;
+  const b = await loadEditableBlock(blockId, user.id);
+  if (!b) return;
 
   // Remove propriedades vazias/undefined antes de salvar
   const cleaned: Record<string, unknown> = {};
@@ -777,12 +791,8 @@ export async function updateBlockStyle(
 
 export async function toggleBlockVisible(blockId: string, visible: boolean) {
   const user = await requireUser();
-  const [b] = await db
-    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
-    .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
-    .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) return;
+  const b = await loadEditableBlock(blockId, user.id);
+  if (!b) return;
 
   await db
     .update(block)
@@ -794,12 +804,8 @@ export async function toggleBlockVisible(blockId: string, visible: boolean) {
 
 export async function toggleBlockGoal(blockId: string, isGoal: boolean) {
   const user = await requireUser();
-  const [b] = await db
-    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
-    .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
-    .where(eq(block.id, blockId));
-  if (!b || b.userId !== user.id) return;
+  const b = await loadEditableBlock(blockId, user.id);
+  if (!b) return;
 
   await db
     .update(block)
@@ -812,15 +818,9 @@ export async function toggleBlockGoal(blockId: string, isGoal: boolean) {
 
 export async function deleteBlock(blockId: string) {
   const user = await requireUser();
-  const [b] = await db
-    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
-    .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
-    .where(eq(block.id, blockId));
-
-  // Idempotente: se bloco já não existe (race com outro delete / double-click), sem erro
+  const b = await loadEditableBlock(blockId, user.id);
+  // Idempotente: se bloco já não existe ou sem acesso, sai em silêncio
   if (!b) return;
-  if (b.userId !== user.id) return;
 
   await db.delete(block).where(eq(block.id, blockId));
   revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
@@ -904,7 +904,7 @@ export async function updateIntegrations(
 
 export async function applyThemePreset(pageId: string, presetId: string) {
   const user = await requireUser();
-  const existing = await loadUserPage(pageId, user.id);
+  const existing = await loadEditablePage(pageId, user.id);
   const preset = getPresetById(presetId);
   if (!preset) throw new Error("Tema não encontrado");
   await db
@@ -917,7 +917,7 @@ export async function applyThemePreset(pageId: string, presetId: string) {
 
 export async function applyColorPalette(pageId: string, paletteId: string) {
   const user = await requireUser();
-  const existing = await loadUserPage(pageId, user.id);
+  const existing = await loadEditablePage(pageId, user.id);
   const palette = getPaletteById(paletteId);
   if (!palette) throw new Error("Paleta não encontrada");
 
@@ -943,7 +943,7 @@ export async function applyColorPalette(pageId: string, paletteId: string) {
 
 export async function updateTheme(pageId: string, theme: PageTheme) {
   const user = await requireUser();
-  const existing = await loadUserPage(pageId, user.id);
+  const existing = await loadEditablePage(pageId, user.id);
   await db
     .update(page)
     .set({ theme, updatedAt: new Date() })
@@ -954,7 +954,7 @@ export async function updateTheme(pageId: string, theme: PageTheme) {
 
 export async function reorderBlocks(pageId: string, orderedIds: string[]) {
   const user = await requireUser();
-  await loadUserPage(pageId, user.id);
+  await loadEditablePage(pageId, user.id);
 
   // Valida que todos os blocos pertencem à página
   const rows = await db
@@ -978,19 +978,17 @@ export async function reorderBlocks(pageId: string, orderedIds: string[]) {
 
 export async function moveBlock(blockId: string, direction: "up" | "down") {
   const user = await requireUser();
+  const access = await loadEditableBlock(blockId, user.id);
+  if (!access) throw new Error("Bloco não encontrado");
   const [current] = await db
     .select({
       id: block.id,
       pageId: block.pageId,
       position: block.position,
-      userId: page.userId,
     })
     .from(block)
-    .innerJoin(page, eq(page.id, block.pageId))
     .where(eq(block.id, blockId));
-  if (!current || current.userId !== user.id) {
-    throw new Error("Bloco não encontrado");
-  }
+  if (!current) throw new Error("Bloco não encontrado");
 
   const siblings = await db
     .select()

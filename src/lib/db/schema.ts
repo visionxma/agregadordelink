@@ -120,6 +120,8 @@ export const block = pgTable(
     position: integer("position").notNull().default(0),
     visible: boolean("visible").notNull().default(true),
     isGoal: boolean("is_goal").notNull().default(false),
+    lockedBy: text("locked_by").references(() => user.id, { onDelete: "set null" }),
+    lockedAt: timestamp("locked_at"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -128,6 +130,77 @@ export const block = pgTable(
     positionIdx: index("block_position_idx").on(t.pageId, t.position),
   })
 );
+
+// ============== COLABORAÇÃO EM EQUIPE ==============
+
+export type CollaboratorRole = "editor" | "viewer";
+
+export const pageCollaborator = pgTable(
+  "page_collaborator",
+  {
+    id: text("id").primaryKey().$defaultFn(() => createId()),
+    pageId: text("page_id")
+      .notNull()
+      .references(() => page.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role").$type<CollaboratorRole>().notNull().default("editor"),
+    invitedBy: text("invited_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    invitedAt: timestamp("invited_at").notNull().defaultNow(),
+    acceptedAt: timestamp("accepted_at"),
+  },
+  (t) => ({
+    uniqPageUser: uniqueIndex("collab_page_user_unique").on(t.pageId, t.userId),
+    pageIdx: index("collab_page_idx").on(t.pageId),
+    userIdx: index("collab_user_idx").on(t.userId),
+  })
+);
+
+export const pageInvite = pgTable(
+  "page_invite",
+  {
+    id: text("id").primaryKey(), // token de convite — createId(32) gerado na action
+    pageId: text("page_id")
+      .notNull()
+      .references(() => page.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role").$type<CollaboratorRole>().notNull().default("editor"),
+    invitedBy: text("invited_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    expiresAt: timestamp("expires_at").notNull(),
+    acceptedAt: timestamp("accepted_at"),
+  },
+  (t) => ({
+    uniqPageEmail: uniqueIndex("invite_page_email_unique").on(t.pageId, t.email),
+    pageIdx: index("invite_page_idx").on(t.pageId),
+  })
+);
+
+export const collabPresence = pgTable(
+  "collab_presence",
+  {
+    pageId: text("page_id")
+      .notNull()
+      .references(() => page.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    lastSeen: timestamp("last_seen").notNull().defaultNow(),
+  },
+  (t) => ({
+    uniq: uniqueIndex("presence_page_user_unique").on(t.pageId, t.userId),
+    pageIdx: index("presence_page_idx").on(t.pageId),
+  })
+);
+
+export type PageCollaborator = typeof pageCollaborator.$inferSelect;
+export type PageInvite = typeof pageInvite.$inferSelect;
+export type CollabPresence = typeof collabPresence.$inferSelect;
 
 export type BlockStyle = {
   background?: string;

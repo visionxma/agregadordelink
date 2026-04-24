@@ -1,17 +1,18 @@
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { ArrowLeft, BarChart3, ExternalLink } from "lucide-react";
 import { EditorHeaderQr } from "./editor-header-qr";
 import { PublishTemplateButton } from "./publish-template-button";
 import { EditorShell } from "./editor-shell";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { block, page } from "@/lib/db/schema";
+import { block } from "@/lib/db/schema";
 import { getUserPlanLimits } from "@/lib/get-plan-limits";
 import { Button } from "@/components/ui/button";
 import { normalizeTheme } from "@/lib/normalize-theme";
+import { resolvePageAccess } from "@/lib/collab-auth";
 
 export default async function EditPage({
   params,
@@ -22,11 +23,9 @@ export default async function EditPage({
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
-  const [p] = await db
-    .select()
-    .from(page)
-    .where(and(eq(page.id, id), eq(page.userId, session.user.id)));
-  if (!p) notFound();
+  const access = await resolvePageAccess(id, session.user.id);
+  if (!access) notFound();
+  const p = access.page;
 
   const blocks = await db
     .select()
@@ -35,7 +34,8 @@ export default async function EditPage({
     .orderBy(asc(block.position));
 
   const theme = normalizeTheme(p.theme);
-  const limits = await getUserPlanLimits(session.user.id);
+  // Limites e plano sempre baseados no DONO da página
+  const limits = await getUserPlanLimits(p.userId);
   const planTier =
     limits.customJs ? "business" : limits.customCss ? "pro" : "free";
 
@@ -90,6 +90,9 @@ export default async function EditPage({
         initialBlocks={blocks}
         theme={theme}
         planTier={planTier as "free" | "pro" | "business"}
+        isOwner={access.isOwner}
+        canManageTeam={access.canManageTeam}
+        currentUserId={session.user.id}
       />
     </main>
   );

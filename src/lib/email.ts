@@ -52,3 +52,27 @@ export async function sendResetPasswordEmail(to: string, url: string) {
   `;
   await send(to, "Resetar senha — LinkBio BR", html);
 }
+
+export async function sendCollabInviteEmail(params: {
+  to: string;
+  inviterName: string;
+  pageTitle: string;
+  role: "editor" | "viewer";
+  acceptUrl: string;
+}) {
+  const { to, inviterName, pageTitle, role, acceptUrl } = params;
+  const roleLabel = role === "editor" ? "editor(a)" : "visualizador(a)";
+  const html = `
+    <div style="${baseStyle}">
+      <h1 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 12px;">Convite para colaborar</h1>
+      <p style="color: #737373; margin: 0 0 8px;">
+        <strong>${inviterName}</strong> convidou você para colaborar como
+        <strong>${roleLabel}</strong> na página
+        <strong>${pageTitle}</strong> no LinkBio.
+      </p>
+      ${button(acceptUrl, "Aceitar convite")}
+      <p style="color: #a3a3a3; font-size: 12px;">Este convite expira em 7 dias. Se você não esperava receber isso, pode ignorar.</p>
+    </div>
+  `;
+  await send(to, `Convite para colaborar — ${pageTitle}`, html);
+}

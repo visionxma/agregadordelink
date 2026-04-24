@@ -16,6 +16,7 @@ export type PlanLimits = {
   pixelIntegrations: boolean;  // Meta Pixel, GA4, TikTok
   apiAccess: boolean;
   whiteLabel: boolean;
+  teamCollaborators: number;   // 0 = indisponível, -1 = ilimitado
 };
 
 export type PlanConfig = {
@@ -70,6 +71,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       pixelIntegrations: false,
       apiAccess: false,
       whiteLabel: false,
+      teamCollaborators: 0,
     },
   },
 
@@ -94,6 +96,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       "Meta Pixel, GA4, TikTok Pixel",
       "CSS personalizado",
       "Remover branding LinkBio BR",
+      "Até 3 colaboradores por página",
       "Suporte por email",
     ],
     limits: {
@@ -112,6 +115,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       pixelIntegrations: true,
       apiAccess: false,
       whiteLabel: false,
+      teamCollaborators: 3,
     },
     highlight: true,
   },
@@ -133,6 +137,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       "CSS + JS personalizado",
       "API REST pública",
       "White-label completo",
+      "Colaboradores ilimitados por página",
       "Suporte prioritário",
     ],
     limits: {
@@ -151,6 +156,7 @@ export const PLANS: Record<PlanTier, PlanConfig> = {
       pixelIntegrations: true,
       apiAccess: true,
       whiteLabel: true,
+      teamCollaborators: -1,
     },
   },
 };
