@@ -10,7 +10,7 @@ import { isUnlimited } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { PagePreviewCard } from "@/components/page-preview-card";
 import { LinkBioLogo } from "@/components/linkbio-logo";
-import { Crown, LayoutTemplate, Link2, Plus, Sparkles, Star } from "lucide-react";
+import { Crown, LayoutTemplate, Link2, MessageCircle, Plus, Sparkles, Star } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { PageCardActions } from "./page-card-actions";
 
@@ -66,6 +66,11 @@ export default async function DashboardPage() {
               <Button asChild variant="ghost" size="sm">
                 <Link href="/dashboard/links">
                   <Link2 className="size-3.5" /> Links curtos
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/dashboard/whatsapp">
+                  <MessageCircle className="size-3.5" /> WhatsApp
                 </Link>
               </Button>
             </nav>

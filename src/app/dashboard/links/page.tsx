@@ -37,6 +37,9 @@ export default async function ShortLinksPage() {
               <Button asChild variant="secondary" size="sm">
                 <Link href="/dashboard/links">Links curtos</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/dashboard/whatsapp">WhatsApp</Link>
+              </Button>
             </nav>
           </div>
           <SignOutButton />
