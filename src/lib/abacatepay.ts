@@ -1,4 +1,4 @@
-const BASE = "https://api.abacatepay.com/v2";
+const BASE = "https://api.abacatepay.com/v1";
 
 function apiKey() {
   const k = process.env.ABACATEPAY_API_KEY;
@@ -50,7 +50,8 @@ export type AbacateWebhookEvent = {
 // ─── Cliente ─────────────────────────────────────────────────────────────────
 
 async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const url = `${BASE}${path}`;
+  const res = await fetch(url, {
     ...init,
     headers: { ...reqHeaders(), ...(init.headers as object) },
   });
@@ -61,7 +62,7 @@ async function apiFetch<T>(path: string, init: RequestInit): Promise<T> {
   return (json?.data ?? json) as T;
 }
 
-/** Cria ou recupera um cliente no Abacate Pay. */
+/** Cria um cliente no Abacate Pay. */
 export async function createCustomer(params: {
   name: string;
   email: string;
