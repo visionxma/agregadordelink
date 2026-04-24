@@ -28,8 +28,10 @@ export function PageCardActions({
 }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const url =
@@ -37,16 +39,42 @@ export function PageCardActions({
       ? `${window.location.origin}/${slug}`
       : `/${slug}`;
 
-  // Close menu when clicking outside
+  function openMenu() {
+    const btn = buttonRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const MENU_W = 192;
+    // Align menu's right edge to button's right edge
+    setMenuPos({
+      top: rect.bottom + 6,
+      left: Math.max(8, rect.right - MENU_W),
+    });
+    setMenuOpen(true);
+  }
+
+  // Close menu when clicking outside or scrolling
   useEffect(() => {
     if (!menuOpen) return;
     function onClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        menuRef.current && !menuRef.current.contains(target) &&
+        buttonRef.current && !buttonRef.current.contains(target)
+      ) {
         setMenuOpen(false);
       }
     }
+    function onScroll() {
+      setMenuOpen(false);
+    }
     document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [menuOpen]);
 
   function handleCopyLink() {
@@ -77,53 +105,60 @@ export function PageCardActions({
           </Link>
         </Button>
 
-        {/* 3-dots menu */}
-        <div ref={menuRef} className="relative">
-          <Button
-            size="icon"
-            variant="outline"
-            title="Mais opções"
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <MoreVertical className="size-3.5" />
-          </Button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full z-40 mt-1.5 w-48 overflow-hidden rounded-xl border border-border bg-card/95 shadow-ios-lg backdrop-blur-xl">
-              <MenuItem
-                onClick={() => {
-                  setQrOpen(true);
-                  setMenuOpen(false);
-                }}
-                icon={<QrCode className="size-3.5" />}
-                label="QR Code"
-              />
-              <MenuItem
-                onClick={handleCopyLink}
-                icon={<Copy className="size-3.5" />}
-                label="Copiar link"
-              />
-              <Link
-                href={`/dashboard/pages/${id}/analytics`}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
-                onClick={() => setMenuOpen(false)}
-              >
-                <BarChart3 className="size-3.5" />
-                Analytics
-              </Link>
-              <div className="border-t border-border/60" />
-              <MenuItem
-                onClick={() => {
-                  setConfirmOpen(true);
-                  setMenuOpen(false);
-                }}
-                icon={<Trash2 className="size-3.5" />}
-                label="Excluir"
-                destructive
-              />
-            </div>
-          )}
-        </div>
+        {/* 3-dots menu trigger */}
+        <Button
+          ref={buttonRef}
+          size="icon"
+          variant="outline"
+          title="Mais opções"
+          onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
+        >
+          <MoreVertical className="size-3.5" />
+        </Button>
       </div>
+
+      {/* Dropdown menu — rendered via portal to escape card overflow */}
+      {menuOpen && menuPos && (
+        <ModalPortal>
+          <div
+            ref={menuRef}
+            style={{ position: "fixed", top: menuPos.top, left: menuPos.left }}
+            className="z-50 w-48 overflow-hidden rounded-xl border border-border bg-card shadow-ios-lg backdrop-blur-xl animate-slide-up"
+          >
+            <MenuItem
+              onClick={() => {
+                setQrOpen(true);
+                setMenuOpen(false);
+              }}
+              icon={<QrCode className="size-3.5" />}
+              label="QR Code"
+            />
+            <MenuItem
+              onClick={handleCopyLink}
+              icon={<Copy className="size-3.5" />}
+              label="Copiar link"
+            />
+            <Link
+              href={`/dashboard/pages/${id}/analytics`}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-secondary/70"
+              onClick={() => setMenuOpen(false)}
+            >
+              <BarChart3 className="size-3.5" />
+              Analytics
+            </Link>
+            <div className="border-t border-border/60" />
+            <MenuItem
+              onClick={() => {
+                setConfirmOpen(true);
+                setMenuOpen(false);
+              }}
+              icon={<Trash2 className="size-3.5" />}
+              label="Excluir"
+              destructive
+            />
+          </div>
+        </ModalPortal>
+      )}
 
       {/* QR modal */}
       <QRCodeModal

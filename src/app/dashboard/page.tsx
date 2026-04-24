@@ -10,7 +10,7 @@ import { isUnlimited } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { PagePreviewCard } from "@/components/page-preview-card";
 import { LinkBioLogo } from "@/components/linkbio-logo";
-import { Crown, Link2, Plus, Sparkles, Star } from "lucide-react";
+import { Crown, LayoutTemplate, Link2, Plus, Sparkles, Star } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { PageCardActions } from "./page-card-actions";
 
@@ -57,6 +57,11 @@ export default async function DashboardPage() {
             <nav className="hidden gap-1 sm:flex">
               <Button asChild variant="secondary" size="sm">
                 <Link href="/dashboard">Páginas</Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/dashboard/pages/new">
+                  <LayoutTemplate className="size-3.5" /> Modelos
+                </Link>
               </Button>
               <Button asChild variant="ghost" size="sm">
                 <Link href="/dashboard/links">
