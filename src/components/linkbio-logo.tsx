@@ -63,9 +63,15 @@ export function LinkBioLogo({
       )}
     >
       <LinkBioMark width={s.markW} />
-      <span className="leading-none">
+      <span className="relative leading-none">
         <span>Link</span>
         <span style={accentBio ? { color: GREEN } : undefined}>Bio</span>
+        <sup
+          className="absolute -right-[1.6em] top-0 text-[0.45em] font-black tracking-wider"
+          style={{ color: GREEN }}
+        >
+          BR
+        </sup>
       </span>
     </span>
   );
