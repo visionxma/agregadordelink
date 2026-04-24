@@ -147,6 +147,7 @@ export default async function EditPage({
               {
                 id: "settings",
                 label: "Página",
+                badge: planTier === "free" ? "pro" as const : undefined,
                 content: (
                   <div className="space-y-4">
                     <PageSettingsForm page={p} />
@@ -157,11 +158,13 @@ export default async function EditPage({
               {
                 id: "integrations",
                 label: "Pixels",
+                badge: planTier === "free" ? "pro" as const : undefined,
                 content: <IntegrationsForm page={p} planTier={planTier} />,
               },
               {
                 id: "advanced",
                 label: "Avançado",
+                badge: planTier === "free" ? "pro" as const : planTier === "pro" ? "business" as const : undefined,
                 content: <AdvancedForm page={p} planTier={planTier} />,
               },
             ]}

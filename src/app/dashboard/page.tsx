@@ -5,10 +5,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { block, page as pageTable, type Block } from "@/lib/db/schema";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { getUserPlanLimits } from "@/lib/get-plan-limits";
+import { isUnlimited } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { PagePreviewCard } from "@/components/page-preview-card";
 import { LinkBioLogo } from "@/components/linkbio-logo";
-import { Link2, Plus, Sparkles } from "lucide-react";
+import { Crown, Link2, Plus, Sparkles, Star } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { PageCardActions } from "./page-card-actions";
 
@@ -21,6 +23,10 @@ export default async function DashboardPage() {
     .from(pageTable)
     .where(eq(pageTable.userId, session.user.id))
     .orderBy(desc(pageTable.updatedAt));
+
+  const limits = await getUserPlanLimits(session.user.id);
+  const atPageLimit = !isUnlimited(limits.pages) && pages.length >= limits.pages;
+  const pageUpgrade = limits.pages === 1 ? "pro" : "business";
 
   // Carrega todos os blocos visíveis de uma vez (1 query) e agrupa por page
   const pageIds = pages.map((p) => p.id);
@@ -81,11 +87,22 @@ export default async function DashboardPage() {
               Suas páginas e o que tá rolando com elas.
             </p>
           </div>
-          <Button asChild size="lg">
-            <Link href="/dashboard/pages/new">
-              <Plus className="size-4" /> Nova página
-            </Link>
-          </Button>
+          {atPageLimit ? (
+            <Button asChild size="lg" variant="outline">
+              <Link href="/dashboard/billing">
+                {pageUpgrade === "pro"
+                  ? <><Star className="size-4 fill-amber-400 text-amber-400" /> Upgrade Pro</>
+                  : <><Crown className="size-4 fill-purple-500 text-purple-500" /> Upgrade Business</>
+                }
+              </Link>
+            </Button>
+          ) : (
+            <Button asChild size="lg">
+              <Link href="/dashboard/pages/new">
+                <Plus className="size-4" /> Nova página
+              </Link>
+            </Button>
+          )}
         </div>
 
         {pages.length === 0 ? (
