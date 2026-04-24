@@ -119,7 +119,7 @@ export function AdInterstitial({
 }
 
 function AdSlot() {
-  // Script is loaded globally from src/app/layout.tsx
+  // Script is loaded from src/app/s/[code]/layout.tsx
   const client =
     process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "ca-pub-1736873321168592";
   const slot = process.env.NEXT_PUBLIC_ADSENSE_SLOT;
