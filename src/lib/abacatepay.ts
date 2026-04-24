@@ -77,6 +77,7 @@ export async function createSubscription(params: {
 }): Promise<AbacateSubscription> {
   const body = {
     items: [{ id: params.productId, quantity: 1 }],
+    methods: ["CARD"],
     completionUrl: params.completionUrl,
     returnUrl: params.returnUrl,
     metadata: { userId: params.userId, plan: params.plan },
