@@ -20,6 +20,8 @@ type PhoneModel = {
   screenW: number;
   screenH: number;
   camera: CameraStyle;
+  /** Height in px reserved for status bar + camera so content starts below */
+  topPad: number;
   leftButtons: { top: number; height: number }[];
   rightButtons: { top: number; height: number }[];
   hasHomeButton?: boolean;
@@ -39,6 +41,7 @@ const MODELS: PhoneModel[] = [
     screenW: 308,
     screenH: 640,
     camera: "dynamic-island",
+    topPad: 58, // status bar 28px + dynamic island 30px
     leftButtons: [
       { top: 90, height: 32 },
       { top: 140, height: 60 },
@@ -59,6 +62,7 @@ const MODELS: PhoneModel[] = [
     screenW: 272,
     screenH: 548,
     camera: "home-button",
+    topPad: 22,
     leftButtons: [
       { top: 80, height: 28 },
       { top: 122, height: 52 },
@@ -80,6 +84,7 @@ const MODELS: PhoneModel[] = [
     screenW: 300,
     screenH: 648,
     camera: "punch-hole",
+    topPad: 36,
     leftButtons: [{ top: 150, height: 68 }],
     rightButtons: [
       { top: 110, height: 40 },
@@ -99,6 +104,7 @@ const MODELS: PhoneModel[] = [
     screenW: 298,
     screenH: 636,
     camera: "punch-hole-left",
+    topPad: 36,
     leftButtons: [{ top: 175, height: 72 }],
     rightButtons: [
       { top: 120, height: 36 },
@@ -140,8 +146,7 @@ export function LivePreview({
   const phoneOuterW = model.screenW + model.bezelPx * 2 + 8;
   const phoneOuterH =
     model.screenH + model.bezelPx * 2 + 8 + (model.hasHomeButton ? 52 : 0);
-  // Total height includes picker bar (44px) + gap (20px) + shadow (28px)
-  const totalContentH = phoneOuterH + 92;
+  const totalContentH = phoneOuterH + 92; // + picker + shadow
   const totalContentW = phoneOuterW;
 
   useEffect(() => {
@@ -150,10 +155,8 @@ export function LivePreview({
     const observer = new ResizeObserver(([entry]) => {
       if (!entry) return;
       const { height, width } = entry.contentRect;
-      const availH = height - 32; // vertical padding
-      const availW = width - 48;  // horizontal padding
-      const scaleH = availH / totalContentH;
-      const scaleW = availW / totalContentW;
+      const scaleH = (height - 32) / totalContentH;
+      const scaleW = (width - 48) / totalContentW;
       setScale(Math.min(scaleH, scaleW, 1));
     });
     observer.observe(el);
@@ -178,7 +181,8 @@ export function LivePreview({
       .map((chunk) => {
         const trimmed = chunk.trim();
         if (!trimmed) return "";
-        if (trimmed.startsWith("@")) return trimmed + (chunk.endsWith("}") ? "" : "}");
+        if (trimmed.startsWith("@"))
+          return trimmed + (chunk.endsWith("}") ? "" : "}");
         return (
           trimmed.replace(
             /([^{]+)\{/,
@@ -203,7 +207,6 @@ export function LivePreview({
       ref={containerRef}
       className="flex h-full w-full items-center justify-center overflow-hidden"
     >
-      {/* Scale wrapper — origin top-center keeps picker visible */}
       <div
         style={{
           transform: `scale(${scale})`,
@@ -233,14 +236,13 @@ export function LivePreview({
         </div>
 
         {/* Ambient glow */}
-        <div className="relative">
+        <div className="relative" style={{ flexShrink: 0 }}>
           <div
             className="pointer-events-none absolute -inset-10 -z-10 opacity-50 blur-3xl"
             style={{
               background: `radial-gradient(circle at 50% 40%, ${theme.accent}44 0%, transparent 65%)`,
             }}
           />
-
           <PhoneFrame model={model} time={time}>
             <PreviewContent
               pageId={pageId}
@@ -251,6 +253,7 @@ export function LivePreview({
               theme={theme}
               previewBlocks={previewBlocks}
               scopedCss={scopedCss}
+              topPad={model.topPad}
             />
           </PhoneFrame>
         </div>
@@ -310,7 +313,6 @@ function PhoneFrame({
             }}
           />
         ))}
-
         {/* Side buttons — right */}
         {model.rightButtons.map((btn, i) => (
           <div
@@ -352,84 +354,114 @@ function PhoneFrame({
               flexShrink: 0,
             }}
           >
-            {/* Status bar */}
+            {/* ── Topbar (fixed overlay) ── */}
             <div
               style={{
                 position: "absolute",
                 inset: "0 0 auto 0",
-                zIndex: 20,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding:
-                  model.camera === "home-button"
-                    ? "6px 14px"
-                    : "10px 18px 4px",
-                color: "#000",
+                zIndex: 50,
+                pointerEvents: "none",
               }}
             >
-              <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "-0.02em" }}>
-                {time}
-              </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                <SignalIcon />
-                <WifiIcon />
-                <BatteryIcon />
+              {/* Frosted status bar bg */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  height: model.topPad,
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  background: "rgba(255,255,255,0.55)",
+                }}
+              />
+
+              {/* Status row */}
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding:
+                    model.camera === "home-button"
+                      ? "5px 14px 3px"
+                      : "9px 18px 3px",
+                  color: "#111",
+                }}
+              >
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "-0.02em" }}>
+                  {time}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <SignalIcon />
+                  <WifiIcon />
+                  <BatteryIcon />
+                </div>
               </div>
+
+              {/* Camera cutouts */}
+              {model.camera === "dynamic-island" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 10,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 110,
+                    height: 30,
+                    borderRadius: 20,
+                    background: "#000",
+                    zIndex: 10,
+                  }}
+                />
+              )}
+              {model.camera === "punch-hole" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 13,
+                    height: 13,
+                    borderRadius: "50%",
+                    background: "#000",
+                    zIndex: 10,
+                  }}
+                />
+              )}
+              {model.camera === "punch-hole-left" && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 13,
+                    left: "calc(50% - 30px)",
+                    width: 13,
+                    height: 13,
+                    borderRadius: "50%",
+                    background: "#000",
+                    zIndex: 10,
+                  }}
+                />
+              )}
+
+              {/* Bottom separator line */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 1,
+                  background: "rgba(0,0,0,0.06)",
+                }}
+              />
             </div>
 
-            {/* Camera — Dynamic Island */}
-            {model.camera === "dynamic-island" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 110,
-                  height: 30,
-                  borderRadius: 20,
-                  background: "#000",
-                  zIndex: 30,
-                }}
-              />
-            )}
-
-            {/* Camera — Punch-hole center */}
-            {model.camera === "punch-hole" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 12,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  background: "#000",
-                  zIndex: 30,
-                }}
-              />
-            )}
-
-            {/* Camera — Punch-hole left */}
-            {model.camera === "punch-hole-left" && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 13,
-                  left: "calc(50% - 30px)",
-                  width: 12,
-                  height: 12,
-                  borderRadius: "50%",
-                  background: "#000",
-                  zIndex: 30,
-                }}
-              />
-            )}
-
-            {/* Scrollable content */}
-            <div style={{ position: "absolute", inset: 0 }}>{children}</div>
+            {/* ── Scrollable content ── */}
+            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+              {children}
+            </div>
 
             {/* Screen gloss */}
             <div
@@ -440,7 +472,7 @@ function PhoneFrame({
                 background:
                   "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 100%)",
                 pointerEvents: "none",
-                zIndex: 40,
+                zIndex: 60,
               }}
             />
           </div>
@@ -499,6 +531,7 @@ function PreviewContent({
   theme,
   previewBlocks,
   scopedCss,
+  topPad,
 }: {
   pageId: string;
   title: string;
@@ -508,11 +541,34 @@ function PreviewContent({
   theme: PageTheme;
   previewBlocks: { id: string; type: string; data: BlockData; style?: Record<string, unknown> }[];
   scopedCss: string;
+  topPad: number;
 }) {
   return (
     <>
+      {/* Scrollbar styling — visible thin track */}
+      <style>{`
+        .phone-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .phone-scroll::-webkit-scrollbar-track {
+          background: rgba(0,0,0,0.04);
+          border-radius: 4px;
+        }
+        .phone-scroll::-webkit-scrollbar-thumb {
+          background: rgba(0,0,0,0.18);
+          border-radius: 4px;
+        }
+        .phone-scroll::-webkit-scrollbar-thumb:hover {
+          background: rgba(0,0,0,0.32);
+        }
+      `}</style>
       {scopedCss && <style dangerouslySetInnerHTML={{ __html: scopedCss }} />}
-      <div className="linkhub-preview-scope hide-scrollbar scroll-contain h-full w-full overflow-y-auto overflow-x-hidden">
+
+      <div
+        className="linkhub-preview-scope phone-scroll h-full w-full overflow-y-scroll overflow-x-hidden"
+      >
+        {/* Top spacer so content starts below status bar + camera */}
+        <div style={{ height: topPad }} />
         <ThemedPage
           pageId={pageId}
           title={title || "Seu título"}
