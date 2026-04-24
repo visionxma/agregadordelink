@@ -634,6 +634,23 @@ export async function updateBlockStyle(
   revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
 }
 
+export async function toggleBlockVisible(blockId: string, visible: boolean) {
+  const user = await requireUser();
+  const [b] = await db
+    .select({ id: block.id, pageId: block.pageId, userId: page.userId })
+    .from(block)
+    .innerJoin(page, eq(page.id, block.pageId))
+    .where(eq(block.id, blockId));
+  if (!b || b.userId !== user.id) return;
+
+  await db
+    .update(block)
+    .set({ visible, updatedAt: new Date() })
+    .where(eq(block.id, blockId));
+
+  revalidatePath(`/dashboard/pages/${b.pageId}/edit`);
+}
+
 export async function toggleBlockGoal(blockId: string, isGoal: boolean) {
   const user = await requireUser();
   const [b] = await db

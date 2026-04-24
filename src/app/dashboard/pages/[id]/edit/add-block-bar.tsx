@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   CalendarDays,
@@ -19,6 +19,7 @@ import {
   MousePointerClick,
   Music,
   Play,
+  Plus,
   Quote,
   ShoppingBag,
   Sparkles,
@@ -151,8 +152,55 @@ const groups: { title: string; items: BlockOption[] }[] = [
   },
 ];
 
-export function AddBlockBar({ pageId }: { pageId: string }) {
+export function AddBlockBar({ pageId, compact }: { pageId: string; compact?: boolean }) {
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+
+  function add(type: BlockType) {
+    startTransition(async () => {
+      const res = await addBlock(pageId, type);
+      if (res && "error" in res) toast.error(res.error);
+    });
+  }
+
+  if (compact) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+        >
+          <Plus className="size-3.5" /> Adicionar bloco
+        </button>
+        {open && (
+          <div className="mt-2 max-h-64 overflow-y-auto space-y-2 rounded-xl border border-border bg-card p-2 shadow-ios-sm">
+            {groups.map((g) => (
+              <div key={g.title}>
+                <p className="mb-1 px-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+                  {g.title}
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {g.items.map((b) => (
+                    <button
+                      key={b.type}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => { add(b.type); setOpen(false); }}
+                      className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                    >
+                      <span className="shrink-0 [&>svg]:size-3">{b.icon}</span>
+                      <span className="truncate">{b.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-border bg-card/80 backdrop-blur-xl p-5 shadow-ios-sm">
@@ -170,12 +218,7 @@ export function AddBlockBar({ pageId }: { pageId: string }) {
                   variant="outline"
                   size="sm"
                   disabled={pending}
-                  onClick={() =>
-                    startTransition(async () => {
-                      const res = await addBlock(pageId, b.type);
-                      if (res && "error" in res) toast.error(res.error);
-                    })
-                  }
+                  onClick={() => add(b.type)}
                 >
                   {b.icon} {b.label}
                 </Button>
