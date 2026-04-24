@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import { LinkBioLogo } from "@/components/linkbio-logo";
 
@@ -118,21 +118,15 @@ export function AdInterstitial({
 }
 
 function MonotagBanner() {
-  const ref = useRef<HTMLDivElement>(null);
+  const srcdoc = `<!DOCTYPE html><html><head><style>*{margin:0;padding:0;}</style></head><body><script>(function(s){s.dataset.zone='10921578',s.src='https://nap5k.com/tag.min.js'})([document.documentElement,document.body].filter(Boolean).pop().appendChild(document.createElement('script')))<\/script></body></html>`;
 
-  useEffect(() => {
-    const container = ref.current;
-    if (!container) return;
-    const script = document.createElement("script");
-    script.dataset.zone = "10921578";
-    script.src = "https://nap5k.com/tag.min.js";
-    container.appendChild(script);
-    return () => {
-      if (container.contains(script)) container.removeChild(script);
-    };
-  }, []);
-
-  return <div ref={ref} className="w-full min-h-[250px]" />;
+  return (
+    <iframe
+      srcDoc={srcdoc}
+      style={{ width: "100%", height: "250px", border: "none" }}
+      scrolling="no"
+    />
+  );
 }
 
 function safeHostname(url: string): string {
