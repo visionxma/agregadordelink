@@ -110,31 +110,39 @@ export function blockStyleToCss(
 
   // ─── Background: imagem > gradiente > cor sólida ─────────────────
   const angle = s.gradientAngle ?? 90;
-  const baseFill =
+  const isValidUrl = (u: string) => /^https?:\/\/|^data:image\/|^\//.test(u.trim());
+  const sanitizedUrl =
+    s.bgImage && isValidUrl(s.bgImage)
+      ? s.bgImage.replace(/["\\\n\r]/g, "")
+      : "";
+  const gradientStr =
     s.gradientFrom && s.gradientTo
       ? `linear-gradient(${angle}deg, ${s.gradientFrom}, ${s.gradientTo})`
-      : s.background || "transparent";
+      : null;
 
-  if (s.bgImage) {
+  if (sanitizedUrl) {
     const pos = s.bgImagePosition ?? "right";
     if (pos === "cover" || pos === "center") {
       // Imagem cobrindo tudo com overlay escuro pra texto continuar legível
-      css.background = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("${s.bgImage}") center/cover no-repeat`;
-    } else if (pos === "right") {
-      // Imagem no canto direito, ocupando 38% da largura. Gradiente/cor preenche o resto.
-      css.backgroundImage = `url("${s.bgImage}"), ${baseFill}`;
-      css.backgroundSize = "38% 100%, 100% 100%";
-      css.backgroundPosition = "right center, left center";
-      css.backgroundRepeat = "no-repeat, no-repeat";
+      css.background = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("${sanitizedUrl}") center/cover no-repeat`;
     } else {
-      // left
-      css.backgroundImage = `url("${s.bgImage}"), ${baseFill}`;
-      css.backgroundSize = "38% 100%, 100% 100%";
-      css.backgroundPosition = "left center, right center";
-      css.backgroundRepeat = "no-repeat, no-repeat";
+      // Right ou Left — imagem ocupa 38% do lado, gradiente/cor preenche o resto
+      const imgPos = pos === "right" ? "right center" : "left center";
+      const fillPos = pos === "right" ? "left center" : "right center";
+      const layers = gradientStr
+        ? `url("${sanitizedUrl}"), ${gradientStr}`
+        : `url("${sanitizedUrl}")`;
+      css.backgroundImage = layers;
+      css.backgroundSize = gradientStr ? "38% 100%, 100% 100%" : "38% 100%";
+      css.backgroundPosition = gradientStr
+        ? `${imgPos}, ${fillPos}`
+        : imgPos;
+      css.backgroundRepeat = "no-repeat";
+      // cor de fundo sólida vai como backgroundColor (caso não tenha gradiente)
+      if (!gradientStr && s.background) css.backgroundColor = s.background;
     }
-  } else if (s.gradientFrom && s.gradientTo) {
-    css.background = `linear-gradient(${angle}deg, ${s.gradientFrom}, ${s.gradientTo})`;
+  } else if (gradientStr) {
+    css.background = gradientStr;
   } else if (s.background) {
     css.background = s.background;
   }
