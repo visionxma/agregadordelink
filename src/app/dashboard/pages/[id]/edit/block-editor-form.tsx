@@ -66,15 +66,24 @@ export function BlockEditorForm({
 
       {data.kind === "video" && (
         <>
-          <Field label="Plataforma">
-            <select defaultValue={data.provider} onChange={(e) => handleUpdate({ ...data, provider: e.target.value as "youtube" | "vimeo" })} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
-              <option value="youtube">YouTube</option>
-              <option value="vimeo">Vimeo</option>
-            </select>
+          <Field label="Cole a URL do vídeo">
+            <Input
+              defaultValue={data.videoId}
+              placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
+              onBlur={(e) => {
+                const detected = detectVideoFromUrl(e.target.value);
+                handleUpdate({ ...data, provider: detected.provider, videoId: detected.id });
+              }}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Aceita YouTube (watch, shorts, youtu.be) e Vimeo. O player aparece direto no botão.
+            </p>
           </Field>
-          <Field label="ID ou URL do vídeo">
-            <Input defaultValue={data.videoId} placeholder={data.provider === "youtube" ? "dQw4w9WgXcQ ou URL completa" : "76979871 ou URL"} onBlur={(e) => handleUpdate({ ...data, videoId: extractVideoId(e.target.value, data.provider) })} />
-          </Field>
+          {data.videoId && (
+            <p className="text-[11px] text-emerald-600">
+              ✓ Vídeo detectado ({data.provider}): {data.videoId}
+            </p>
+          )}
         </>
       )}
 
@@ -357,6 +366,32 @@ function ColumnSelector({ value, onChange }: { value: 1 | 2 | 3; onChange: (v: 1
       </div>
     </div>
   );
+}
+
+function detectVideoFromUrl(input: string): { provider: "youtube" | "vimeo"; id: string } {
+  const trimmed = input.trim();
+  if (!trimmed) return { provider: "youtube", id: "" };
+  try {
+    const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    const host = url.hostname.toLowerCase();
+    if (host.includes("youtu.be")) {
+      return { provider: "youtube", id: url.pathname.slice(1).split("/")[0] || "" };
+    }
+    if (host.includes("youtube.com") || host.includes("youtube-nocookie.com")) {
+      const v = url.searchParams.get("v");
+      if (v) return { provider: "youtube", id: v };
+      const shorts = url.pathname.match(/\/shorts\/([^/?]+)/);
+      if (shorts) return { provider: "youtube", id: shorts[1]! };
+      const embed = url.pathname.match(/\/embed\/([^/?]+)/);
+      if (embed) return { provider: "youtube", id: embed[1]! };
+    }
+    if (host.includes("vimeo.com")) {
+      const id = url.pathname.split("/").filter(Boolean).find((p) => /^\d+$/.test(p));
+      if (id) return { provider: "vimeo", id };
+    }
+  } catch {}
+  // Não conseguiu detectar — assume YouTube e usa input bruto como ID
+  return { provider: "youtube", id: trimmed };
 }
 
 function extractVideoId(input: string, provider: "youtube" | "vimeo"): string {
