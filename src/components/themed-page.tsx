@@ -246,6 +246,14 @@ export function ThemedPage({
               display: flex !important;
               flex-direction: column !important;
             }
+            /* Garante que botões/links sempre sejam clicáveis */
+            .linkhub-button,
+            .linkhub-block a,
+            .linkhub-block button {
+              pointer-events: auto !important;
+              position: relative;
+              z-index: 1;
+            }
           `,
         }}
       />
@@ -461,11 +469,17 @@ function AnimatedWrap({
       : animation === "scale"
         ? "animate-scale-in"
         : "animate-slide-up";
-  const delay = animation === "stagger" ? Math.min(index * 70, 700) : 0;
+  const delay = animation === "stagger" ? Math.min(index * 50, 350) : 0;
   return (
     <div
       className={cls}
-      style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
+      style={{
+        animationDelay: `${delay}ms`,
+        animationFillMode: "both",
+        // Garante que cliques funcionem mesmo durante animação
+        pointerEvents: "auto",
+        position: "relative",
+      }}
     >
       {children}
     </div>
@@ -735,16 +749,17 @@ function BlockView({
   trackEvents: boolean;
 }) {
   function trackClick(label: string, url: string) {
-    // Pixels externos (Meta, GA, TikTok, GTM)
-    dispatchPixelClick(label, url);
-    // Analytics interno
-    if (!trackEvents) return;
-    fetch("/api/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "click", pageId, blockId: block.id }),
-      keepalive: true,
-    }).catch(() => {});
+    // Não bloqueia a navegação — defer pra próxima tick
+    setTimeout(() => {
+      try { dispatchPixelClick(label, url); } catch {}
+      if (!trackEvents) return;
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "click", pageId, blockId: block.id }),
+        keepalive: true,
+      }).catch(() => {});
+    }, 0);
   }
 
   const d = block.data;
@@ -775,14 +790,14 @@ function BlockView({
         rel="noopener noreferrer"
         onClick={() => trackClick(d.label, finalUrl)}
         className={cn(
-          "linkhub-button group text-center font-semibold transition-all duration-200 active:scale-[0.98]",
+          "linkhub-button group text-center font-semibold transition-transform duration-150 active:scale-[0.98]",
           isAutoWidth ? "inline-block" : "block w-full",
           hoverCls
         )}
         style={
           isAutoWidth
-            ? { ...baseStyle, display: "inline-block", width: "auto" }
-            : baseStyle
+            ? { ...baseStyle, display: "inline-block", width: "auto", touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
+            : { ...baseStyle, touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
         }
       >
         {d.label || "Meu link"}
