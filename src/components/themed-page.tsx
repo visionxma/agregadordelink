@@ -348,7 +348,9 @@ export function ThemedPage({
                       "size-20 shrink-0 overflow-hidden",
                       avatarShapeClass(theme.avatarShape)
                     )}
-                    style={{ boxShadow: "0 0 0 3px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.3)" }}
+                    style={{
+                      boxShadow: `0 0 0 3px ${theme.avatarBorderColor ?? "rgba(255,255,255,0.4)"}, 0 8px 24px rgba(0,0,0,0.3)`,
+                    }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={avatarUrl} alt={title} className="size-full object-cover" />
@@ -466,8 +468,8 @@ export function ThemedPage({
                 )}
                 style={
                   hasCover
-                    ? { boxShadow: `0 0 0 4px ${bgColorSolid}, 0 8px 24px rgba(0,0,0,0.12)` }
-                    : { boxShadow: `0 0 0 2px ${bgColorSolid}` }
+                    ? { boxShadow: `0 0 0 4px ${theme.avatarBorderColor ?? bgColorSolid}, 0 8px 24px rgba(0,0,0,0.12)` }
+                    : { boxShadow: `0 0 0 2px ${theme.avatarBorderColor ?? bgColorSolid}` }
                 }
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

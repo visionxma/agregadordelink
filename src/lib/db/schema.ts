@@ -479,6 +479,7 @@ export type PageTheme = {
   avatarPlain?: boolean;
   coverPlain?: boolean;
   headerLayout?: "centered" | "instagram";
+  avatarBorderColor?: string;
 };
 
 export type BlockType =

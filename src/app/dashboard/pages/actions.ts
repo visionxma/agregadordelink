@@ -580,6 +580,8 @@ export async function updatePage(pageId: string, formData: FormData) {
   const headerLayoutRaw = String(formData.get("headerLayout") ?? "");
   const headerLayout: "centered" | "instagram" =
     headerLayoutRaw === "instagram" ? "instagram" : "centered";
+  const avatarBorderColorRaw = String(formData.get("avatarBorderColor") ?? "").trim();
+  const avatarBorderColor = avatarBorderColorRaw || undefined;
   const nextTheme = {
     ...(existing.theme ?? {}),
     hideBranding,
@@ -587,6 +589,7 @@ export async function updatePage(pageId: string, formData: FormData) {
     avatarPlain,
     coverPlain,
     headerLayout,
+    avatarBorderColor,
   };
 
   await db

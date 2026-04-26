@@ -54,5 +54,7 @@ export function normalizeTheme(raw: unknown): PageTheme {
     coverPlain: Boolean(t.coverPlain),
     headerLayout:
       (t.headerLayout as PageTheme["headerLayout"] | undefined) ?? "centered",
+    avatarBorderColor:
+      (t.avatarBorderColor as string | undefined) ?? undefined,
   };
 }

@@ -23,7 +23,14 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
-  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean; coverPlain?: boolean; headerLayout?: "centered" | "instagram" } | null;
+  const themeFlags = page.theme as {
+    hideBranding?: boolean;
+    coverFade?: boolean;
+    avatarPlain?: boolean;
+    coverPlain?: boolean;
+    headerLayout?: "centered" | "instagram";
+    avatarBorderColor?: string;
+  } | null;
   const [hideBranding, setHideBranding] = useState(Boolean(themeFlags?.hideBranding));
   const [coverFade, setCoverFade] = useState(Boolean(themeFlags?.coverFade));
   const [avatarPlain, setAvatarPlain] = useState(Boolean(themeFlags?.avatarPlain));
@@ -31,6 +38,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [headerLayout, setHeaderLayout] = useState<"centered" | "instagram">(
     themeFlags?.headerLayout ?? "centered"
   );
+  const [avatarBorderColor, setAvatarBorderColor] = useState(themeFlags?.avatarBorderColor ?? "");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,6 +51,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
     formData.set("avatarPlain", avatarPlain ? "1" : "0");
     formData.set("coverPlain", coverPlain ? "1" : "0");
     formData.set("headerLayout", headerLayout);
+    formData.set("avatarBorderColor", avatarBorderColor);
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
       if (result && "error" in result && result.error) {
@@ -292,20 +301,64 @@ export function PageSettingsForm({ page }: { page: Page }) {
               className="text-xs"
             />
             {avatarUrl && (
-              <label className="flex items-start gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  checked={avatarPlain}
-                  onChange={(e) => setAvatarPlain(e.target.checked)}
-                  className="mt-0.5 size-4 rounded"
-                />
-                <span>
-                  <span className="text-sm">Foto sem bordas e sem fundo</span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    Mostra a imagem na proporção original (ideal pra logos PNG transparentes).
+              <>
+                <label className="flex items-start gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={avatarPlain}
+                    onChange={(e) => setAvatarPlain(e.target.checked)}
+                    className="mt-0.5 size-4 rounded"
+                  />
+                  <span>
+                    <span className="text-sm">Foto sem bordas e sem fundo</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Mostra a imagem na proporção original (ideal pra logos PNG transparentes).
+                    </span>
                   </span>
-                </span>
-              </label>
+                </label>
+                {!avatarPlain && (
+                  <div className="space-y-1.5 pt-1">
+                    <Label className="text-xs">Cor da borda do avatar</Label>
+                    <div className="flex items-center gap-2 rounded-lg border border-input bg-card/60 px-2 py-1.5">
+                      <div
+                        className="relative size-7 shrink-0 cursor-pointer overflow-hidden rounded-md border border-border"
+                        style={{
+                          background:
+                            avatarBorderColor ||
+                            "linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%) 0 0/8px 8px, linear-gradient(45deg, #f0f0f0 25%, #fff 25%, #fff 75%, #f0f0f0 75%) 4px 4px/8px 8px",
+                        }}
+                      >
+                        <input
+                          type="color"
+                          value={avatarBorderColor || "#ffffff"}
+                          onChange={(e) => setAvatarBorderColor(e.target.value)}
+                          className="absolute inset-0 size-full cursor-pointer opacity-0"
+                        />
+                      </div>
+                      <Input
+                        type="text"
+                        value={avatarBorderColor}
+                        onChange={(e) => setAvatarBorderColor(e.target.value)}
+                        placeholder="Auto (cor do fundo)"
+                        className="h-8 border-0 px-1 text-xs shadow-none focus-visible:ring-0"
+                      />
+                      {avatarBorderColor && (
+                        <button
+                          type="button"
+                          onClick={() => setAvatarBorderColor("")}
+                          className="text-base text-muted-foreground hover:text-destructive leading-none"
+                          title="Limpar"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Vazio = usa a cor de fundo da página. Aceita hex (#fff), rgb() ou rgba().
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
