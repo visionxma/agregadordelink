@@ -48,5 +48,11 @@ export function normalizeTheme(raw: unknown): PageTheme {
     cursor: (t.cursor as PageTheme["cursor"] | undefined) ?? "default",
     clickSound:
       (t.clickSound as PageTheme["clickSound"] | undefined) ?? "none",
+    hideBranding: Boolean(t.hideBranding),
+    coverFade: Boolean(t.coverFade),
+    avatarPlain: Boolean(t.avatarPlain),
+    coverPlain: Boolean(t.coverPlain),
+    headerLayout:
+      (t.headerLayout as PageTheme["headerLayout"] | undefined) ?? "centered",
   };
 }

@@ -321,27 +321,90 @@ export function ThemedPage({
       )}
       <EffectLayer effect={theme.effect} accent={theme.accent} />
 
-      {/* COVER — full-width no topo */}
-      {hasCover && (
+      {/* INSTAGRAM LAYOUT: capa ao fundo, avatar à esquerda, nome/bio à direita */}
+      {theme.headerLayout === "instagram" && (
+        <div className="linkhub-cover linkhub-cover-instagram relative z-10 w-full max-w-md overflow-hidden">
+          <div className="relative w-full" style={{ minHeight: "180px" }}>
+            {/* Capa de fundo */}
+            {hasCover && (
+              <div className="absolute inset-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={coverUrl!} alt="" className="size-full object-cover" />
+                {/* Overlay escuro pra texto ficar legível */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+              </div>
+            )}
+            {/* Conteúdo: avatar + título lado a lado */}
+            <div className="relative flex items-center gap-4 px-5 py-8">
+              {avatarUrl ? (
+                theme.avatarPlain ? (
+                  <div className="size-20 shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={avatarUrl} alt={title} className="size-full object-contain" />
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      "size-20 shrink-0 overflow-hidden",
+                      avatarShapeClass(theme.avatarShape)
+                    )}
+                    style={{ boxShadow: "0 0 0 3px rgba(255,255,255,0.4), 0 8px 24px rgba(0,0,0,0.3)" }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={avatarUrl} alt={title} className="size-full object-cover" />
+                  </div>
+                )
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <h1
+                  className="linkhub-title flex items-center gap-1.5 text-2xl font-bold tracking-tight"
+                  style={{
+                    fontFamily: titleVar,
+                    color: hasCover ? "#fff" : theme.foreground,
+                    textShadow: hasCover ? "0 2px 8px rgba(0,0,0,0.5)" : undefined,
+                  }}
+                >
+                  <span className="truncate">{title}</span>
+                  {verified && <VerifiedBadge color={theme.accent} />}
+                </h1>
+                {description && (
+                  <p
+                    className="mt-1.5 text-sm leading-snug"
+                    style={{
+                      color: hasCover ? "rgba(255,255,255,0.9)" : theme.mutedForeground,
+                      textShadow: hasCover ? "0 1px 4px rgba(0,0,0,0.4)" : undefined,
+                    }}
+                  >
+                    {description}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COVER — full-width no topo (layout centralizado padrão) */}
+      {theme.headerLayout !== "instagram" && hasCover && (
         <div className="linkhub-cover relative z-10 w-full max-w-md overflow-hidden">
           {theme.coverPlain ? (
-            // Modo limpo: PNG transparente, mantém proporção original, sem crop nem fundo
             <div className="relative w-full">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={coverUrl!}
                 alt=""
                 className="block w-full h-auto"
+                style={
+                  theme.coverFade
+                    ? {
+                        WebkitMaskImage:
+                          "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+                        maskImage:
+                          "linear-gradient(to bottom, black 0%, black 40%, transparent 100%)",
+                      }
+                    : undefined
+                }
               />
-              {theme.coverFade && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
-                  style={{
-                    background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
-                  }}
-                  aria-hidden
-                />
-              )}
             </div>
           ) : (
             <div className="relative aspect-[3/1] w-full">
@@ -350,16 +413,17 @@ export function ThemedPage({
                 src={coverUrl!}
                 alt=""
                 className="size-full object-cover"
+                style={
+                  theme.coverFade
+                    ? {
+                        WebkitMaskImage:
+                          "linear-gradient(to bottom, black 0%, black 35%, transparent 100%)",
+                        maskImage:
+                          "linear-gradient(to bottom, black 0%, black 35%, transparent 100%)",
+                      }
+                    : undefined
+                }
               />
-              {theme.coverFade && (
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
-                  style={{
-                    background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
-                  }}
-                  aria-hidden
-                />
-              )}
             </div>
           )}
         </div>
@@ -368,8 +432,10 @@ export function ThemedPage({
       <div
         className={cn(
           "linkhub-content relative z-10 w-full max-w-md px-4",
-          hasCover ? "pb-8 -mt-12" : "py-10",
-          !hasCover && spacingCls
+          theme.headerLayout === "instagram"
+            ? "pt-6 pb-8"
+            : hasCover ? "pb-8 -mt-12" : "py-10",
+          theme.headerLayout !== "instagram" && !hasCover && spacingCls
         )}
         style={{
           width: "100%",
@@ -378,6 +444,7 @@ export function ThemedPage({
           marginRight: "auto",
         }}
       >
+        {theme.headerLayout !== "instagram" && (
         <header className="linkhub-header flex flex-col items-center text-center">
           {avatarUrl ? (
             theme.avatarPlain ? (
@@ -444,6 +511,7 @@ export function ThemedPage({
             </p>
           )}
         </header>
+        )}
 
         <div className={cn("linkhub-blocks mt-8", blocksGapClass(theme.spacing))}>
           {blocks.map((b, i) => (

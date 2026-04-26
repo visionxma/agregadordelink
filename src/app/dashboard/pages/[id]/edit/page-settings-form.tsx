@@ -23,11 +23,14 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
-  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean; coverPlain?: boolean } | null;
+  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean; coverPlain?: boolean; headerLayout?: "centered" | "instagram" } | null;
   const [hideBranding, setHideBranding] = useState(Boolean(themeFlags?.hideBranding));
   const [coverFade, setCoverFade] = useState(Boolean(themeFlags?.coverFade));
   const [avatarPlain, setAvatarPlain] = useState(Boolean(themeFlags?.avatarPlain));
   const [coverPlain, setCoverPlain] = useState(Boolean(themeFlags?.coverPlain));
+  const [headerLayout, setHeaderLayout] = useState<"centered" | "instagram">(
+    themeFlags?.headerLayout ?? "centered"
+  );
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,6 +42,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
     formData.set("coverFade", coverFade ? "1" : "0");
     formData.set("avatarPlain", avatarPlain ? "1" : "0");
     formData.set("coverPlain", coverPlain ? "1" : "0");
+    formData.set("headerLayout", headerLayout);
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
       if (result && "error" in result && result.error) {
@@ -90,6 +94,47 @@ export function PageSettingsForm({ page }: { page: Page }) {
               rows={3}
               placeholder="Criador de conteúdo · SP"
             />
+          </div>
+
+          {/* LAYOUT */}
+          <div className="space-y-2">
+            <Label>Layout do cabeçalho</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setHeaderLayout("centered")}
+                className={`group flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all ${
+                  headerLayout === "centered"
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <div className="flex h-16 w-full flex-col items-center justify-center gap-1 rounded-md bg-secondary/60">
+                  <div className="size-6 rounded-full bg-foreground/30" />
+                  <div className="h-1.5 w-12 rounded-full bg-foreground/30" />
+                  <div className="h-1 w-8 rounded-full bg-foreground/20" />
+                </div>
+                <span className="text-xs font-semibold">Centralizado</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeaderLayout("instagram")}
+                className={`group flex flex-col items-center gap-2 rounded-xl border-2 p-3 transition-all ${
+                  headerLayout === "instagram"
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card hover:border-primary/40"
+                }`}
+              >
+                <div className="relative flex h-16 w-full items-center justify-start gap-2 overflow-hidden rounded-md bg-gradient-to-br from-purple-300 via-pink-300 to-orange-300 px-2">
+                  <div className="size-7 shrink-0 rounded-full bg-white ring-2 ring-white/80" />
+                  <div className="flex flex-col gap-0.5">
+                    <div className="h-1.5 w-12 rounded-full bg-white/90" />
+                    <div className="h-1 w-8 rounded-full bg-white/70" />
+                  </div>
+                </div>
+                <span className="text-xs font-semibold">Instagram</span>
+              </button>
+            </div>
           </div>
 
           {/* CAPA */}

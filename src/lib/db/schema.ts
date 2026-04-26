@@ -478,6 +478,7 @@ export type PageTheme = {
   coverFade?: boolean;
   avatarPlain?: boolean;
   coverPlain?: boolean;
+  headerLayout?: "centered" | "instagram";
 };
 
 export type BlockType =
