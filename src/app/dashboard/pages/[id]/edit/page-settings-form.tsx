@@ -23,6 +23,9 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
+  const [hideBranding, setHideBranding] = useState(
+    Boolean((page.theme as { hideBranding?: boolean } | null)?.hideBranding)
+  );
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,6 +33,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
     formData.set("avatarUrl", avatarUrl);
     formData.set("coverUrl", coverUrl);
     formData.set("slug", slug);
+    formData.set("hideBranding", hideBranding ? "1" : "0");
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
       if (result && "error" in result && result.error) {
@@ -215,6 +219,21 @@ export function PageSettingsForm({ page }: { page: Page }) {
               className="size-4 rounded"
             />
             <span className="text-sm">Página pública</span>
+          </label>
+
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={hideBranding}
+              onChange={(e) => setHideBranding(e.target.checked)}
+              className="mt-0.5 size-4 rounded"
+            />
+            <span>
+              <span className="text-sm">Ocultar &quot;Feito com LinkBio BR&quot;</span>
+              <span className="block text-[11px] text-muted-foreground">
+                Disponível no plano Pro ou superior. Por padrão a marca aparece no rodapé.
+              </span>
+            </span>
           </label>
 
           {/* SEO */}

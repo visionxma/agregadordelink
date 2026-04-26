@@ -568,6 +568,11 @@ export async function updatePage(pageId: string, formData: FormData) {
     nextSlug = format.slug;
   }
 
+  // Atualiza hideBranding no theme (preserva resto do theme)
+  const hideBrandingRaw = formData.get("hideBranding");
+  const hideBranding = hideBrandingRaw === "1" || hideBrandingRaw === "on";
+  const nextTheme = { ...(existing.theme ?? {}), hideBranding };
+
   await db
     .update(page)
     .set({
@@ -580,6 +585,7 @@ export async function updatePage(pageId: string, formData: FormData) {
       seoDescription: nullIfEmpty(parsed.data.seoDescription),
       ogImageUrl: nullIfEmpty(parsed.data.ogImageUrl),
       slug: nextSlug,
+      theme: nextTheme,
       updatedAt: new Date(),
     })
     .where(eq(page.id, pageId));

@@ -467,6 +467,7 @@ export type PageTheme = {
   darkModeAuto?: boolean;
   cursor?: CursorStyle;
   clickSound?: ClickSound;
+  hideBranding?: boolean;
 };
 
 export type BlockType =

@@ -107,7 +107,10 @@ export default async function PublicSlugPage({
   }));
 
   const limits = await getUserPlanLimits(data.page.userId);
-  const showBranding = !limits.removeBranding;
+  // Branding aparece por padrão. Só some quando o plano permite remover
+  // E o usuário escolheu esconder via theme.hideBranding.
+  const theme = data.page.theme as { hideBranding?: boolean } | null;
+  const showBranding = !(limits.removeBranding && theme?.hideBranding === true);
 
   const pageUrl = `${BASE_URL}/${data.page.slug}`;
   const jsonLd = {
