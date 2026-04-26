@@ -23,9 +23,10 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
-  const [hideBranding, setHideBranding] = useState(
-    Boolean((page.theme as { hideBranding?: boolean } | null)?.hideBranding)
-  );
+  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean } | null;
+  const [hideBranding, setHideBranding] = useState(Boolean(themeFlags?.hideBranding));
+  const [coverFade, setCoverFade] = useState(Boolean(themeFlags?.coverFade));
+  const [avatarPlain, setAvatarPlain] = useState(Boolean(themeFlags?.avatarPlain));
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +35,8 @@ export function PageSettingsForm({ page }: { page: Page }) {
     formData.set("coverUrl", coverUrl);
     formData.set("slug", slug);
     formData.set("hideBranding", hideBranding ? "1" : "0");
+    formData.set("coverFade", coverFade ? "1" : "0");
+    formData.set("avatarPlain", avatarPlain ? "1" : "0");
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
       if (result && "error" in result && result.error) {
@@ -157,6 +160,22 @@ export function PageSettingsForm({ page }: { page: Page }) {
               onChange={(e) => setCoverUrl(e.target.value)}
               className="text-xs"
             />
+            {coverUrl && (
+              <label className="flex items-start gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  checked={coverFade}
+                  onChange={(e) => setCoverFade(e.target.checked)}
+                  className="mt-0.5 size-4 rounded"
+                />
+                <span>
+                  <span className="text-sm">Fade na parte de baixo da capa</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    Mistura a capa com a cor de fundo da página — visual mais clean.
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
 
           {/* AVATAR */}
@@ -209,6 +228,22 @@ export function PageSettingsForm({ page }: { page: Page }) {
               onChange={(e) => setAvatarUrl(e.target.value)}
               className="text-xs"
             />
+            {avatarUrl && (
+              <label className="flex items-start gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  checked={avatarPlain}
+                  onChange={(e) => setAvatarPlain(e.target.checked)}
+                  className="mt-0.5 size-4 rounded"
+                />
+                <span>
+                  <span className="text-sm">Foto sem bordas e sem fundo</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    Mostra a imagem na proporção original (ideal pra logos PNG transparentes).
+                  </span>
+                </span>
+              </label>
+            )}
           </div>
 
           <label className="flex items-center gap-2 pt-1">

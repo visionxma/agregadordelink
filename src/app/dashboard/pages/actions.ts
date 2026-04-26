@@ -568,10 +568,14 @@ export async function updatePage(pageId: string, formData: FormData) {
     nextSlug = format.slug;
   }
 
-  // Atualiza hideBranding no theme (preserva resto do theme)
+  // Atualiza flags do theme (preserva resto)
   const hideBrandingRaw = formData.get("hideBranding");
   const hideBranding = hideBrandingRaw === "1" || hideBrandingRaw === "on";
-  const nextTheme = { ...(existing.theme ?? {}), hideBranding };
+  const coverFadeRaw = formData.get("coverFade");
+  const coverFade = coverFadeRaw === "1" || coverFadeRaw === "on";
+  const avatarPlainRaw = formData.get("avatarPlain");
+  const avatarPlain = avatarPlainRaw === "1" || avatarPlainRaw === "on";
+  const nextTheme = { ...(existing.theme ?? {}), hideBranding, coverFade, avatarPlain };
 
   await db
     .update(page)

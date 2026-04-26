@@ -475,6 +475,8 @@ export type PageTheme = {
   cursor?: CursorStyle;
   clickSound?: ClickSound;
   hideBranding?: boolean;
+  coverFade?: boolean;
+  avatarPlain?: boolean;
 };
 
 export type BlockType =

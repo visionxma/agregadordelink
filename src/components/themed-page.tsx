@@ -331,6 +331,15 @@ export function ThemedPage({
               alt=""
               className="size-full object-cover"
             />
+            {theme.coverFade && (
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+                style={{
+                  background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
+                }}
+                aria-hidden
+              />
+            )}
           </div>
         </div>
       )}
@@ -350,25 +359,37 @@ export function ThemedPage({
       >
         <header className="linkhub-header flex flex-col items-center text-center">
           {avatarUrl ? (
-            <div
-              className={cn(
-                "linkhub-avatar mb-4 size-24 overflow-hidden",
-                avatarShapeClass(theme.avatarShape),
-                hasCover && "ring-4"
-              )}
-              style={
-                hasCover
-                  ? { boxShadow: `0 0 0 4px ${bgColorSolid}, 0 8px 24px rgba(0,0,0,0.12)` }
-                  : { boxShadow: `0 0 0 2px ${bgColorSolid}` }
-              }
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarUrl}
-                alt={title}
-                className="size-full object-cover"
-              />
-            </div>
+            theme.avatarPlain ? (
+              // Modo limpo: sem bordas, sem fundo, sem máscara — preserva PNG transparente
+              <div className="linkhub-avatar linkhub-avatar-plain mb-4 size-24">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarUrl}
+                  alt={title}
+                  className="size-full object-contain"
+                />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "linkhub-avatar mb-4 size-24 overflow-hidden",
+                  avatarShapeClass(theme.avatarShape),
+                  hasCover && "ring-4"
+                )}
+                style={
+                  hasCover
+                    ? { boxShadow: `0 0 0 4px ${bgColorSolid}, 0 8px 24px rgba(0,0,0,0.12)` }
+                    : { boxShadow: `0 0 0 2px ${bgColorSolid}` }
+                }
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarUrl}
+                  alt={title}
+                  className="size-full object-cover"
+                />
+              </div>
+            )
           ) : showAvatarPlaceholder ? (
             <div
               className={cn(
