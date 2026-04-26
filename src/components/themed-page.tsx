@@ -109,24 +109,31 @@ export function blockStyleToCss(
   const css: React.CSSProperties = {};
 
   // ─── Background: imagem > gradiente > cor sólida ─────────────────
-  const baseColor = s.gradientFrom || s.background;
+  const angle = s.gradientAngle ?? 90;
+  const baseFill =
+    s.gradientFrom && s.gradientTo
+      ? `linear-gradient(${angle}deg, ${s.gradientFrom}, ${s.gradientTo})`
+      : s.background || "transparent";
+
   if (s.bgImage) {
     const pos = s.bgImagePosition ?? "right";
     if (pos === "cover" || pos === "center") {
-      const overlay = baseColor ? `linear-gradient(${baseColor}cc, ${baseColor}99), ` : "";
-      css.background = `${overlay}url("${s.bgImage}") center/cover no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+      // Imagem cobrindo tudo com overlay escuro pra texto continuar legível
+      css.background = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("${s.bgImage}") center/cover no-repeat`;
     } else if (pos === "right") {
-      const fade = s.gradientFrom && s.gradientTo
-        ? `linear-gradient(90deg, ${s.gradientFrom} 0%, ${s.gradientFrom} 50%, transparent 100%)`
-        : `linear-gradient(90deg, ${baseColor || "#000"} 0%, ${baseColor || "#000"} 45%, transparent 75%)`;
-      css.background = `${fade}, url("${s.bgImage}") right center/auto 100% no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+      // Imagem no canto direito, ocupando 38% da largura. Gradiente/cor preenche o resto.
+      css.backgroundImage = `url("${s.bgImage}"), ${baseFill}`;
+      css.backgroundSize = "38% 100%, 100% 100%";
+      css.backgroundPosition = "right center, left center";
+      css.backgroundRepeat = "no-repeat, no-repeat";
     } else {
       // left
-      const fade = `linear-gradient(270deg, ${baseColor || "#000"} 0%, ${baseColor || "#000"} 45%, transparent 75%)`;
-      css.background = `${fade}, url("${s.bgImage}") left center/auto 100% no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+      css.backgroundImage = `url("${s.bgImage}"), ${baseFill}`;
+      css.backgroundSize = "38% 100%, 100% 100%";
+      css.backgroundPosition = "left center, right center";
+      css.backgroundRepeat = "no-repeat, no-repeat";
     }
   } else if (s.gradientFrom && s.gradientTo) {
-    const angle = s.gradientAngle ?? 90;
     css.background = `linear-gradient(${angle}deg, ${s.gradientFrom}, ${s.gradientTo})`;
   } else if (s.background) {
     css.background = s.background;
