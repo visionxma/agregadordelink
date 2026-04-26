@@ -324,23 +324,44 @@ export function ThemedPage({
       {/* COVER — full-width no topo */}
       {hasCover && (
         <div className="linkhub-cover relative z-10 w-full max-w-md overflow-hidden">
-          <div className="relative aspect-[3/1] w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={coverUrl!}
-              alt=""
-              className="size-full object-cover"
-            />
-            {theme.coverFade && (
-              <div
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
-                style={{
-                  background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
-                }}
-                aria-hidden
+          {theme.coverPlain ? (
+            // Modo limpo: PNG transparente, mantém proporção original, sem crop nem fundo
+            <div className="relative w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverUrl!}
+                alt=""
+                className="block w-full h-auto"
               />
-            )}
-          </div>
+              {theme.coverFade && (
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+                  style={{
+                    background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
+                  }}
+                  aria-hidden
+                />
+              )}
+            </div>
+          ) : (
+            <div className="relative aspect-[3/1] w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={coverUrl!}
+                alt=""
+                className="size-full object-cover"
+              />
+              {theme.coverFade && (
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
+                  style={{
+                    background: `linear-gradient(to bottom, transparent 0%, ${bgColorSolid} 100%)`,
+                  }}
+                  aria-hidden
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
 

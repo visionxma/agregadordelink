@@ -477,6 +477,7 @@ export type PageTheme = {
   hideBranding?: boolean;
   coverFade?: boolean;
   avatarPlain?: boolean;
+  coverPlain?: boolean;
 };
 
 export type BlockType =

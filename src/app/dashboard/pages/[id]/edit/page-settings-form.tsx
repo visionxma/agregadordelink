@@ -23,10 +23,11 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
-  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean } | null;
+  const themeFlags = page.theme as { hideBranding?: boolean; coverFade?: boolean; avatarPlain?: boolean; coverPlain?: boolean } | null;
   const [hideBranding, setHideBranding] = useState(Boolean(themeFlags?.hideBranding));
   const [coverFade, setCoverFade] = useState(Boolean(themeFlags?.coverFade));
   const [avatarPlain, setAvatarPlain] = useState(Boolean(themeFlags?.avatarPlain));
+  const [coverPlain, setCoverPlain] = useState(Boolean(themeFlags?.coverPlain));
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,6 +38,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
     formData.set("hideBranding", hideBranding ? "1" : "0");
     formData.set("coverFade", coverFade ? "1" : "0");
     formData.set("avatarPlain", avatarPlain ? "1" : "0");
+    formData.set("coverPlain", coverPlain ? "1" : "0");
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
       if (result && "error" in result && result.error) {
@@ -161,20 +163,36 @@ export function PageSettingsForm({ page }: { page: Page }) {
               className="text-xs"
             />
             {coverUrl && (
-              <label className="flex items-start gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  checked={coverFade}
-                  onChange={(e) => setCoverFade(e.target.checked)}
-                  className="mt-0.5 size-4 rounded"
-                />
-                <span>
-                  <span className="text-sm">Fade na parte de baixo da capa</span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    Mistura a capa com a cor de fundo da página — visual mais clean.
+              <>
+                <label className="flex items-start gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={coverPlain}
+                    onChange={(e) => setCoverPlain(e.target.checked)}
+                    className="mt-0.5 size-4 rounded"
+                  />
+                  <span>
+                    <span className="text-sm">Capa sem fundo (PNG transparente)</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Preserva a transparência e proporção original da imagem — ideal pra logos/banners PNG.
+                    </span>
                   </span>
-                </span>
-              </label>
+                </label>
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={coverFade}
+                    onChange={(e) => setCoverFade(e.target.checked)}
+                    className="mt-0.5 size-4 rounded"
+                  />
+                  <span>
+                    <span className="text-sm">Fade na parte de baixo da capa</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Mistura a capa com a cor de fundo da página — visual mais clean.
+                    </span>
+                  </span>
+                </label>
+              </>
             )}
           </div>
 

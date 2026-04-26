@@ -575,7 +575,9 @@ export async function updatePage(pageId: string, formData: FormData) {
   const coverFade = coverFadeRaw === "1" || coverFadeRaw === "on";
   const avatarPlainRaw = formData.get("avatarPlain");
   const avatarPlain = avatarPlainRaw === "1" || avatarPlainRaw === "on";
-  const nextTheme = { ...(existing.theme ?? {}), hideBranding, coverFade, avatarPlain };
+  const coverPlainRaw = formData.get("coverPlain");
+  const coverPlain = coverPlainRaw === "1" || coverPlainRaw === "on";
+  const nextTheme = { ...(existing.theme ?? {}), hideBranding, coverFade, avatarPlain, coverPlain };
 
   await db
     .update(page)
