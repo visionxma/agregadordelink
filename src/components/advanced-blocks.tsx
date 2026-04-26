@@ -1078,9 +1078,11 @@ export function ButtonGridBlock({
             href={b.url || "#"}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => onButtonClick?.(b.label || b.icon || "Botão", b.url)}
+            onClick={() => {
+              if (b.url) onButtonClick?.(b.label || b.icon || "Botão", b.url);
+            }}
             className={cn(
-              "flex items-center justify-center gap-2 text-sm font-semibold transition-transform active:scale-[0.95]",
+              "relative flex items-center justify-center gap-2 text-sm font-semibold transition-transform active:scale-[0.95]",
               isPlain ? "hover:scale-110" : "hover:scale-[1.02] rounded-xl",
               iconOnly
                 ? isPlain
@@ -1090,7 +1092,7 @@ export function ButtonGridBlock({
                   ? "py-1"
                   : "rounded-xl px-3 py-3"
             )}
-            style={style}
+            style={{ ...style, touchAction: "manipulation", pointerEvents: "auto", zIndex: 2 }}
             aria-label={b.label || b.icon || "botão"}
           >
             {Icon && (
