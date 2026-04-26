@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { QrCode, CreditCard } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PlanTier } from "@/lib/db/schema";
 import { createCheckoutSession, cancelSubscription } from "./actions";
@@ -56,14 +56,8 @@ export function SubscribeButton({
             : `Assinar ${planId === "pro" ? "Pro" : "Business"}`}
       </Button>
       {!disabled && (
-        <div className="flex items-center justify-center gap-3">
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <QrCode className="size-3" /> PIX
-          </span>
-          <span className="text-[10px] text-muted-foreground/40">•</span>
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <CreditCard className="size-3" /> Cartão
-          </span>
+        <div className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+          <CreditCard className="size-3" /> Cartão de crédito
         </div>
       )}
     </div>

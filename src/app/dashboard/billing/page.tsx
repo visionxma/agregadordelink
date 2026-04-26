@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { ArrowLeft, Check, X, AlertCircle, CheckCircle2, QrCode, CreditCard, Shield } from "lucide-react";
+import { ArrowLeft, Check, X, AlertCircle, CheckCircle2, CreditCard, Shield } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription } from "@/lib/db/schema";
@@ -189,15 +189,6 @@ export default async function BillingPage({
               <span className="font-semibold text-foreground">Abacate Pay</span>
             </div>
             <div className="flex items-center gap-3">
-              {/* PIX */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 dark:border-emerald-800 dark:bg-emerald-950/40">
-                <QrCode className="size-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">PIX</span>
-                <span className="rounded-full bg-emerald-200 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200">
-                  INSTANTÂNEO
-                </span>
-              </div>
-              {/* Cartão de crédito */}
               <div className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-blue-800 dark:bg-blue-950/40">
                 <CreditCard className="size-4 text-blue-600 dark:text-blue-400" />
                 <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">Cartão de Crédito</span>
@@ -205,7 +196,7 @@ export default async function BillingPage({
             </div>
           </div>
           <p className="mt-3 text-center text-xs text-muted-foreground sm:text-left">
-            Escolha sua forma de pagamento preferida no momento do checkout. PIX é confirmado na hora — cartão aceita parcelamento em até 12x.
+            Assinaturas recorrentes são processadas via cartão de crédito. Cancele a qualquer momento.
           </p>
         </div>
       </section>
