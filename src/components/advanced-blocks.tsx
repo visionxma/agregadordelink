@@ -1083,7 +1083,8 @@ export function ButtonGridBlock({
             }}
             className={cn(
               "relative flex items-center justify-center gap-2 text-sm font-semibold transition-transform active:scale-[0.95]",
-              isPlain ? "hover:scale-110" : "hover:scale-[1.02] rounded-xl",
+              // Hover scoped para devices com mouse — evita sticky hover em mobile
+              isPlain ? "[@media(hover:hover)]:hover:scale-110" : "[@media(hover:hover)]:hover:scale-[1.02] rounded-xl",
               iconOnly
                 ? isPlain
                   ? "aspect-square p-2"
