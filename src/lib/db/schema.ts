@@ -213,6 +213,13 @@ export type BlockStyle = {
   borderColor?: string;
   textAlign?: "left" | "center" | "right";
   padding?: number; // px — 8..32
+  // Gradiente (sobrepõe background sólido)
+  gradientFrom?: string;
+  gradientTo?: string;
+  gradientAngle?: number; // 0..360 — default 90 (esquerda → direita)
+  // Imagem de fundo (sobrepõe gradiente/cor)
+  bgImage?: string;
+  bgImagePosition?: "right" | "left" | "cover" | "center";
 };
 
 export const event = pgTable(

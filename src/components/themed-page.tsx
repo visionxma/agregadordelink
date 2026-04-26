@@ -107,7 +107,31 @@ export function blockStyleToCss(
 ): React.CSSProperties {
   if (!s) return {};
   const css: React.CSSProperties = {};
-  if (s.background) css.background = s.background;
+
+  // ─── Background: imagem > gradiente > cor sólida ─────────────────
+  const baseColor = s.gradientFrom || s.background;
+  if (s.bgImage) {
+    const pos = s.bgImagePosition ?? "right";
+    if (pos === "cover" || pos === "center") {
+      const overlay = baseColor ? `linear-gradient(${baseColor}cc, ${baseColor}99), ` : "";
+      css.background = `${overlay}url("${s.bgImage}") center/cover no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+    } else if (pos === "right") {
+      const fade = s.gradientFrom && s.gradientTo
+        ? `linear-gradient(90deg, ${s.gradientFrom} 0%, ${s.gradientFrom} 50%, transparent 100%)`
+        : `linear-gradient(90deg, ${baseColor || "#000"} 0%, ${baseColor || "#000"} 45%, transparent 75%)`;
+      css.background = `${fade}, url("${s.bgImage}") right center/auto 100% no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+    } else {
+      // left
+      const fade = `linear-gradient(270deg, ${baseColor || "#000"} 0%, ${baseColor || "#000"} 45%, transparent 75%)`;
+      css.background = `${fade}, url("${s.bgImage}") left center/auto 100% no-repeat${baseColor ? `, ${baseColor}` : ""}`;
+    }
+  } else if (s.gradientFrom && s.gradientTo) {
+    const angle = s.gradientAngle ?? 90;
+    css.background = `linear-gradient(${angle}deg, ${s.gradientFrom}, ${s.gradientTo})`;
+  } else if (s.background) {
+    css.background = s.background;
+  }
+
   if (s.color) css.color = s.color;
   if (s.fontSize) css.fontSize = `${s.fontSize}px`;
   if (s.fontWeight) css.fontWeight = s.fontWeight;
@@ -123,6 +147,9 @@ export function blockStyleToCss(
   if (s.textAlign) css.textAlign = s.textAlign;
   if (s.padding !== undefined && s.padding >= 0) {
     css.padding = `${s.padding}px`;
+  }
+  if (s.bgImage) {
+    css.overflow = "hidden";
   }
   return css;
 }

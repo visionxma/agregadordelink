@@ -62,6 +62,87 @@ export function BlockStyleEditor({
             />
           </Row>
 
+          {/* Gradiente */}
+          <div className="rounded-md border border-dashed border-border p-2 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Gradiente (sobrepõe cor sólida)
+            </p>
+            <Row label="Cor inicial">
+              <ColorPicker
+                value={style.gradientFrom ?? ""}
+                onChange={(v) => patch({ gradientFrom: v })}
+                placeholder="—"
+              />
+            </Row>
+            <Row label="Cor final">
+              <ColorPicker
+                value={style.gradientTo ?? ""}
+                onChange={(v) => patch({ gradientTo: v })}
+                placeholder="—"
+              />
+            </Row>
+            <Row label="Direção">
+              <Slider
+                value={style.gradientAngle ?? 90}
+                min={0}
+                max={360}
+                step={15}
+                onChange={(v) => patch({ gradientAngle: v })}
+                suffix="°"
+              />
+            </Row>
+            {(style.gradientFrom || style.gradientTo) && (
+              <button
+                type="button"
+                onClick={() => patch({ gradientFrom: undefined, gradientTo: undefined, gradientAngle: undefined })}
+                className="text-[10px] text-muted-foreground hover:text-destructive"
+              >
+                Remover gradiente
+              </button>
+            )}
+          </div>
+
+          {/* Imagem de fundo */}
+          <div className="rounded-md border border-dashed border-border p-2 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Imagem no botão
+            </p>
+            <Row label="URL da imagem">
+              <input
+                type="url"
+                value={style.bgImage ?? ""}
+                onChange={(e) => patch({ bgImage: e.target.value || undefined })}
+                placeholder="https://..."
+                className="flex-1 rounded-md border border-input bg-transparent px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-ring"
+              />
+            </Row>
+            {style.bgImage && (
+              <>
+                <Row label="Posição">
+                  <SelectString
+                    value={style.bgImagePosition ?? "right"}
+                    options={[
+                      { value: "right", label: "Canto direito (com fade)" },
+                      { value: "left", label: "Canto esquerdo (com fade)" },
+                      { value: "cover", label: "Cobrir tudo (com overlay)" },
+                      { value: "center", label: "Centralizada (com overlay)" },
+                    ]}
+                    onChange={(v) =>
+                      patch({ bgImagePosition: v as BlockStyle["bgImagePosition"] })
+                    }
+                  />
+                </Row>
+                <button
+                  type="button"
+                  onClick={() => patch({ bgImage: undefined, bgImagePosition: undefined })}
+                  className="text-[10px] text-muted-foreground hover:text-destructive"
+                >
+                  Remover imagem
+                </button>
+              </>
+            )}
+          </div>
+
           <Row label="Cor do texto">
             <ColorPicker
               value={style.color ?? ""}
