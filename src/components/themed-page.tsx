@@ -126,19 +126,19 @@ export function blockStyleToCss(
       // Imagem cobrindo tudo com overlay escuro pra texto continuar legível
       css.background = `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url("${sanitizedUrl}") center/cover no-repeat`;
     } else {
-      // Right ou Left — imagem ocupa 38% do lado, gradiente/cor preenche o resto
+      // Right ou Left — imagem fica na borda mantendo proporção natural,
+      // gradiente/cor preenche o botão inteiro por trás
       const imgPos = pos === "right" ? "right center" : "left center";
-      const fillPos = pos === "right" ? "left center" : "right center";
       const layers = gradientStr
         ? `url("${sanitizedUrl}"), ${gradientStr}`
         : `url("${sanitizedUrl}")`;
       css.backgroundImage = layers;
-      css.backgroundSize = gradientStr ? "38% 100%, 100% 100%" : "38% 100%";
+      // auto 100% = altura 100%, largura proporcional à imagem (mantém aspect ratio)
+      css.backgroundSize = gradientStr ? "auto 100%, 100% 100%" : "auto 100%";
       css.backgroundPosition = gradientStr
-        ? `${imgPos}, ${fillPos}`
+        ? `${imgPos}, center`
         : imgPos;
       css.backgroundRepeat = "no-repeat";
-      // cor de fundo sólida vai como backgroundColor (caso não tenha gradiente)
       if (!gradientStr && s.background) css.backgroundColor = s.background;
     }
   } else if (gradientStr) {
