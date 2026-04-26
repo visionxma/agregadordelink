@@ -577,7 +577,17 @@ export async function updatePage(pageId: string, formData: FormData) {
   const avatarPlain = avatarPlainRaw === "1" || avatarPlainRaw === "on";
   const coverPlainRaw = formData.get("coverPlain");
   const coverPlain = coverPlainRaw === "1" || coverPlainRaw === "on";
-  const nextTheme = { ...(existing.theme ?? {}), hideBranding, coverFade, avatarPlain, coverPlain };
+  const headerLayoutRaw = String(formData.get("headerLayout") ?? "");
+  const headerLayout: "centered" | "instagram" =
+    headerLayoutRaw === "instagram" ? "instagram" : "centered";
+  const nextTheme = {
+    ...(existing.theme ?? {}),
+    hideBranding,
+    coverFade,
+    avatarPlain,
+    coverPlain,
+    headerLayout,
+  };
 
   await db
     .update(page)
