@@ -24,6 +24,7 @@ import {
   ShoppingBag,
   Sparkles,
   Type,
+  MoveVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { BlockType } from "@/lib/db/schema";
@@ -48,6 +49,7 @@ const groups: { title: string; items: BlockOption[] }[] = [
       },
       { type: "video", label: "Vídeo", icon: <Play className="size-4" /> },
       { type: "divider", label: "Divisor", icon: <Minus className="size-4" /> },
+      { type: "spacer", label: "Espaço em branco", icon: <MoveVertical className="size-4" /> },
     ],
   },
   {

@@ -613,6 +613,7 @@ export async function addBlock(pageId: string, type: BlockType) {
     image: { kind: "image", url: "", alt: "" },
     video: { kind: "video", provider: "youtube", videoId: "" },
     divider: { kind: "divider" },
+    spacer: { kind: "spacer", height: 40 },
     newsletter: {
       kind: "newsletter",
       title: "Assine a newsletter",

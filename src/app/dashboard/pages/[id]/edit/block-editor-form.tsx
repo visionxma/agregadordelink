@@ -82,6 +82,24 @@ export function BlockEditorForm({
         <p className="text-xs text-muted-foreground">Linha divisória — sem configurações.</p>
       )}
 
+      {data.kind === "spacer" && (
+        <Field label={`Altura: ${data.height}px`}>
+          <input
+            type="range"
+            min={8}
+            max={200}
+            step={4}
+            defaultValue={data.height}
+            className="w-full accent-primary"
+            onMouseUp={(e) => handleUpdate({ ...data, height: Number((e.target as HTMLInputElement).value) })}
+            onTouchEnd={(e) => handleUpdate({ ...data, height: Number((e.target as HTMLInputElement).value) })}
+          />
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span>8px</span><span>200px</span>
+          </div>
+        </Field>
+      )}
+
       {data.kind === "newsletter" && (
         <>
           <Field label="Título"><Input defaultValue={data.title} onBlur={(e) => handleUpdate({ ...data, title: e.target.value })} /></Field>

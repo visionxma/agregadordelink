@@ -879,6 +879,10 @@ function BlockView({
     );
   }
 
+  if (d.kind === "spacer") {
+    return <div style={{ height: d.height }} aria-hidden="true" />;
+  }
+
   if (d.kind === "newsletter") {
     return (
       <NewsletterBlock

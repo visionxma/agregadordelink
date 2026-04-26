@@ -488,7 +488,8 @@ export type BlockType =
   | "image-carousel"
   | "product-grid"
   | "product-carousel"
-  | "button-grid";
+  | "button-grid"
+  | "spacer";
 
 export type GridColumns = 1 | 2 | 3;
 
@@ -505,6 +506,7 @@ export type BlockData =
   | { kind: "image"; url: string; alt?: string; href?: string }
   | { kind: "video"; provider: "youtube" | "vimeo"; videoId: string }
   | { kind: "divider" }
+  | { kind: "spacer"; height: number }
   | {
       kind: "newsletter";
       title: string;

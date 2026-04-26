@@ -359,6 +359,10 @@ function SortableBlock({
             <p className="text-xs text-muted-foreground">Linha divisória</p>
           )}
 
+          {data.kind === "spacer" && (
+            <p className="text-xs text-muted-foreground">Espaço em branco — {data.height}px</p>
+          )}
+
           {/* Editor de estilo por bloco — aparece em todos os tipos */}
           <BlockStyleEditor
             blockId={block.id}
