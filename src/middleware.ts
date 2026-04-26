@@ -38,7 +38,9 @@ export function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
   const isAuthPage = pathname === "/login" || pathname === "/signup";
   const isProtected =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding");
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/onboarding") ||
+    pathname.startsWith("/admin");
 
   if (isProtected && !sessionCookie) {
     return NextResponse.redirect(new URL("/login", request.url));
