@@ -11,6 +11,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AvatarPicker } from "@/components/avatar-picker";
 import { PhotoPicker } from "@/components/photo-picker";
 import { ImageUploadButton } from "@/components/image-upload-button";
+import { SlugInput } from "@/components/slug-input";
+import { toast } from "sonner";
 import { deletePage, updatePage } from "../../actions";
 
 export function PageSettingsForm({ page }: { page: Page }) {
@@ -18,6 +20,7 @@ export function PageSettingsForm({ page }: { page: Page }) {
   const [saved, setSaved] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(page.avatarUrl ?? "");
   const [coverUrl, setCoverUrl] = useState(page.coverUrl ?? "");
+  const [slug, setSlug] = useState(page.slug);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
 
@@ -26,10 +29,16 @@ export function PageSettingsForm({ page }: { page: Page }) {
     const formData = new FormData(e.currentTarget);
     formData.set("avatarUrl", avatarUrl);
     formData.set("coverUrl", coverUrl);
+    formData.set("slug", slug);
     startTransition(async () => {
       const result = await updatePage(page.id, formData);
+      if (result && "error" in result && result.error) {
+        toast.error(result.error);
+        return;
+      }
       if (result?.ok) {
         setSaved(true);
+        if (slug !== page.slug) toast.success(`URL atualizada para /${slug}`);
         setTimeout(() => setSaved(false), 2000);
       }
     });
@@ -48,6 +57,18 @@ export function PageSettingsForm({ page }: { page: Page }) {
               required
               maxLength={80}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>URL da página</Label>
+            <SlugInput
+              value={slug}
+              onChange={setSlug}
+              ignorePageId={page.id}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Mudar a URL vai quebrar links antigos. Use com cuidado.
+            </p>
           </div>
 
           <div className="space-y-2">

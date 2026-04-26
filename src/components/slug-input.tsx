@@ -16,12 +16,14 @@ export function SlugInput({
   onChange,
   placeholder = "meu-link",
   required = true,
+  ignorePageId,
 }: {
   name?: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
+  ignorePageId?: string;
 }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const abortRef = useRef<AbortController | null>(null);
@@ -39,10 +41,8 @@ export function SlugInput({
 
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/slug-check?slug=${encodeURIComponent(value)}`,
-          { signal: controller.signal }
-        );
+        const url = `/api/slug-check?slug=${encodeURIComponent(value)}${ignorePageId ? `&ignorePageId=${encodeURIComponent(ignorePageId)}` : ""}`;
+        const res = await fetch(url, { signal: controller.signal });
         const data = await res.json();
         if (controller.signal.aborted) return;
         if (data.valid && data.available) {
@@ -61,7 +61,7 @@ export function SlugInput({
       clearTimeout(t);
       controller.abort();
     };
-  }, [value]);
+  }, [value, ignorePageId]);
 
   const ringClass =
     status.kind === "ok"

@@ -520,6 +520,7 @@ const updatePageSchema = z.object({
   seoTitle: z.string().max(60).optional().nullable(),
   seoDescription: z.string().max(160).optional().nullable(),
   ogImageUrl: urlOrEmpty,
+  slug: z.string().optional().nullable(),
 });
 
 export async function updatePage(pageId: string, formData: FormData) {
@@ -542,11 +543,30 @@ export async function updatePage(pageId: string, formData: FormData) {
       ? String(formData.get("seoDescription")).trim()
       : null,
     ogImageUrl: rawOgImage ? String(rawOgImage).trim() : null,
+    slug: formData.get("slug") ? String(formData.get("slug")).trim() : null,
   });
   if (!parsed.success) return { error: "Dados inválidos" };
 
   const nullIfEmpty = (v: string | null | undefined) =>
     v && v.length > 0 ? v : null;
+
+  // Slug — só atualiza se mudou e estiver disponível
+  let nextSlug = existing.slug;
+  const previousSlug = existing.slug;
+  if (parsed.data.slug && parsed.data.slug !== existing.slug) {
+    const { validateSlugFormat } = await import("@/lib/slug");
+    const format = validateSlugFormat(parsed.data.slug);
+    if (!format.valid) return { error: format.error };
+    const conflict = await db
+      .select({ id: page.id })
+      .from(page)
+      .where(eq(page.slug, format.slug))
+      .limit(1);
+    if (conflict.length > 0 && conflict[0]!.id !== pageId) {
+      return { error: "Esse slug já está em uso." };
+    }
+    nextSlug = format.slug;
+  }
 
   await db
     .update(page)
@@ -559,9 +579,15 @@ export async function updatePage(pageId: string, formData: FormData) {
       seoTitle: nullIfEmpty(parsed.data.seoTitle),
       seoDescription: nullIfEmpty(parsed.data.seoDescription),
       ogImageUrl: nullIfEmpty(parsed.data.ogImageUrl),
+      slug: nextSlug,
       updatedAt: new Date(),
     })
     .where(eq(page.id, pageId));
+
+  if (nextSlug !== previousSlug) {
+    revalidatePath(`/${previousSlug}`);
+    revalidatePath(`/${nextSlug}`);
+  }
 
   revalidatePath(`/dashboard/pages/${pageId}/edit`);
   revalidatePath("/dashboard");
