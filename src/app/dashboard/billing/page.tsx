@@ -2,11 +2,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { ArrowLeft, Check, X, AlertCircle, CheckCircle2, CreditCard, Shield } from "lucide-react";
+import { ArrowLeft, Check, X, AlertCircle, CheckCircle2, CreditCard, Shield, Zap } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { subscription } from "@/lib/db/schema";
-import { PLAN_LIST, getPlan } from "@/lib/plans";
+import { PLAN_LIST, getEffectivePlan, isTrialActive, trialDaysLeft } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LinkBioLogo } from "@/components/linkbio-logo";
@@ -26,10 +26,13 @@ export default async function BillingPage({
     .where(eq(subscription.userId, session.user.id))
     .limit(1);
 
-  const currentPlan = getPlan(sub?.plan ?? "free");
+  const currentPlan = getEffectivePlan(sub);
   const params = await searchParams;
   const isActive = sub?.status === "active";
-  const isPaid = currentPlan.id !== "free";
+  const onTrial = isTrialActive(sub);
+  const daysLeft = trialDaysLeft(sub);
+  const isPaid = isActive;
+  const trialAvailable = !sub?.trialUsed && !isActive && !onTrial;
 
   return (
     <main className="ambient-bg min-h-screen">
@@ -63,6 +66,43 @@ export default async function BillingPage({
             <span className="text-sm font-medium">
               Pagamento cancelado. Nenhuma cobrança foi feita.
             </span>
+          </div>
+        )}
+
+        {/* Banner trial ativo */}
+        {onTrial && (
+          <div className="mb-8 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+            <Zap className="size-5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold">
+                Trial ativo — {daysLeft} {daysLeft === 1 ? "dia restante" : "dias restantes"}
+              </p>
+              <p className="text-xs opacity-80">
+                Assine com cartão antes do fim do período para não perder o acesso ao plano {currentPlan.name}.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Banner 3 dias grátis */}
+        {!isPaid && !onTrial && trialAvailable && (
+          <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-primary/90 to-emerald-500 p-px shadow-lg">
+            <div className="flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-r from-primary to-emerald-500 px-6 py-5 text-white sm:flex-row sm:justify-between">
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                  <Zap className="size-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-black tracking-tight">3 dias grátis para testar</p>
+                  <p className="text-xs text-white/80">
+                    Experimente o Pro ou Business sem pagar nada agora. Cancele quando quiser.
+                  </p>
+                </div>
+              </div>
+              <span className="shrink-0 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold tracking-wider">
+                SEM COMPROMISSO
+              </span>
+            </div>
           </div>
         )}
 
@@ -149,7 +189,22 @@ export default async function BillingPage({
                   )}
                 </div>
 
-                <SubscribeButton planId={p.id} disabled={isCurrent} />
+                {p.id !== "free" && !isCurrent && trialAvailable && (
+                  <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    3 dias grátis — sem cartão agora
+                  </p>
+                )}
+                {p.id !== "free" && !isCurrent && onTrial && sub?.plan === p.id && (
+                  <p className="mt-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    Trial ativo — {daysLeft} {daysLeft === 1 ? "dia restante" : "dias restantes"}
+                  </p>
+                )}
+
+                <SubscribeButton
+                  planId={p.id}
+                  disabled={isCurrent}
+                  trialAvailable={p.id !== "free" && trialAvailable}
+                />
 
                 <ul className="mt-5 space-y-2">
                   {p.features.map((f) => (

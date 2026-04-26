@@ -165,6 +165,33 @@ export function getPlan(tier: PlanTier): PlanConfig {
   return PLANS[tier];
 }
 
+/**
+ * Retorna o plano efetivo considerando trial ativo.
+ * Trial expirado → rebaixa para free.
+ */
+export function getEffectivePlan(sub: {
+  plan: PlanTier;
+  status: string | null;
+  trialEndsAt: Date | null;
+} | null | undefined): PlanConfig {
+  if (!sub) return PLANS.free;
+  if (sub.status === "trial") {
+    if (sub.trialEndsAt && sub.trialEndsAt > new Date()) return PLANS[sub.plan];
+    return PLANS.free; // trial expirado
+  }
+  if (sub.status === "active") return PLANS[sub.plan];
+  return PLANS.free;
+}
+
+export function isTrialActive(sub: { status: string | null; trialEndsAt: Date | null } | null | undefined): boolean {
+  return sub?.status === "trial" && !!sub.trialEndsAt && sub.trialEndsAt > new Date();
+}
+
+export function trialDaysLeft(sub: { trialEndsAt: Date | null } | null | undefined): number {
+  if (!sub?.trialEndsAt) return 0;
+  return Math.max(0, Math.ceil((sub.trialEndsAt.getTime() - Date.now()) / 86_400_000));
+}
+
 export const PLAN_LIST = Object.values(PLANS);
 
 /** Retorna true se o valor indica recurso ilimitado. */

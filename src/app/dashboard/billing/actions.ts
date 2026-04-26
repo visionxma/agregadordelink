@@ -87,6 +87,49 @@ export async function createCheckoutSession(
   return { url: billing.url };
 }
 
+// ─── Ativar trial gratuito ────────────────────────────────────────────────────
+
+export async function startFreeTrial(
+  plan: "pro" | "business"
+): Promise<{ ok: true } | { error: string }> {
+  const user = await requireUser();
+
+  const [existing] = await db
+    .select({ id: subscription.id, trialUsed: subscription.trialUsed, status: subscription.status })
+    .from(subscription)
+    .where(eq(subscription.userId, user.id))
+    .limit(1);
+
+  if (existing?.trialUsed) {
+    return { error: "Você já utilizou seu período de teste gratuito." };
+  }
+  if (existing?.status === "active") {
+    return { error: "Você já possui uma assinatura ativa." };
+  }
+
+  const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+  if (existing) {
+    await db.update(subscription).set({
+      plan,
+      status: "trial",
+      trialEndsAt,
+      trialUsed: true,
+      updatedAt: new Date(),
+    }).where(eq(subscription.userId, user.id));
+  } else {
+    await db.insert(subscription).values({
+      userId: user.id,
+      plan,
+      status: "trial",
+      trialEndsAt,
+      trialUsed: true,
+    });
+  }
+
+  return { ok: true };
+}
+
 // ─── Cancelar assinatura ──────────────────────────────────────────────────────
 
 export async function cancelSubscription(): Promise<{ ok: true } | { error: string }> {

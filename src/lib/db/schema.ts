@@ -249,9 +249,11 @@ export const subscription = pgTable("subscription", {
   gatewayCustomerId: text("stripe_customer_id"),
   gatewaySubscriptionId: text("stripe_subscription_id"),
   gatewayProductId: text("stripe_price_id"),
-  status: text("status"), // active, pending, canceled, past_due...
+  status: text("status"), // active, trial, pending, canceled, past_due...
   currentPeriodEnd: timestamp("current_period_end"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  trialEndsAt: timestamp("trial_ends_at"),
+  trialUsed: boolean("trial_used").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
