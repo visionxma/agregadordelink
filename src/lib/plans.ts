@@ -170,16 +170,24 @@ export function getPlan(tier: PlanTier): PlanConfig {
  * Trial expirado → rebaixa para free.
  */
 export function getEffectivePlan(sub: {
-  plan: PlanTier;
+  plan: PlanTier | string | null;
   status: string | null;
-  trialEndsAt: Date | null;
+  trialEndsAt: Date | string | null;
 } | null | undefined): PlanConfig {
   if (!sub) return PLANS.free;
+  const planKey = (sub.plan as PlanTier) ?? "free";
+  const planConfig = PLANS[planKey] ?? PLANS.free;
+  const trialDate =
+    sub.trialEndsAt instanceof Date
+      ? sub.trialEndsAt
+      : sub.trialEndsAt
+        ? new Date(sub.trialEndsAt)
+        : null;
   if (sub.status === "trial") {
-    if (sub.trialEndsAt && sub.trialEndsAt > new Date()) return PLANS[sub.plan];
-    return PLANS.free; // trial expirado
+    if (trialDate && trialDate > new Date()) return planConfig;
+    return PLANS.free;
   }
-  if (sub.status === "active") return PLANS[sub.plan];
+  if (sub.status === "active") return planConfig;
   return PLANS.free;
 }
 
