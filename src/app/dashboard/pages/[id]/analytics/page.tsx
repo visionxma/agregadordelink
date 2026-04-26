@@ -22,6 +22,9 @@ import { getUserPlanLimits } from "@/lib/get-plan-limits";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RealtimeWidget } from "./realtime-widget";
+import { DailyChart } from "./daily-chart";
+import { TrafficSourceList } from "./traffic-source-list";
+import { detectTrafficSource } from "@/lib/traffic-source";
 
 export default async function AnalyticsPage({
   params,
@@ -43,11 +46,6 @@ export default async function AnalyticsPage({
   const canExportCsv = limits.apiAccess; // Business only
 
   const analytics = await getPageAnalytics(p.id, retentionDays);
-
-  const maxTimeline = Math.max(
-    1,
-    ...analytics.timeline.map((t) => Math.max(t.views, t.clicks))
-  );
 
   return (
     <main className="ambient-bg-subtle min-h-screen">
@@ -130,38 +128,7 @@ export default async function AnalyticsPage({
             <h2 className="mb-5 text-sm font-bold uppercase tracking-wider text-muted-foreground">
               Atividade diária
             </h2>
-            <div className="flex h-48 items-end gap-1">
-              {analytics.timeline.map((t) => (
-                <div
-                  key={t.date}
-                  className="group relative flex flex-1 flex-col items-center justify-end gap-0.5"
-                  title={`${t.date}: ${t.views} visitas, ${t.clicks} cliques`}
-                >
-                  <div
-                    className="w-full rounded-t-sm bg-primary/30 transition-colors group-hover:bg-primary/50"
-                    style={{
-                      height: `${(t.views / maxTimeline) * 100}%`,
-                      minHeight: t.views > 0 ? "2px" : 0,
-                    }}
-                  />
-                  <div
-                    className="w-full rounded-t-sm bg-primary transition-opacity group-hover:opacity-80"
-                    style={{
-                      height: `${(t.clicks / maxTimeline) * 100}%`,
-                      minHeight: t.clicks > 0 ? "2px" : 0,
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-sm bg-primary/30" /> Visitas
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-sm bg-primary" /> Cliques
-              </span>
-            </div>
+            <DailyChart data={analytics.timeline} />
           </CardContent>
         </Card>
 
@@ -209,23 +176,26 @@ export default async function AnalyticsPage({
                       </tr>
                     </thead>
                     <tbody>
-                      {analytics.cohorts.map((c, i) => (
-                        <tr
-                          key={i}
-                          className="border-b border-border/50 last:border-0"
-                        >
-                          <td className="py-2 font-medium">{c.referrer}</td>
-                          <td className="py-2 text-right tabular-nums">
-                            {c.visits}
-                          </td>
-                          <td className="py-2 text-right tabular-nums">
-                            {c.goalClicks}
-                          </td>
-                          <td className="py-2 text-right font-semibold tabular-nums text-primary">
-                            {c.conversionRate.toFixed(1)}%
-                          </td>
-                        </tr>
-                      ))}
+                      {analytics.cohorts.map((c, i) => {
+                        const src = detectTrafficSource(c.referrer);
+                        return (
+                          <tr
+                            key={i}
+                            className="border-b border-border/50 last:border-0"
+                          >
+                            <td className="py-2 font-medium">{src.name}</td>
+                            <td className="py-2 text-right tabular-nums">
+                              {c.visits}
+                            </td>
+                            <td className="py-2 text-right tabular-nums">
+                              {c.goalClicks}
+                            </td>
+                            <td className="py-2 text-right font-semibold tabular-nums text-primary">
+                              {c.conversionRate.toFixed(1)}%
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -259,14 +229,9 @@ export default async function AnalyticsPage({
                 Origem do tráfego
               </h2>
               {analytics.topReferrers.length === 0 ? (
-                <EmptyRow text="Ainda não temos dados." />
+                <EmptyRow text="Ainda não temos dados. Compartilhe seu link com ?utm_source=instagram pra rastrear origem." />
               ) : (
-                <BarList
-                  items={analytics.topReferrers.map((r) => ({
-                    label: r.referrer,
-                    count: r.count,
-                  }))}
-                />
+                <TrafficSourceList items={analytics.topReferrers} />
               )}
             </CardContent>
           </Card>

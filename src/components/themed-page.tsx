@@ -200,10 +200,16 @@ export function ThemedPage({
   useEffect(() => {
     if (!trackEvents || viewed.current) return;
     viewed.current = true;
+    // Captura UTM source da URL pra rastrear origem
+    let utmSource: string | undefined;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      utmSource = params.get("utm_source") ?? params.get("source") ?? undefined;
+    } catch {}
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "view", pageId }),
+      body: JSON.stringify({ type: "view", pageId, utmSource }),
       keepalive: true,
     }).catch(() => {});
   }, [pageId, trackEvents]);
@@ -791,14 +797,18 @@ function BlockView({
   trackEvents: boolean;
 }) {
   function trackClick(label: string, url: string) {
-    // Não bloqueia a navegação — defer pra próxima tick
     setTimeout(() => {
       try { dispatchPixelClick(label, url); } catch {}
       if (!trackEvents) return;
+      let utmSource: string | undefined;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        utmSource = params.get("utm_source") ?? params.get("source") ?? undefined;
+      } catch {}
       fetch("/api/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "click", pageId, blockId: block.id }),
+        body: JSON.stringify({ type: "click", pageId, blockId: block.id, utmSource }),
         keepalive: true,
       }).catch(() => {});
     }, 0);
