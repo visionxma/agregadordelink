@@ -1,11 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Palette, RotateCcw } from "lucide-react";
+import {
+  Palette,
+  RotateCcw,
+  Type as TypeIcon,
+  Square,
+  Image as ImageIcon,
+  Sparkles,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+} from "lucide-react";
 import type { BlockStyle, FontKey } from "@/lib/db/schema";
 import { fontNiceName } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { updateBlockStyle } from "../../actions";
+
+type Tab = "background" | "text" | "border";
 
 export function BlockStyleEditor({
   blockId,
@@ -14,7 +26,7 @@ export function BlockStyleEditor({
   blockId: string;
   currentStyle: BlockStyle;
 }) {
-  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>("background");
   const [style, setStyle] = useState<BlockStyle>(currentStyle);
   const [, startTransition] = useTransition();
 
@@ -32,266 +44,336 @@ export function BlockStyleEditor({
   const hasStyle = Object.keys(style).length > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-secondary/40">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold"
-      >
-        <span className="flex items-center gap-1.5">
-          <Palette className="size-3.5" />
+    <div className="rounded-xl border border-border bg-card shadow-ios-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
+        <span className="flex items-center gap-2 text-xs font-bold">
+          <Palette className="size-3.5 text-primary" />
           Estilo do bloco
           {hasStyle && (
-            <span className="rounded-full bg-primary/15 px-1.5 text-[9px] text-primary">
-              custom
+            <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-bold text-primary">
+              CUSTOM
             </span>
           )}
         </span>
-        <span className="text-[10px] text-muted-foreground">
-          {open ? "fechar" : "abrir"}
-        </span>
-      </button>
+        {hasStyle && (
+          <button
+            type="button"
+            onClick={reset}
+            className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            title="Resetar todos os estilos"
+          >
+            <RotateCcw className="size-3" /> Reset
+          </button>
+        )}
+      </div>
 
-      {open && (
-        <div className="space-y-3 border-t border-border p-3 text-xs">
-          <Row label="Cor de fundo">
-            <ColorPicker
-              value={style.background ?? ""}
-              onChange={(v) => patch({ background: v })}
-              placeholder="auto"
-            />
-          </Row>
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        <TabButton active={tab === "background"} onClick={() => setTab("background")} icon={<Sparkles className="size-3.5" />} label="Fundo" />
+        <TabButton active={tab === "text"} onClick={() => setTab("text")} icon={<TypeIcon className="size-3.5" />} label="Texto" />
+        <TabButton active={tab === "border"} onClick={() => setTab("border")} icon={<Square className="size-3.5" />} label="Borda" />
+      </div>
 
-          {/* Gradiente */}
-          <div className="rounded-md border border-dashed border-border p-2 space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Gradiente (sobrepõe cor sólida)
-            </p>
-            <Row label="Cor inicial">
-              <ColorPicker
-                value={style.gradientFrom ?? ""}
-                onChange={(v) => patch({ gradientFrom: v })}
-                placeholder="—"
-              />
-            </Row>
-            <Row label="Cor final">
-              <ColorPicker
-                value={style.gradientTo ?? ""}
-                onChange={(v) => patch({ gradientTo: v })}
-                placeholder="—"
-              />
-            </Row>
-            <Row label="Direção">
-              <Slider
-                value={style.gradientAngle ?? 90}
-                min={0}
-                max={360}
-                step={15}
-                onChange={(v) => patch({ gradientAngle: v })}
-                suffix="°"
-              />
-            </Row>
-            {(style.gradientFrom || style.gradientTo) && (
-              <button
-                type="button"
-                onClick={() => patch({ gradientFrom: undefined, gradientTo: undefined, gradientAngle: undefined })}
-                className="text-[10px] text-muted-foreground hover:text-destructive"
-              >
-                Remover gradiente
-              </button>
-            )}
-          </div>
-
-          {/* Imagem de fundo */}
-          <div className="rounded-md border border-dashed border-border p-2 space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Imagem no botão
-            </p>
-            <Row label="URL da imagem">
-              <input
-                type="url"
-                value={style.bgImage ?? ""}
-                onChange={(e) => patch({ bgImage: e.target.value || undefined })}
-                placeholder="https://..."
-                className="flex-1 rounded-md border border-input bg-transparent px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-ring"
-              />
-            </Row>
-            {style.bgImage && (
-              <>
-                <Row label="Posição">
-                  <SelectString
-                    value={style.bgImagePosition ?? "right"}
-                    options={[
-                      { value: "right", label: "Canto direito (com fade)" },
-                      { value: "left", label: "Canto esquerdo (com fade)" },
-                      { value: "cover", label: "Cobrir tudo (com overlay)" },
-                      { value: "center", label: "Centralizada (com overlay)" },
-                    ]}
-                    onChange={(v) =>
-                      patch({ bgImagePosition: v as BlockStyle["bgImagePosition"] })
-                    }
-                  />
-                </Row>
-                <button
-                  type="button"
-                  onClick={() => patch({ bgImage: undefined, bgImagePosition: undefined })}
-                  className="text-[10px] text-muted-foreground hover:text-destructive"
-                >
-                  Remover imagem
-                </button>
-              </>
-            )}
-          </div>
-
-          <Row label="Cor do texto">
-            <ColorPicker
-              value={style.color ?? ""}
-              onChange={(v) => patch({ color: v })}
-              placeholder="auto"
-            />
-          </Row>
-
-          <Row label="Tamanho da fonte">
-            <Slider
-              value={style.fontSize ?? 0}
-              min={10}
-              max={48}
-              step={1}
-              onChange={(v) => patch({ fontSize: v || undefined })}
-              suffix="px"
-            />
-          </Row>
-
-          <Row label="Peso da fonte">
-            <Select
-              value={style.fontWeight ?? 0}
-              options={[
-                { value: 0, label: "auto" },
-                { value: 400, label: "400 normal" },
-                { value: 500, label: "500" },
-                { value: 600, label: "600 semibold" },
-                { value: 700, label: "700 bold" },
-                { value: 800, label: "800" },
-                { value: 900, label: "900 black" },
-              ]}
-              onChange={(v) =>
-                patch({
-                  fontWeight:
-                    v === 0 ? undefined : (v as BlockStyle["fontWeight"]),
-                })
-              }
-            />
-          </Row>
-
-          <Row label="Família de fonte">
-            <SelectString
-              value={style.fontFamily ?? ""}
-              options={[
-                { value: "", label: "auto (da página)" },
-                ...Object.keys(fontNiceName).map((k) => ({
-                  value: k,
-                  label: fontNiceName[k as FontKey],
-                })),
-              ]}
-              onChange={(v) =>
-                patch({
-                  fontFamily: v ? (v as FontKey) : undefined,
-                })
-              }
-            />
-          </Row>
-
-          <Row label="Arredondar borda">
-            <Slider
-              value={style.borderRadius ?? -1}
-              min={0}
-              max={48}
-              step={1}
-              onChange={(v) =>
-                patch({ borderRadius: v === -1 ? undefined : v })
-              }
-              suffix="px"
-              allowAuto
-            />
-          </Row>
-
-          <Row label="Espessura da borda">
-            <Slider
-              value={style.borderWidth ?? 0}
-              min={0}
-              max={6}
-              step={1}
-              onChange={(v) => patch({ borderWidth: v || undefined })}
-              suffix="px"
-            />
-          </Row>
-
-          <Row label="Cor da borda">
-            <ColorPicker
-              value={style.borderColor ?? ""}
-              onChange={(v) => patch({ borderColor: v })}
-              placeholder="auto"
-            />
-          </Row>
-
-          <Row label="Padding interno">
-            <Slider
-              value={style.padding ?? -1}
-              min={8}
-              max={32}
-              step={1}
-              onChange={(v) => patch({ padding: v === -1 ? undefined : v })}
-              suffix="px"
-              allowAuto
-            />
-          </Row>
-
-          <Row label="Alinhamento">
-            <SelectString
-              value={style.textAlign ?? ""}
-              options={[
-                { value: "", label: "auto" },
-                { value: "left", label: "Esquerda" },
-                { value: "center", label: "Centro" },
-                { value: "right", label: "Direita" },
-              ]}
-              onChange={(v) =>
-                patch({
-                  textAlign: v ? (v as BlockStyle["textAlign"]) : undefined,
-                })
-              }
-            />
-          </Row>
-
-          {hasStyle && (
-            <button
-              type="button"
-              onClick={reset}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border py-1.5 text-[10px] font-semibold text-muted-foreground hover:text-destructive"
-            >
-              <RotateCcw className="size-3" /> Reset estilo
-            </button>
-          )}
-        </div>
-      )}
+      {/* Content */}
+      <div className="p-3 space-y-3">
+        {tab === "background" && <BackgroundTab style={style} patch={patch} />}
+        {tab === "text" && <TextTab style={style} patch={patch} />}
+        {tab === "border" && <BorderTab style={style} patch={patch} />}
+      </div>
     </div>
   );
 }
 
-function Row({
+function TabButton({
+  active,
+  onClick,
+  icon,
   label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-semibold transition-colors border-b-2",
+        active
+          ? "border-primary text-primary"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+// ─── BACKGROUND TAB ──────────────────────────────────────────────────────────
+
+function BackgroundTab({ style, patch }: { style: BlockStyle; patch: (p: Partial<BlockStyle>) => void }) {
+  const hasGradient = !!(style.gradientFrom || style.gradientTo);
+  const hasImage = !!style.bgImage;
+
+  return (
+    <>
+      {/* Cor sólida */}
+      <Section title="Cor sólida">
+        <ColorPicker
+          value={style.background ?? ""}
+          onChange={(v) => patch({ background: v })}
+          placeholder="Sem cor"
+        />
+      </Section>
+
+      {/* Gradiente */}
+      <Section
+        title="Gradiente"
+        action={
+          hasGradient ? (
+            <ClearButton onClick={() => patch({ gradientFrom: undefined, gradientTo: undefined, gradientAngle: undefined })} />
+          ) : null
+        }
+        hint="Substitui a cor sólida quando definido"
+      >
+        <div className="grid grid-cols-2 gap-2">
+          <ColorField label="Inicial" value={style.gradientFrom ?? ""} onChange={(v) => patch({ gradientFrom: v })} />
+          <ColorField label="Final" value={style.gradientTo ?? ""} onChange={(v) => patch({ gradientTo: v })} />
+        </div>
+        {hasGradient && (
+          <>
+            <SliderField
+              label="Direção"
+              value={style.gradientAngle ?? 90}
+              min={0}
+              max={360}
+              step={15}
+              suffix="°"
+              onChange={(v) => patch({ gradientAngle: v })}
+            />
+            <GradientPreview from={style.gradientFrom!} to={style.gradientTo!} angle={style.gradientAngle ?? 90} />
+          </>
+        )}
+      </Section>
+
+      {/* Imagem */}
+      <Section
+        title="Imagem de fundo"
+        action={hasImage ? <ClearButton onClick={() => patch({ bgImage: undefined, bgImagePosition: undefined })} /> : null}
+        hint="Sobrepõe gradiente e cor"
+      >
+        <div className="flex items-center gap-2 rounded-lg border border-input bg-card/60 px-2 py-1.5">
+          <ImageIcon className="size-3.5 shrink-0 text-muted-foreground" />
+          <input
+            type="url"
+            value={style.bgImage ?? ""}
+            onChange={(e) => patch({ bgImage: e.target.value || undefined })}
+            placeholder="https://..."
+            className="flex-1 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground/60"
+          />
+        </div>
+        {hasImage && (
+          <div className="grid grid-cols-2 gap-1.5">
+            {([
+              { v: "right", l: "Canto direito" },
+              { v: "left", l: "Canto esquerdo" },
+              { v: "cover", l: "Cobrir tudo" },
+              { v: "center", l: "Centro" },
+            ] as const).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => patch({ bgImagePosition: opt.v })}
+                className={cn(
+                  "rounded-md border px-2 py-1.5 text-[10px] font-medium transition-colors",
+                  (style.bgImagePosition ?? "right") === opt.v
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-secondary/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                )}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+        )}
+      </Section>
+    </>
+  );
+}
+
+// ─── TEXT TAB ────────────────────────────────────────────────────────────────
+
+function TextTab({ style, patch }: { style: BlockStyle; patch: (p: Partial<BlockStyle>) => void }) {
+  return (
+    <>
+      <Section title="Cor do texto">
+        <ColorPicker
+          value={style.color ?? ""}
+          onChange={(v) => patch({ color: v })}
+          placeholder="Cor do tema"
+        />
+      </Section>
+
+      <Section title="Tipografia">
+        <SliderField
+          label="Tamanho"
+          value={style.fontSize ?? 14}
+          min={10}
+          max={48}
+          step={1}
+          suffix="px"
+          onChange={(v) => patch({ fontSize: v })}
+        />
+        <SelectRow
+          label="Peso"
+          value={style.fontWeight ?? 0}
+          options={[
+            { value: 0, label: "Auto" },
+            { value: 400, label: "Normal" },
+            { value: 500, label: "Médio" },
+            { value: 600, label: "Semibold" },
+            { value: 700, label: "Bold" },
+            { value: 800, label: "Extra" },
+            { value: 900, label: "Black" },
+          ]}
+          onChange={(v) =>
+            patch({ fontWeight: v === 0 ? undefined : (v as BlockStyle["fontWeight"]) })
+          }
+        />
+        <SelectRowString
+          label="Família"
+          value={style.fontFamily ?? ""}
+          options={[
+            { value: "", label: "Da página" },
+            ...Object.keys(fontNiceName).map((k) => ({ value: k, label: fontNiceName[k as FontKey] })),
+          ]}
+          onChange={(v) => patch({ fontFamily: v ? (v as FontKey) : undefined })}
+        />
+      </Section>
+
+      <Section title="Alinhamento">
+        <div className="grid grid-cols-3 gap-1.5">
+          {([
+            { v: "left", icon: <AlignLeft className="size-3.5" /> },
+            { v: "center", icon: <AlignCenter className="size-3.5" /> },
+            { v: "right", icon: <AlignRight className="size-3.5" /> },
+          ] as const).map((opt) => (
+            <button
+              key={opt.v}
+              type="button"
+              onClick={() => patch({ textAlign: style.textAlign === opt.v ? undefined : opt.v })}
+              className={cn(
+                "flex items-center justify-center rounded-md border px-2 py-2 transition-colors",
+                style.textAlign === opt.v
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-secondary/60 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+              )}
+            >
+              {opt.icon}
+            </button>
+          ))}
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ─── BORDER TAB ──────────────────────────────────────────────────────────────
+
+function BorderTab({ style, patch }: { style: BlockStyle; patch: (p: Partial<BlockStyle>) => void }) {
+  return (
+    <>
+      <Section title="Cantos arredondados">
+        <SliderField
+          label="Raio"
+          value={style.borderRadius ?? -1}
+          min={-1}
+          max={48}
+          step={1}
+          suffix={style.borderRadius === -1 || style.borderRadius === undefined ? "" : "px"}
+          allowAuto
+          onChange={(v) => patch({ borderRadius: v === -1 ? undefined : v })}
+        />
+      </Section>
+
+      <Section title="Borda">
+        <SliderField
+          label="Espessura"
+          value={style.borderWidth ?? 0}
+          min={0}
+          max={6}
+          step={1}
+          suffix="px"
+          onChange={(v) => patch({ borderWidth: v || undefined })}
+        />
+        {(style.borderWidth ?? 0) > 0 && (
+          <ColorField label="Cor da borda" value={style.borderColor ?? ""} onChange={(v) => patch({ borderColor: v })} />
+        )}
+      </Section>
+
+      <Section title="Espaçamento interno">
+        <SliderField
+          label="Padding"
+          value={style.padding ?? -1}
+          min={-1}
+          max={32}
+          step={1}
+          suffix={style.padding === -1 || style.padding === undefined ? "" : "px"}
+          allowAuto
+          onChange={(v) => patch({ padding: v === -1 ? undefined : v })}
+        />
+      </Section>
+    </>
+  );
+}
+
+// ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
+
+function Section({
+  title,
+  hint,
+  action,
   children,
 }: {
-  label: string;
+  title: string;
+  hint?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-[90px_1fr] items-center gap-2">
-      <label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </label>
+    <div className="space-y-2 rounded-lg bg-secondary/40 p-2.5">
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</p>
+        {action}
+      </div>
+      {hint && <p className="text-[10px] text-muted-foreground/70">{hint}</p>}
       {children}
     </div>
+  );
+}
+
+function ClearButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-[10px] font-semibold text-destructive/80 hover:text-destructive"
+    >
+      Limpar
+    </button>
+  );
+}
+
+function GradientPreview({ from, to, angle }: { from: string; to: string; angle: number }) {
+  return (
+    <div
+      className="h-6 rounded-md border border-border"
+      style={{ background: `linear-gradient(${angle}deg, ${from}, ${to})` }}
+    />
   );
 }
 
@@ -305,25 +387,31 @@ function ColorPicker({
   placeholder?: string;
 }) {
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-input bg-transparent px-1.5 py-1">
-      <input
-        type="color"
-        value={value || "#000000"}
-        onChange={(e) => onChange(e.target.value)}
-        className="size-5 cursor-pointer rounded"
-      />
+    <div className="flex items-center gap-2 rounded-lg border border-input bg-card/60 px-2 py-1.5">
+      <div
+        className="size-6 shrink-0 rounded-md border border-border overflow-hidden cursor-pointer relative"
+        style={{ background: value || "linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%), linear-gradient(45deg, #f0f0f0 25%, #fff 25%, #fff 75%, #f0f0f0 75%)" , backgroundSize: value ? undefined : "8px 8px", backgroundPosition: value ? undefined : "0 0, 4px 4px"}}
+      >
+        <input
+          type="color"
+          value={value || "#000000"}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 size-full cursor-pointer opacity-0"
+        />
+      </div>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? "#000000"}
-        className="flex-1 bg-transparent text-[11px] outline-none"
+        className="flex-1 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground/60"
       />
       {value && (
         <button
           type="button"
           onClick={() => onChange("")}
-          className="text-[10px] text-muted-foreground hover:text-destructive"
+          className="text-base text-muted-foreground hover:text-destructive leading-none"
+          title="Limpar"
         >
           ×
         </button>
@@ -332,91 +420,118 @@ function ColorPicker({
   );
 }
 
-function Slider({
+function ColorField({
+  label,
   value,
-  min,
-  max,
-  step,
   onChange,
-  suffix,
-  allowAuto,
 }: {
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (v: number) => void;
-  suffix?: string;
-  allowAuto?: boolean;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
 }) {
-  const isAuto = allowAuto && value === -1;
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="range"
-        min={allowAuto ? -1 : min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="flex-1 accent-primary"
-      />
-      <span
-        className={cn(
-          "w-12 text-right font-mono text-[10px]",
-          isAuto ? "text-muted-foreground" : ""
-        )}
-      >
-        {isAuto ? "auto" : `${value}${suffix ?? ""}`}
-      </span>
+    <div className="space-y-1">
+      <label className="text-[10px] text-muted-foreground">{label}</label>
+      <ColorPicker value={value} onChange={onChange} placeholder="—" />
     </div>
   );
 }
 
-function Select({
+function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix,
+  allowAuto,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix?: string;
+  allowAuto?: boolean;
+  onChange: (v: number) => void;
+}) {
+  const isAuto = allowAuto && value === -1;
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] text-muted-foreground">{label}</label>
+        <span className={cn("font-mono text-[10px]", isAuto ? "text-muted-foreground" : "font-semibold")}>
+          {isAuto ? "auto" : `${value}${suffix ?? ""}`}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-primary"
+      />
+    </div>
+  );
+}
+
+function SelectRow({
+  label,
   value,
   options,
   onChange,
 }: {
+  label: string;
   value: number;
   options: { value: number; label: string }[];
   onChange: (v: number) => void;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(Number(e.target.value))}
-      className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <div className="grid grid-cols-[60px_1fr] items-center gap-2">
+      <label className="text-[10px] text-muted-foreground">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="h-8 rounded-md border border-input bg-card/60 px-2 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
-function SelectString({
+function SelectRowString({
+  label,
   value,
   options,
   onChange,
 }: {
+  label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <div className="grid grid-cols-[60px_1fr] items-center gap-2">
+      <label className="text-[10px] text-muted-foreground">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-8 rounded-md border border-input bg-card/60 px-2 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
