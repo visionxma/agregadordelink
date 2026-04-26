@@ -2,9 +2,12 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
+const HARDCODED_ADMINS = ["visionxma@gmail.com"];
+
 export function isAdminEmail(email: string): boolean {
-  const list = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase());
-  return list.includes(email.toLowerCase());
+  const fromEnv = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  const all = [...HARDCODED_ADMINS, ...fromEnv];
+  return all.includes(email.toLowerCase());
 }
 
 export async function requireAdmin() {
