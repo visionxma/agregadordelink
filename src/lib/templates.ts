@@ -96,7 +96,7 @@ const events = (
 
 const buttonGrid = (
   items: { label: string; url: string; icon?: string }[],
-  columns: 1 | 2 | 3 = 2,
+  columns: 1 | 2 | 3 | 4 | 5 | 6 | 7 = 2,
   style: "filled" | "plain" = "filled"
 ): TemplateBlock => ({
   type: "button-grid",
@@ -105,7 +105,7 @@ const buttonGrid = (
 
 const productGrid = (
   items: { title: string; price?: string; imageUrl?: string; url?: string }[],
-  columns: 1 | 2 | 3 = 2
+  columns: 1 | 2 | 3 | 4 | 5 | 6 | 7 = 2
 ): TemplateBlock => ({
   type: "product-grid",
   data: { kind: "product-grid", columns, items },
@@ -128,7 +128,7 @@ const imageCarousel = (
 
 const grid = (
   items: { title?: string; imageUrl?: string; url?: string }[],
-  columns: 1 | 2 | 3 = 2
+  columns: 1 | 2 | 3 | 4 | 5 | 6 | 7 = 2
 ): TemplateBlock => ({
   type: "grid",
   data: { kind: "grid", columns, items },

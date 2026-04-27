@@ -506,7 +506,7 @@ export type BlockType =
   | "button-grid"
   | "spacer";
 
-export type GridColumns = 1 | 2 | 3;
+export type GridColumns = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type FormField = {
   id: string;

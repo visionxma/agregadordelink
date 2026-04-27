@@ -759,8 +759,18 @@ export function ProductsBlock({
 
 // ============== GRID (genérico) ==============
 
-function gridColsClass(n: 1 | 2 | 3): string {
-  return n === 1 ? "grid-cols-1" : n === 3 ? "grid-cols-3" : "grid-cols-2";
+function gridColsClass(n: 1 | 2 | 3 | 4 | 5 | 6 | 7): string {
+  // Tailwind precisa de classes literais — usar mapa direto
+  switch (n) {
+    case 1: return "grid-cols-1";
+    case 2: return "grid-cols-2";
+    case 3: return "grid-cols-3";
+    case 4: return "grid-cols-4";
+    case 5: return "grid-cols-5";
+    case 6: return "grid-cols-6";
+    case 7: return "grid-cols-7";
+    default: return "grid-cols-2";
+  }
 }
 
 export function GridBlock({

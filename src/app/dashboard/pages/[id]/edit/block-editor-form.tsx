@@ -289,7 +289,7 @@ export function BlockEditorForm({
 function ProductsEditor({ data, onUpdate, withColumns = false }: { data: Extract<BlockData, { kind: "products" | "product-grid" | "product-carousel" }>; onUpdate: (d: BlockData) => void; withColumns?: boolean }) {
   return (
     <div className="space-y-2">
-      {withColumns && "columns" in data && <ColumnSelector value={(data as { columns: 1 | 2 | 3 }).columns} onChange={(columns) => onUpdate({ ...data, columns } as BlockData)} />}
+      {withColumns && "columns" in data && <ColumnSelector value={(data as { columns: Cols }).columns} onChange={(columns) => onUpdate({ ...data, columns } as BlockData)} />}
       {data.items.map((item, i) => (
         <div key={i} className="rounded-lg bg-secondary/60 p-2 space-y-1">
           <div className="grid grid-cols-2 gap-1.5">
@@ -355,13 +355,14 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function ColumnSelector({ value, onChange }: { value: 1 | 2 | 3; onChange: (v: 1 | 2 | 3) => void }) {
+type Cols = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+function ColumnSelector({ value, onChange }: { value: Cols; onChange: (v: Cols) => void }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Label className="text-[11px] text-muted-foreground">Colunas</Label>
-      <div className="flex gap-1">
-        {[1, 2, 3].map((n) => (
-          <button key={n} type="button" onClick={() => onChange(n as 1 | 2 | 3)} className={cn("size-7 rounded-md border text-xs font-semibold transition-colors", value === n ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/50")}>{n}</button>
+      <div className="flex flex-wrap gap-1">
+        {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+          <button key={n} type="button" onClick={() => onChange(n as Cols)} className={cn("size-7 rounded-md border text-xs font-semibold transition-colors", value === n ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/50")}>{n}</button>
         ))}
       </div>
     </div>

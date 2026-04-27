@@ -1552,18 +1552,18 @@ function ColumnSelector({
   value,
   onChange,
 }: {
-  value: 1 | 2 | 3;
-  onChange: (v: 1 | 2 | 3) => void;
+  value: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  onChange: (v: 1 | 2 | 3 | 4 | 5 | 6 | 7) => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Label className="text-[11px] text-muted-foreground">Colunas</Label>
-      <div className="flex gap-1">
-        {[1, 2, 3].map((n) => (
+      <div className="flex flex-wrap gap-1">
+        {[1, 2, 3, 4, 5, 6, 7].map((n) => (
           <button
             key={n}
             type="button"
-            onClick={() => onChange(n as 1 | 2 | 3)}
+            onClick={() => onChange(n as 1 | 2 | 3 | 4 | 5 | 6 | 7)}
             className={cn(
               "size-7 rounded-md border text-xs font-semibold transition-colors",
               value === n
