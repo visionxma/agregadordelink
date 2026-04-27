@@ -53,26 +53,26 @@ export function AdminPageActions({
   if (editing) {
     return (
       <div className="flex items-center justify-end gap-1">
-        <span className="text-xs text-zinc-500">/</span>
+        <span className="text-xs text-muted-foreground">/</span>
         <input
           autoFocus
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") saveSlug(); if (e.key === "Escape") setEditing(false); }}
-          className="w-28 rounded border border-zinc-600 bg-zinc-800 px-1.5 py-1 font-mono text-xs text-zinc-100 focus:border-zinc-400 focus:outline-none"
+          className="w-28 rounded-lg border border-border bg-background px-2 py-1 font-mono text-xs text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
         />
         <button
           type="button"
           onClick={saveSlug}
           disabled={pending}
-          className="rounded-lg border border-emerald-700 bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50"
+          className="rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold text-primary-foreground shadow-ios-sm hover:opacity-90 disabled:opacity-50"
         >
           Salvar
         </button>
         <button
           type="button"
           onClick={() => { setSlug(currentSlug); setEditing(false); }}
-          className="rounded-lg border border-zinc-700 px-2 py-1 text-[10px] text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+          className="rounded-lg border border-border bg-card px-2.5 py-1 text-[10px] font-medium text-muted-foreground shadow-ios-sm hover:border-primary/40 hover:text-foreground"
         >
           Cancelar
         </button>
@@ -87,7 +87,7 @@ export function AdminPageActions({
         onClick={() => setEditing(true)}
         disabled={pending}
         title="Editar slug"
-        className="flex size-7 items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-ios-sm transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
       >
         <Pencil className="size-3.5" />
       </button>
@@ -96,7 +96,7 @@ export function AdminPageActions({
         onClick={togglePublished}
         disabled={pending}
         title={published ? "Despublicar" : "Publicar"}
-        className="flex size-7 items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-ios-sm transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
       >
         {published ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
       </button>
@@ -105,7 +105,7 @@ export function AdminPageActions({
         onClick={deletePage}
         disabled={pending}
         title="Excluir página"
-        className="flex size-7 items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-ios-sm transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
       >
         <Trash2 className="size-3.5" />
       </button>

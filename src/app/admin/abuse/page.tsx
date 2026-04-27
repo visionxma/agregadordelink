@@ -65,9 +65,9 @@ export default async function AdminAbusePage({
   ];
 
   const statusBadge: Record<string, string> = {
-    pending: "bg-amber-500/20 text-amber-300",
-    reviewed: "bg-emerald-500/20 text-emerald-300",
-    dismissed: "bg-zinc-700 text-zinc-400",
+    pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    reviewed: "bg-primary/15 text-primary",
+    dismissed: "bg-muted text-muted-foreground",
   };
 
   const buildHref = (overrides: Record<string, string | number | null>) => {
@@ -80,31 +80,34 @@ export default async function AdminAbusePage({
     return qs ? `?${qs}` : "?";
   };
 
+  const filterChip = (active: boolean) =>
+    `rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+      active
+        ? "border-primary/40 bg-primary/10 text-primary shadow-ios-sm"
+        : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
+    }`;
+
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-lg bg-red-500/10">
-          <ShieldAlert className="size-5 text-red-400" />
+        <div className="flex size-12 items-center justify-center rounded-2xl bg-gradient-to-br from-destructive/20 to-destructive/5 shadow-ios-sm">
+          <ShieldAlert className="size-6 text-destructive" />
         </div>
         <div>
-          <h1 className="text-2xl font-black sm:text-3xl">Denúncias</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
+          <h1 className="text-3xl font-black tracking-[-0.02em] sm:text-4xl">Denúncias</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Revise páginas reportadas por usuários.
           </p>
         </div>
       </div>
 
       {/* Filter tabs */}
-      <div className="mb-4 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <Link
             key={f.val}
             href={buildHref({ status: f.val, page: null })}
-            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-              filterStatus === f.val
-                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300"
-                : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-            }`}
+            className={filterChip(filterStatus === f.val)}
           >
             {f.label}
           </Link>
@@ -112,44 +115,44 @@ export default async function AdminAbusePage({
       </div>
 
       {/* List */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {rows.map((row) => (
           <div
             key={row.id}
-            className={`rounded-xl border p-4 ${
+            className={`rounded-2xl border p-4 shadow-ios-sm ${
               row.status === "pending"
-                ? "border-amber-500/20 bg-amber-500/5"
-                : "border-zinc-800 bg-zinc-900"
+                ? "border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent"
+                : "border-border bg-card"
             }`}
           >
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
               <span
-                className={`rounded-full px-2 py-0.5 font-semibold ${
+                className={`rounded-full px-2 py-0.5 font-bold ${
                   statusBadge[row.status ?? "pending"]
                 }`}
               >
                 {row.status}
               </span>
-              <span className="rounded-full bg-zinc-800 px-2 py-0.5 font-semibold text-zinc-300">
+              <span className="rounded-full bg-muted px-2 py-0.5 font-semibold text-foreground">
                 {row.reason}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-muted-foreground">
                 {new Date(row.createdAt).toLocaleString("pt-BR")}
               </span>
               {row.reporterEmail && (
-                <span className="text-zinc-500">
-                  por <span className="text-zinc-300">{row.reporterEmail}</span>
+                <span className="text-muted-foreground">
+                  por <span className="font-medium text-foreground">{row.reporterEmail}</span>
                 </span>
               )}
             </div>
 
             {row.description && (
-              <p className="mb-3 rounded-md border border-zinc-800 bg-zinc-950/50 p-2 text-xs text-zinc-300">
+              <p className="mb-3 rounded-xl border border-border bg-muted/40 p-3 text-xs text-foreground">
                 {row.description}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800 pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
               {row.pageSlug ? (
                 <div className="min-w-0 flex-1 text-xs">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -157,35 +160,35 @@ export default async function AdminAbusePage({
                       href={`https://linkbiobr.com/${row.pageSlug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 font-mono font-semibold text-zinc-200 hover:text-white"
+                      className="flex items-center gap-1 font-mono font-bold text-foreground hover:text-primary"
                     >
                       /{row.pageSlug}
                       <ExternalLink className="size-3" />
                     </a>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         row.pagePublished
-                          ? "bg-emerald-500/20 text-emerald-300"
-                          : "bg-zinc-700 text-zinc-400"
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {row.pagePublished ? "Publicada" : "Despublicada"}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-zinc-500">{row.pageTitle}</p>
+                  <p className="mt-0.5 text-muted-foreground">{row.pageTitle}</p>
                   {row.ownerEmail && (
                     <Link
                       href={`/admin/users?q=${encodeURIComponent(row.ownerEmail)}`}
-                      className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-300"
+                      className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                     >
-                      Dono: <span className="text-zinc-300">{row.ownerName}</span>
+                      Dono: <span className="font-medium text-foreground">{row.ownerName}</span>
                       <span>·</span>
                       <span>{row.ownerEmail}</span>
                     </Link>
                   )}
                 </div>
               ) : (
-                <p className="flex-1 text-xs text-zinc-500">Página removida</p>
+                <p className="flex-1 text-xs text-muted-foreground">Página removida</p>
               )}
 
               <AdminAbuseActions
@@ -198,25 +201,25 @@ export default async function AdminAbusePage({
         ))}
 
         {rows.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 py-12 text-center">
-            <ShieldAlert className="mx-auto mb-2 size-8 text-zinc-700" />
-            <p className="text-sm text-zinc-500">Nenhuma denúncia nesta categoria.</p>
+          <div className="rounded-2xl border border-border bg-card py-12 text-center shadow-ios-sm">
+            <ShieldAlert className="mx-auto mb-2 size-8 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">Nenhuma denúncia nesta categoria.</p>
           </div>
         )}
       </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>Página {pageNum} de {totalPages}</span>
           <div className="flex gap-2">
             {pageNum > 1 && (
-              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Anterior
               </Link>
             )}
             {pageNum < totalPages && (
-              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Próxima
               </Link>
             )}

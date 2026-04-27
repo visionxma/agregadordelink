@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2, ChevronDown } from "lucide-react";
@@ -18,6 +18,16 @@ export function AdminUserActions({
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
 
   function setPlan(plan: "free" | "pro" | "business") {
     setOpen(false);
@@ -41,26 +51,27 @@ export function AdminUserActions({
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {/* Plan selector */}
-      <div className="relative">
+      <div ref={ref} className="relative">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           disabled={pending}
-          className="flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:border-zinc-500 hover:text-zinc-100 disabled:opacity-50"
+          className="flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground shadow-ios-sm transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-50"
         >
           Plano <ChevronDown className="size-3" />
         </button>
         {open && (
-          <div className="absolute right-0 top-full z-10 mt-1 min-w-[110px] overflow-hidden rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl">
+          <div className="absolute right-0 top-full z-20 mt-1 min-w-[120px] overflow-hidden rounded-xl border border-border bg-card shadow-ios-lg">
             {(["free", "pro", "business"] as const).map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => setPlan(p)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-zinc-800 ${p === currentPlan ? "text-emerald-400" : "text-zinc-300"}`}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-xs font-medium transition-colors hover:bg-muted ${
+                  p === currentPlan ? "text-primary" : "text-foreground"
+                }`}
               >
-                {p === currentPlan && <span className="size-1.5 rounded-full bg-emerald-400" />}
+                {p === currentPlan && <span className="size-1.5 rounded-full bg-primary" />}
                 {p.toUpperCase()}
               </button>
             ))}
@@ -68,13 +79,12 @@ export function AdminUserActions({
         )}
       </div>
 
-      {/* Delete */}
       <button
         type="button"
         onClick={deleteUser}
         disabled={pending}
         title="Excluir usuário"
-        className="flex size-7 items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-ios-sm transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
       >
         <Trash2 className="size-3.5" />
       </button>

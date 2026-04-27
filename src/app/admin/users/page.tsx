@@ -70,16 +70,16 @@ export default async function AdminUsersPage({
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
   const planBadge: Record<string, string> = {
-    pro: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    business: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-    free: "bg-zinc-700/50 text-zinc-400 border-zinc-600/30",
+    pro: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30",
+    business: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
+    free: "bg-muted text-muted-foreground border-border",
   };
 
   const statusBadge: Record<string, string> = {
-    active: "bg-emerald-500/20 text-emerald-300",
-    trial: "bg-amber-500/20 text-amber-300",
-    canceled: "bg-red-500/20 text-red-300",
-    past_due: "bg-orange-500/20 text-orange-300",
+    active: "bg-primary/15 text-primary",
+    trial: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    canceled: "bg-destructive/15 text-destructive",
+    past_due: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
   };
 
   const buildHref = (overrides: Record<string, string | number | null>) => {
@@ -113,27 +113,32 @@ export default async function AdminUsersPage({
 
   const hasFilters = !!(q || filterPlan || filterStatus);
 
+  const filterChip = (active: boolean) =>
+    `rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
+      active
+        ? "border-primary/40 bg-primary/10 text-primary shadow-ios-sm"
+        : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
+    }`;
+
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black sm:text-3xl">Usuários</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            {total.toLocaleString("pt-BR")} usuário(s){hasFilters ? " com os filtros atuais" : ""}
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-black tracking-[-0.02em] sm:text-4xl">Usuários</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {total.toLocaleString("pt-BR")} usuário(s){hasFilters ? " com os filtros atuais" : ""}
+        </p>
       </div>
 
       {/* Filters */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-4 shadow-ios-sm">
         <form className="flex flex-wrap items-center gap-2">
           <div className="relative w-full max-w-sm">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               name="q"
               defaultValue={q}
               placeholder="Buscar por nome ou email..."
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-8 pr-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           {filterPlan && <input type="hidden" name="plan" value={filterPlan} />}
@@ -141,14 +146,14 @@ export default async function AdminUsersPage({
           {sortKey !== "newest" && <input type="hidden" name="sort" value={sortKey} />}
           <button
             type="submit"
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 hover:border-zinc-500"
+            className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-ios-sm transition-all hover:opacity-90"
           >
             Buscar
           </button>
           {hasFilters && (
             <Link
               href="/admin/users"
-              className="flex items-center gap-1 rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+              className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
             >
               <X className="size-3" /> Limpar
             </Link>
@@ -157,35 +162,19 @@ export default async function AdminUsersPage({
 
         <div className="flex flex-wrap gap-1.5">
           {PLAN_FILTERS.map((f) => (
-            <Link
-              key={`plan-${f.val}`}
-              href={buildHref({ plan: f.val || null, page: null })}
-              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                filterPlan === f.val
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300"
-                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-              }`}
-            >
+            <Link key={`plan-${f.val}`} href={buildHref({ plan: f.val || null, page: null })} className={filterChip(filterPlan === f.val)}>
               {f.label}
             </Link>
           ))}
-          <span className="mx-1 w-px self-stretch bg-zinc-800" />
+          <span className="mx-1 w-px self-stretch bg-border" />
           {STATUS_FILTERS.map((f) => (
-            <Link
-              key={`status-${f.val}`}
-              href={buildHref({ status: f.val || null, page: null })}
-              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                filterStatus === f.val
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300"
-                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-              }`}
-            >
+            <Link key={`status-${f.val}`} href={buildHref({ status: f.val || null, page: null })} className={filterChip(filterStatus === f.val)}>
               {f.label}
             </Link>
           ))}
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
           <span>Ordenar:</span>
           {[
             { val: "newest", label: "Mais recentes" },
@@ -196,10 +185,8 @@ export default async function AdminUsersPage({
             <Link
               key={s.val}
               href={buildHref({ sort: s.val === "newest" ? null : s.val, page: null })}
-              className={`rounded px-2 py-0.5 ${
-                sortKey === s.val
-                  ? "bg-zinc-800 text-zinc-200"
-                  : "text-zinc-500 hover:text-zinc-300"
+              className={`rounded-md px-2 py-0.5 ${
+                sortKey === s.val ? "bg-muted text-foreground" : "hover:text-foreground"
               }`}
             >
               {s.label}
@@ -209,67 +196,67 @@ export default async function AdminUsersPage({
       </div>
 
       {/* Table desktop */}
-      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 sm:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-ios-sm sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Usuário</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Plano</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Páginas</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Cadastro</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Ações</th>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Usuário</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Plano</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Páginas</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Cadastro</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-border/50">
             {rows.map((row) => (
-              <tr key={row.id} className="bg-zinc-900 transition-colors hover:bg-zinc-800/50">
+              <tr key={row.id} className="transition-colors hover:bg-muted/40">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {row.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={row.image} alt="" className="size-7 rounded-full object-cover" />
+                      <img src={row.image} alt="" className="size-8 rounded-full object-cover ring-2 ring-card shadow-ios-sm" />
                     ) : (
-                      <div className="flex size-7 items-center justify-center rounded-full bg-zinc-700 text-xs font-bold text-zinc-300">
+                      <div className="flex size-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
                         {row.name?.[0]?.toUpperCase() ?? "?"}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="flex items-center gap-1 truncate font-medium text-zinc-200">
+                      <p className="flex items-center gap-1 truncate font-semibold text-foreground">
                         {row.name}
                         {row.emailVerified && (
-                          <BadgeCheck className="size-3.5 text-emerald-400" aria-label="Email verificado" />
+                          <BadgeCheck className="size-3.5 text-primary" aria-label="Email verificado" />
                         )}
                       </p>
-                      <p className="truncate text-xs text-zinc-500">{row.email}</p>
+                      <p className="truncate text-xs text-muted-foreground">{row.email}</p>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${planBadge[row.plan ?? "free"]}`}>
+                  <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-bold ${planBadge[row.plan ?? "free"]}`}>
                     {(row.plan ?? "free").toUpperCase()}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   {row.status ? (
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusBadge[row.status] ?? "bg-zinc-700 text-zinc-400"}`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusBadge[row.status] ?? "bg-muted text-muted-foreground"}`}>
                       {row.status === "trial" && row.trialEndsAt
                         ? `trial (${Math.max(0, Math.ceil((row.trialEndsAt.getTime() - Date.now()) / 86400000))}d)`
                         : row.status}
                     </span>
                   ) : (
-                    <span className="text-zinc-600">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/admin/pages?userId=${row.id}`}
-                    className="text-zinc-300 hover:text-white hover:underline"
+                    className="font-semibold text-foreground hover:text-primary hover:underline"
                   >
                     {row.pageCount}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-right text-xs text-zinc-500">
+                <td className="px-4 py-3 text-right text-xs text-muted-foreground">
                   {new Date(row.createdAt).toLocaleDateString("pt-BR")}
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -285,7 +272,7 @@ export default async function AdminUsersPage({
         </table>
 
         {rows.length === 0 && (
-          <div className="bg-zinc-900 py-12 text-center text-sm text-zinc-500">
+          <div className="py-12 text-center text-sm text-muted-foreground">
             Nenhum usuário encontrado.
           </div>
         )}
@@ -294,32 +281,32 @@ export default async function AdminUsersPage({
       {/* Cards mobile */}
       <div className="space-y-2 sm:hidden">
         {rows.map((row) => (
-          <div key={row.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-3">
+          <div key={row.id} className="rounded-2xl border border-border bg-card p-3 shadow-ios-sm">
             <div className="flex items-start gap-3">
               {row.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.image} alt="" className="size-8 rounded-full object-cover" />
+                <img src={row.image} alt="" className="size-9 rounded-full object-cover ring-2 ring-card" />
               ) : (
-                <div className="flex size-8 items-center justify-center rounded-full bg-zinc-700 text-xs font-bold text-zinc-300">
+                <div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">
                   {row.name?.[0]?.toUpperCase() ?? "?"}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-200">
+                <p className="flex items-center gap-1 truncate text-sm font-semibold text-foreground">
                   {row.name}
-                  {row.emailVerified && <BadgeCheck className="size-3 text-emerald-400" />}
+                  {row.emailVerified && <BadgeCheck className="size-3 text-primary" />}
                 </p>
-                <p className="truncate text-xs text-zinc-500">{row.email}</p>
+                <p className="truncate text-xs text-muted-foreground">{row.email}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${planBadge[row.plan ?? "free"]}`}>
+                  <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${planBadge[row.plan ?? "free"]}`}>
                     {(row.plan ?? "free").toUpperCase()}
                   </span>
                   {row.status && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[row.status] ?? "bg-zinc-700 text-zinc-400"}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[row.status] ?? "bg-muted text-muted-foreground"}`}>
                       {row.status}
                     </span>
                   )}
-                  <span className="text-[10px] text-zinc-500">
+                  <span className="text-[10px] text-muted-foreground">
                     {row.pageCount} pág. · {new Date(row.createdAt).toLocaleDateString("pt-BR")}
                   </span>
                 </div>
@@ -333,7 +320,7 @@ export default async function AdminUsersPage({
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 py-12 text-center text-sm text-zinc-500">
+          <div className="rounded-2xl border border-border bg-card py-12 text-center text-sm text-muted-foreground shadow-ios-sm">
             Nenhum usuário encontrado.
           </div>
         )}
@@ -341,16 +328,16 @@ export default async function AdminUsersPage({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>Página {pageNum} de {totalPages}</span>
           <div className="flex gap-2">
             {pageNum > 1 && (
-              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Anterior
               </Link>
             )}
             {pageNum < totalPages && (
-              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Próxima
               </Link>
             )}

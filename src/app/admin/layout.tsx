@@ -13,13 +13,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .where(eq(abuseReport.status, "pending"));
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="ambient-bg-subtle min-h-screen text-foreground">
       <AdminNav
         adminName={admin.name}
         adminEmail={admin.email}
+        adminImage={admin.image}
         abusePending={pending?.c ?? 0}
       />
-      <div className="lg:pl-56">
+      <div className="lg:pl-60">
         <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>

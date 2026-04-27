@@ -47,7 +47,7 @@ export function AdminAbuseActions({
   }
 
   if (!isPending) {
-    return <span className="text-[11px] text-zinc-600">resolvida</span>;
+    return <span className="text-[11px] font-medium text-muted-foreground">resolvida</span>;
   }
 
   return (
@@ -58,7 +58,7 @@ export function AdminAbuseActions({
           onClick={unpublishAndResolve}
           disabled={pending}
           title="Despublicar página e marcar como revisada"
-          className="flex items-center gap-1 rounded-lg border border-orange-700/50 bg-orange-500/10 px-2 py-1 text-[10px] font-semibold text-orange-300 hover:bg-orange-500/20 disabled:opacity-50"
+          className="flex items-center gap-1 rounded-lg border border-orange-500/40 bg-orange-500/10 px-2.5 py-1.5 text-[10px] font-bold text-orange-700 shadow-ios-sm transition-colors hover:bg-orange-500/20 dark:text-orange-300 disabled:opacity-50"
         >
           <EyeOff className="size-3" /> Despublicar
         </button>
@@ -68,7 +68,7 @@ export function AdminAbuseActions({
         onClick={() => resolve("reviewed")}
         disabled={pending}
         title="Marcar como revisada"
-        className="flex size-7 items-center justify-center rounded-lg border border-emerald-700/50 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-primary/40 bg-primary/10 text-primary shadow-ios-sm transition-colors hover:bg-primary/20 disabled:opacity-50"
       >
         <Check className="size-3.5" />
       </button>
@@ -77,7 +77,7 @@ export function AdminAbuseActions({
         onClick={() => resolve("dismissed")}
         disabled={pending}
         title="Descartar denúncia"
-        className="flex size-7 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-50"
+        className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-ios-sm transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-50"
       >
         <X className="size-3.5" />
       </button>

@@ -96,32 +96,37 @@ export default async function AdminPagesPage({
 
   const hasFilters = !!(q || filterStatus || filterDomain || filterUserId);
 
+  const filterChip = (active: boolean) =>
+    `rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${
+      active
+        ? "border-primary/40 bg-primary/10 text-primary shadow-ios-sm"
+        : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
+    }`;
+
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black sm:text-3xl">Páginas</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">
-            {ownerName && (
-              <>
-                Filtrando por <span className="text-zinc-300">{ownerName.name}</span> ·{" "}
-              </>
-            )}
-            {total.toLocaleString("pt-BR")} página(s)
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-black tracking-[-0.02em] sm:text-4xl">Páginas</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {ownerName && (
+            <>
+              Filtrando por <span className="font-semibold text-foreground">{ownerName.name}</span> ·{" "}
+            </>
+          )}
+          {total.toLocaleString("pt-BR")} página(s)
+        </p>
       </div>
 
       {/* Filters */}
-      <div className="mb-4 space-y-3">
+      <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-4 shadow-ios-sm">
         <form className="flex flex-wrap items-center gap-2">
           <div className="relative w-full max-w-sm">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-zinc-500" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               name="q"
               defaultValue={q}
               placeholder="Buscar por slug ou título..."
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-8 pr-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           {filterUserId && <input type="hidden" name="userId" value={filterUserId} />}
@@ -130,14 +135,14 @@ export default async function AdminPagesPage({
           {sortKey !== "updated" && <input type="hidden" name="sort" value={sortKey} />}
           <button
             type="submit"
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-xs text-zinc-200 hover:border-zinc-500"
+            className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-ios-sm transition-all hover:opacity-90"
           >
             Buscar
           </button>
           {hasFilters && (
             <Link
               href="/admin/pages"
-              className="flex items-center gap-1 rounded-lg border border-zinc-700 px-3 py-2 text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+              className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground"
             >
               <X className="size-3" /> Limpar
             </Link>
@@ -146,32 +151,20 @@ export default async function AdminPagesPage({
 
         <div className="flex flex-wrap gap-1.5">
           {STATUS_FILTERS.map((f) => (
-            <Link
-              key={`status-${f.val}`}
-              href={buildHref({ status: f.val || null, page: null })}
-              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                filterStatus === f.val
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300"
-                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-              }`}
-            >
+            <Link key={`status-${f.val}`} href={buildHref({ status: f.val || null, page: null })} className={filterChip(filterStatus === f.val)}>
               {f.label}
             </Link>
           ))}
-          <span className="mx-1 w-px self-stretch bg-zinc-800" />
+          <span className="mx-1 w-px self-stretch bg-border" />
           <Link
             href={buildHref({ domain: filterDomain === "yes" ? null : "yes", page: null })}
-            className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-              filterDomain === "yes"
-                ? "border-blue-500/50 bg-blue-500/10 text-blue-300"
-                : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
-            }`}
+            className={`flex items-center gap-1 ${filterChip(filterDomain === "yes")}`}
           >
             <Globe className="size-3" /> Com domínio próprio
           </Link>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
           <span>Ordenar:</span>
           {[
             { val: "updated", label: "Atualizadas" },
@@ -182,10 +175,8 @@ export default async function AdminPagesPage({
             <Link
               key={s.val}
               href={buildHref({ sort: s.val === "updated" ? null : s.val, page: null })}
-              className={`rounded px-2 py-0.5 ${
-                sortKey === s.val
-                  ? "bg-zinc-800 text-zinc-200"
-                  : "text-zinc-500 hover:text-zinc-300"
+              className={`rounded-md px-2 py-0.5 ${
+                sortKey === s.val ? "bg-muted text-foreground" : "hover:text-foreground"
               }`}
             >
               {s.label}
@@ -195,37 +186,37 @@ export default async function AdminPagesPage({
       </div>
 
       {/* Table desktop */}
-      <div className="hidden overflow-hidden rounded-xl border border-zinc-800 sm:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-ios-sm sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 bg-zinc-900/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Página</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Dono</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">Status</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Blocos</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Views (30d)</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Atualizado</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">Ações</th>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Página</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Dono</th>
+              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Blocos</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Views (30d)</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Atualizado</th>
+              <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/50">
+          <tbody className="divide-y divide-border/50">
             {rows.map((row) => (
-              <tr key={row.id} className="bg-zinc-900 transition-colors hover:bg-zinc-800/50">
+              <tr key={row.id} className="transition-colors hover:bg-muted/40">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-sm font-semibold text-zinc-200">/{row.slug}</span>
+                    <span className="font-mono text-sm font-bold text-foreground">/{row.slug}</span>
                     <a
                       href={`https://linkbiobr.com/${row.slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-600 hover:text-zinc-300"
+                      className="text-muted-foreground hover:text-primary"
                     >
                       <ExternalLink className="size-3" />
                     </a>
                   </div>
-                  <p className="truncate text-xs text-zinc-500">{row.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{row.title}</p>
                   {row.customDomain && (
-                    <p className="mt-0.5 flex items-center gap-1 text-[10px] text-blue-400">
+                    <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-blue-600 dark:text-blue-400">
                       <Globe className="size-2.5" />
                       {row.customDomain}
                     </p>
@@ -233,22 +224,26 @@ export default async function AdminPagesPage({
                 </td>
                 <td className="px-4 py-3">
                   <Link href={`/admin/users?q=${encodeURIComponent(row.userEmail)}`} className="hover:underline">
-                    <p className="text-xs text-zinc-300">{row.userName}</p>
-                    <p className="text-[11px] text-zinc-500">{row.userEmail}</p>
+                    <p className="text-xs font-medium text-foreground">{row.userName}</p>
+                    <p className="text-[11px] text-muted-foreground">{row.userEmail}</p>
                   </Link>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                    row.published ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-700/50 text-zinc-400"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      row.published
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
                     {row.published ? "Publicada" : "Rascunho"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right text-xs text-zinc-400">{row.blockCount}</td>
-                <td className="px-4 py-3 text-right text-xs text-zinc-300 font-semibold">
+                <td className="px-4 py-3 text-right text-xs text-muted-foreground">{row.blockCount}</td>
+                <td className="px-4 py-3 text-right text-xs font-bold text-foreground">
                   {Number(row.views30d).toLocaleString("pt-BR")}
                 </td>
-                <td className="px-4 py-3 text-right text-xs text-zinc-500">
+                <td className="px-4 py-3 text-right text-xs text-muted-foreground">
                   {new Date(row.updatedAt).toLocaleDateString("pt-BR")}
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -260,37 +255,43 @@ export default async function AdminPagesPage({
         </table>
 
         {rows.length === 0 && (
-          <div className="bg-zinc-900 py-12 text-center text-sm text-zinc-500">Nenhuma página encontrada.</div>
+          <div className="py-12 text-center text-sm text-muted-foreground">Nenhuma página encontrada.</div>
         )}
       </div>
 
       {/* Cards mobile */}
       <div className="space-y-2 sm:hidden">
         {rows.map((row) => (
-          <div key={row.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-3">
+          <div key={row.id} className="rounded-2xl border border-border bg-card p-3 shadow-ios-sm">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-sm font-semibold text-zinc-200">/{row.slug}</span>
+                  <span className="font-mono text-sm font-bold text-foreground">/{row.slug}</span>
                   <a
                     href={`https://linkbiobr.com/${row.slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-zinc-600"
+                    className="text-muted-foreground"
                   >
                     <ExternalLink className="size-3" />
                   </a>
                 </div>
-                <p className="truncate text-xs text-zinc-500">{row.title}</p>
-                <p className="mt-1 truncate text-[11px] text-zinc-400">{row.userName} · {row.userEmail}</p>
+                <p className="truncate text-xs text-muted-foreground">{row.title}</p>
+                <p className="mt-1 truncate text-[11px] text-foreground/80">{row.userName} · {row.userEmail}</p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
-                  <span className={`rounded-full px-2 py-0.5 font-semibold ${
-                    row.published ? "bg-emerald-500/20 text-emerald-300" : "bg-zinc-700/50 text-zinc-400"
-                  }`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-semibold ${
+                      row.published
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
                     {row.published ? "Publicada" : "Rascunho"}
                   </span>
-                  <span className="text-zinc-500">{row.blockCount} blocos</span>
-                  <span className="text-zinc-500">{Number(row.views30d).toLocaleString("pt-BR")} views (30d)</span>
+                  <span className="text-muted-foreground">{row.blockCount} blocos</span>
+                  <span className="text-muted-foreground">
+                    {Number(row.views30d).toLocaleString("pt-BR")} views (30d)
+                  </span>
                 </div>
               </div>
               <AdminPageActions pageId={row.id} currentSlug={row.slug} published={row.published} />
@@ -298,7 +299,7 @@ export default async function AdminPagesPage({
           </div>
         ))}
         {rows.length === 0 && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900 py-12 text-center text-sm text-zinc-500">
+          <div className="rounded-2xl border border-border bg-card py-12 text-center text-sm text-muted-foreground shadow-ios-sm">
             Nenhuma página encontrada.
           </div>
         )}
@@ -306,16 +307,16 @@ export default async function AdminPagesPage({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-zinc-500">
+        <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>Página {pageNum} de {totalPages}</span>
           <div className="flex gap-2">
             {pageNum > 1 && (
-              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum - 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Anterior
               </Link>
             )}
             {pageNum < totalPages && (
-              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs hover:border-zinc-500 hover:text-zinc-300">
+              <Link href={buildHref({ page: pageNum + 1 })} className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-primary/30 hover:text-foreground">
                 Próxima
               </Link>
             )}
