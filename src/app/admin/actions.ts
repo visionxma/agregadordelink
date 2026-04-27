@@ -2,7 +2,7 @@
 
 import { eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { user, page, subscription } from "@/lib/db/schema";
+import { user, page, subscription, abuseReport } from "@/lib/db/schema";
 import type { PlanTier } from "@/lib/db/schema";
 import { requireAdmin } from "./lib";
 
@@ -65,5 +65,28 @@ export async function adminCancelSubscription(userId: string) {
     cancelAtPeriodEnd: false,
     updatedAt: new Date(),
   }).where(eq(subscription.userId, userId));
+  return { ok: true };
+}
+
+// ─── Denúncias / Abuso ───────────────────────────────────────────────────────
+
+export async function adminResolveAbuse(reportId: string, action: "reviewed" | "dismissed") {
+  await requireAdmin();
+  await db
+    .update(abuseReport)
+    .set({ status: action, resolvedAt: new Date() })
+    .where(eq(abuseReport.id, reportId));
+  return { ok: true };
+}
+
+export async function adminResolveAbuseAndUnpublish(reportId: string, pageId: string) {
+  await requireAdmin();
+  await Promise.all([
+    db.update(page).set({ published: false, updatedAt: new Date() }).where(eq(page.id, pageId)),
+    db
+      .update(abuseReport)
+      .set({ status: "reviewed", resolvedAt: new Date() })
+      .where(eq(abuseReport.id, reportId)),
+  ]);
   return { ok: true };
 }
