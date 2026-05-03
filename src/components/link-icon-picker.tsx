@@ -1,7 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, X, Smile, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import {
+  ChevronDown, X, Smile, Sparkles, Shapes, Search,
+  // ─── Curated lucide set (categorias) ──────────────────────────
+  ShoppingBag, ShoppingCart, Store, Tag, Package, Wallet, CreditCard,
+  Receipt, Briefcase, Building2, BadgeDollarSign, Gift,
+  UtensilsCrossed, Pizza, Coffee, Wine, Beer, Cake, IceCream,
+  ChefHat, Apple, Cookie, Soup, Sandwich,
+  Video, Camera, Mic, Headphones, Film, Image as ImageIcon, Music, Radio,
+  Tv, PlayCircle, Podcast, Disc,
+  Mail, MessageCircle, MessageSquare, Phone, Send, Bell, Megaphone, AtSign, Inbox,
+  MapPin, Map, Home, Building, Plane, Car, Bus, Bike, Compass, Globe,
+  Calendar, CalendarDays, Clock, Ticket, Star, PartyPopper, Trophy, Award,
+  Book, BookOpen, GraduationCap, School, Lightbulb, Brain, Library, NotebookPen, FileText,
+  Dumbbell, Medal, Footprints, Activity, Target,
+  Laptop, Smartphone, Monitor, Gamepad2, Cpu, Code, Terminal, Wifi, Cloud, Database, Settings,
+  Heart, ThumbsUp, Eye, Download, Upload, ExternalLink, Link as LinkIcon,
+  Share2, Bookmark, Flag, Lock, Unlock, User, Users, Zap, Sun, Moon, Flame,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { socialIconMap, type SocialIconKey } from "@/components/social-icons";
 import { cn } from "@/lib/utils";
 
@@ -35,46 +53,71 @@ const SOCIAL_ORDER: SocialIconKey[] = [
 ];
 
 const EMOJI_GROUPS: { name: string; emojis: string[] }[] = [
-  {
-    name: "Populares",
-    emojis: ["🔥", "✨", "⭐", "💥", "🎉", "🚀", "❤️", "👀", "🎯", "💎", "🏆", "💯"],
-  },
-  {
-    name: "Comida",
-    emojis: ["🍔", "🍕", "🌭", "🥪", "🌮", "🍣", "🍜", "🍝", "🥗", "🍰", "🍩", "☕", "🍺", "🍷", "🥤"],
-  },
-  {
-    name: "Negócio",
-    emojis: ["🛍️", "🛒", "💰", "💳", "📦", "📈", "📊", "💼", "🏢", "🎁", "🏷️", "💸", "🤝", "✅"],
-  },
-  {
-    name: "Mídia",
-    emojis: ["📸", "🎥", "🎬", "🎙️", "🎧", "🎵", "📺", "📻", "🎤", "📷", "🎨", "🖼️"],
-  },
-  {
-    name: "Comunicação",
-    emojis: ["📱", "💬", "📞", "📧", "📨", "📩", "🔔", "📢", "📣", "💌", "🗣️", "✉️"],
-  },
-  {
-    name: "Lugares",
-    emojis: ["📍", "🗺️", "🏠", "🏡", "🏪", "🏨", "✈️", "🚗", "🚙", "🚕", "🛵", "📌"],
-  },
-  {
-    name: "Eventos",
-    emojis: ["📅", "🗓️", "⏰", "🎫", "🎪", "🎭", "🎤", "🥂", "🎊", "🎂", "💐", "🌹"],
-  },
-  {
-    name: "Esporte",
-    emojis: ["⚽", "🏀", "🎾", "🏐", "🏈", "⚾", "🎱", "🏓", "🥋", "🏋️", "🚴", "🏃"],
-  },
-  {
-    name: "Tech",
-    emojis: ["💻", "⌨️", "🖥️", "📲", "🔧", "⚙️", "🤖", "🎮", "🕹️", "💾", "📡", "🔌"],
-  },
+  { name: "Populares", emojis: ["🔥", "✨", "⭐", "💥", "🎉", "🚀", "❤️", "👀", "🎯", "💎", "🏆", "💯"] },
+  { name: "Comida", emojis: ["🍔", "🍕", "🌭", "🥪", "🌮", "🍣", "🍜", "🍝", "🥗", "🍰", "🍩", "☕", "🍺", "🍷", "🥤"] },
+  { name: "Negócio", emojis: ["🛍️", "🛒", "💰", "💳", "📦", "📈", "📊", "💼", "🏢", "🎁", "🏷️", "💸", "🤝", "✅"] },
+  { name: "Mídia", emojis: ["📸", "🎥", "🎬", "🎙️", "🎧", "🎵", "📺", "📻", "🎤", "📷", "🎨", "🖼️"] },
+  { name: "Comunicação", emojis: ["📱", "💬", "📞", "📧", "📨", "📩", "🔔", "📢", "📣", "💌", "🗣️", "✉️"] },
+  { name: "Lugares", emojis: ["📍", "🗺️", "🏠", "🏡", "🏪", "🏨", "✈️", "🚗", "🚙", "🚕", "🛵", "📌"] },
+  { name: "Eventos", emojis: ["📅", "🗓️", "⏰", "🎫", "🎪", "🎭", "🎤", "🥂", "🎊", "🎂", "💐", "🌹"] },
+  { name: "Esporte", emojis: ["⚽", "🏀", "🎾", "🏐", "🏈", "⚾", "🎱", "🏓", "🥋", "🏋️", "🚴", "🏃"] },
+  { name: "Tech", emojis: ["💻", "⌨️", "🖥️", "📲", "🔧", "⚙️", "🤖", "🎮", "🕹️", "💾", "📡", "🔌"] },
 ];
+
+// ─── Lucide curated set ───────────────────────────────────────────────────────
+// Format armazenado: "l:NomeDoIcone" (ex.: "l:ShoppingBag")
+const LUCIDE_MAP: Record<string, LucideIcon> = {
+  // Negócio
+  ShoppingBag, ShoppingCart, Store, Tag, Package, Wallet, CreditCard, Receipt,
+  Briefcase, Building2, BadgeDollarSign, Gift,
+  // Comida
+  UtensilsCrossed, Pizza, Coffee, Wine, Beer, Cake, IceCream, ChefHat, Apple,
+  Cookie, Soup, Sandwich,
+  // Mídia
+  Video, Camera, Mic, Headphones, Film, Image: ImageIcon, Music, Radio, Tv,
+  PlayCircle, Podcast, Disc,
+  // Comunicação
+  Mail, MessageCircle, MessageSquare, Phone, Send, Bell, Megaphone, AtSign, Inbox,
+  // Lugares
+  MapPin, Map, Home, Building, Plane, Car, Bus, Bike, Compass, Globe,
+  // Eventos
+  Calendar, CalendarDays, Clock, Ticket, Star, PartyPopper, Trophy, Award,
+  // Educação
+  Book, BookOpen, GraduationCap, School, Lightbulb, Brain, Library, NotebookPen,
+  FileText,
+  // Esporte
+  Dumbbell, Medal, Footprints, Activity, Target,
+  // Tech
+  Laptop, Smartphone, Monitor, Gamepad2, Cpu, Code, Terminal, Wifi, Cloud,
+  Database, Settings,
+  // Geral
+  Heart, ThumbsUp, Eye, Download, Upload, ExternalLink, Link: LinkIcon,
+  Share2, Bookmark, Flag, Lock, Unlock, User, Users, Zap, Sun, Moon, Flame,
+};
+
+const LUCIDE_GROUPS: { name: string; icons: string[] }[] = [
+  { name: "Negócio", icons: ["ShoppingBag", "ShoppingCart", "Store", "Tag", "Package", "Wallet", "CreditCard", "Receipt", "Briefcase", "Building2", "BadgeDollarSign", "Gift"] },
+  { name: "Comida", icons: ["UtensilsCrossed", "Pizza", "Coffee", "Wine", "Beer", "Cake", "IceCream", "ChefHat", "Apple", "Cookie", "Soup", "Sandwich"] },
+  { name: "Mídia", icons: ["Video", "Camera", "Mic", "Headphones", "Film", "Image", "Music", "Radio", "Tv", "PlayCircle", "Podcast", "Disc"] },
+  { name: "Comunicação", icons: ["Mail", "MessageCircle", "MessageSquare", "Phone", "Send", "Bell", "Megaphone", "AtSign", "Inbox"] },
+  { name: "Lugares", icons: ["MapPin", "Map", "Home", "Building", "Plane", "Car", "Bus", "Bike", "Compass", "Globe"] },
+  { name: "Eventos", icons: ["Calendar", "CalendarDays", "Clock", "Ticket", "Star", "PartyPopper", "Trophy", "Award"] },
+  { name: "Educação", icons: ["Book", "BookOpen", "GraduationCap", "School", "Lightbulb", "Brain", "Library", "NotebookPen", "FileText"] },
+  { name: "Esporte", icons: ["Dumbbell", "Medal", "Footprints", "Activity", "Target"] },
+  { name: "Tech", icons: ["Laptop", "Smartphone", "Monitor", "Gamepad2", "Cpu", "Code", "Terminal", "Wifi", "Cloud", "Database", "Settings"] },
+  { name: "Geral", icons: ["Heart", "ThumbsUp", "Eye", "Download", "Upload", "ExternalLink", "Link", "Share2", "Bookmark", "Flag", "Lock", "Unlock", "User", "Users", "Zap", "Sun", "Moon", "Flame"] },
+];
+
+const ALL_LUCIDE = LUCIDE_GROUPS.flatMap((g) => g.icons);
 
 function isSocialKey(v?: string): v is SocialIconKey {
   return !!v && v in socialIconMap;
+}
+function isLucideKey(v?: string): boolean {
+  return !!v && v.startsWith("l:") && v.slice(2) in LUCIDE_MAP;
+}
+function lucideKeyName(v: string) {
+  return v.slice(2);
 }
 
 export function LinkIconPicker({
@@ -84,10 +127,14 @@ export function LinkIconPicker({
   value?: string;
   onChange: (v: string | undefined) => void;
 }) {
+  const initialTab: "emoji" | "social" | "lucide" = isSocialKey(value)
+    ? "social"
+    : isLucideKey(value)
+      ? "lucide"
+      : "emoji";
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<"emoji" | "social">(
-    isSocialKey(value) ? "social" : "emoji"
-  );
+  const [tab, setTab] = useState<"emoji" | "social" | "lucide">(initialTab);
+  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -100,16 +147,31 @@ export function LinkIconPicker({
   }, [open]);
 
   const SocialIcon = isSocialKey(value) ? socialIconMap[value] : null;
-  const isEmoji = !!value && !isSocialKey(value);
+  const LucideComp = isLucideKey(value!) ? LUCIDE_MAP[lucideKeyName(value!)] : null;
+  const isEmoji = !!value && !isSocialKey(value) && !isLucideKey(value);
+
+  const triggerLabel = SocialIcon
+    ? SOCIAL_LABELS[value as SocialIconKey]
+    : LucideComp
+      ? lucideKeyName(value!)
+      : isEmoji
+        ? "Emoji selecionado"
+        : "Adicionar ícone";
 
   function pick(v: string | undefined) {
     onChange(v);
     setOpen(false);
   }
 
+  // Filtro de busca em lucide
+  const filteredLucide = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return null;
+    return ALL_LUCIDE.filter((n) => n.toLowerCase().includes(q));
+  }, [search]);
+
   return (
     <div ref={ref} className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -121,6 +183,8 @@ export function LinkIconPicker({
         <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-base">
           {SocialIcon ? (
             <SocialIcon className="size-4 text-foreground" />
+          ) : LucideComp ? (
+            <LucideComp className="size-4 text-foreground" />
           ) : isEmoji ? (
             <span className="leading-none">{value}</span>
           ) : (
@@ -128,11 +192,7 @@ export function LinkIconPicker({
           )}
         </span>
         <span className="flex-1 truncate text-left text-xs font-medium">
-          {SocialIcon
-            ? SOCIAL_LABELS[value as SocialIconKey]
-            : isEmoji
-              ? "Emoji selecionado"
-              : "Adicionar ícone"}
+          {triggerLabel}
         </span>
         {value && (
           <button
@@ -152,42 +212,34 @@ export function LinkIconPicker({
         />
       </button>
 
-      {/* Popover */}
       {open && (
         <div className="absolute left-0 right-0 top-full z-30 mt-1.5 overflow-hidden rounded-xl border border-border bg-card shadow-ios-lg">
           {/* Tabs */}
           <div className="flex border-b border-border bg-muted/40 p-1">
-            <button
-              type="button"
-              onClick={() => setTab("emoji")}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                tab === "emoji"
-                  ? "bg-card text-foreground shadow-ios-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Smile className="size-3.5" /> Emoji
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("social")}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                tab === "social"
-                  ? "bg-card text-foreground shadow-ios-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Sparkles className="size-3.5" /> Redes
-            </button>
+            {[
+              { id: "emoji", label: "Emoji", icon: Smile },
+              { id: "lucide", label: "Ícones", icon: Shapes },
+              { id: "social", label: "Redes", icon: Sparkles },
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id as typeof tab)}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold transition-colors",
+                  tab === id
+                    ? "bg-card text-foreground shadow-ios-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon className="size-3.5" /> {label}
+              </button>
+            ))}
           </div>
 
-          {/* Content */}
           <div className="max-h-72 overflow-y-auto p-3">
-            {tab === "emoji" ? (
+            {tab === "emoji" && (
               <>
-                {/* Custom emoji input */}
                 <div className="mb-3">
                   <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Cole qualquer emoji
@@ -211,7 +263,6 @@ export function LinkIconPicker({
                   />
                 </div>
 
-                {/* Emoji groups */}
                 {EMOJI_GROUPS.map((g) => (
                   <div key={g.name} className="mb-3 last:mb-0">
                     <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -236,7 +287,83 @@ export function LinkIconPicker({
                   </div>
                 ))}
               </>
-            ) : (
+            )}
+
+            {tab === "lucide" && (
+              <>
+                <div className="relative mb-3">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar (ex.: shopping, video, calendar)"
+                    className="w-full rounded-lg border border-input bg-background pl-8 pr-2.5 py-1.5 text-xs outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                {filteredLucide ? (
+                  filteredLucide.length === 0 ? (
+                    <p className="py-6 text-center text-xs text-muted-foreground">
+                      Nenhum ícone encontrado.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-7 gap-1">
+                      {filteredLucide.map((name) => {
+                        const Icon = LUCIDE_MAP[name]!;
+                        const key = `l:${name}`;
+                        const active = value === key;
+                        return (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => pick(key)}
+                            title={name}
+                            className={cn(
+                              "flex size-9 items-center justify-center rounded-md transition-colors hover:bg-primary/10",
+                              active && "bg-primary/15 ring-2 ring-primary"
+                            )}
+                          >
+                            <Icon className="size-4" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : (
+                  LUCIDE_GROUPS.map((g) => (
+                    <div key={g.name} className="mb-3 last:mb-0">
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {g.name}
+                      </p>
+                      <div className="grid grid-cols-7 gap-1">
+                        {g.icons.map((name) => {
+                          const Icon = LUCIDE_MAP[name]!;
+                          const key = `l:${name}`;
+                          const active = value === key;
+                          return (
+                            <button
+                              key={name}
+                              type="button"
+                              onClick={() => pick(key)}
+                              title={name}
+                              className={cn(
+                                "flex size-9 items-center justify-center rounded-md transition-colors hover:bg-primary/10",
+                                active && "bg-primary/15 ring-2 ring-primary"
+                              )}
+                            >
+                              <Icon className="size-4" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {tab === "social" && (
               <div className="grid grid-cols-2 gap-1.5">
                 {SOCIAL_ORDER.map((k) => {
                   const Icon = socialIconMap[k];
@@ -265,7 +392,7 @@ export function LinkIconPicker({
   );
 }
 
-/** Renderiza o ícone (emoji ou ícone social) no tamanho dado. */
+/** Renderiza o ícone (emoji, ícone social ou lucide) no tamanho dado. */
 export function LinkIconRender({
   icon,
   className,
@@ -279,6 +406,10 @@ export function LinkIconRender({
   if (isSocialKey(icon)) {
     const Comp = socialIconMap[icon];
     return <Comp className={className ?? "shrink-0"} style={{ width: size, height: size }} />;
+  }
+  if (isLucideKey(icon)) {
+    const Comp = LUCIDE_MAP[lucideKeyName(icon)]!;
+    return <Comp className={cn("shrink-0", className)} style={{ width: size, height: size }} aria-hidden />;
   }
   return (
     <span
