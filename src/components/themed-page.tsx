@@ -32,6 +32,7 @@ import {
   WhatsappBlock,
 } from "./advanced-blocks";
 import { BrazilFlag } from "./brazil-flag";
+import { LinkIconRender } from "./link-icon-picker";
 import { cursorCss, playClickSound, TiltWrapper } from "./theme-fx";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
@@ -947,6 +948,9 @@ function BlockView({
     );
     // Style por bloco sobrepõe o tema
     const baseStyle = { ...themeStyle, ...blockStyleToCss(block.style) };
+    const hasIcon = !!d.icon;
+    const hasSubtitle = !!(d.subtitle && d.subtitle.trim());
+    const isRich = hasIcon || hasSubtitle;
     const linkEl = (
       <a
         href={finalUrl}
@@ -954,8 +958,9 @@ function BlockView({
         rel="noopener noreferrer"
         onClick={() => trackClick(d.label, finalUrl)}
         className={cn(
-          "linkhub-button group text-center font-semibold transition-transform duration-150 active:scale-[0.98]",
+          "linkhub-button group font-semibold transition-transform duration-150 active:scale-[0.98]",
           isAutoWidth ? "inline-block" : "block w-full",
+          isRich ? "text-left" : "text-center",
           hoverCls
         )}
         style={
@@ -964,7 +969,32 @@ function BlockView({
             : { ...baseStyle, touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
         }
       >
-        {d.label || "Meu link"}
+        {isRich ? (
+          <span className="flex items-center gap-3">
+            {hasIcon && (
+              <LinkIconRender
+                icon={d.icon}
+                size={22}
+                className="shrink-0"
+              />
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[0.95em] font-bold uppercase tracking-wide leading-tight">
+                {d.label || "Meu link"}
+              </span>
+              {hasSubtitle && (
+                <span
+                  className="mt-0.5 block truncate text-[0.78em] font-medium opacity-70"
+                  style={{ letterSpacing: "0" }}
+                >
+                  {d.subtitle}
+                </span>
+              )}
+            </span>
+          </span>
+        ) : (
+          d.label || "Meu link"
+        )}
       </a>
     );
     const withHover =

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SocialIconPicker } from "@/components/social-icon-picker";
+import { LinkIconPicker, LinkIconRender } from "@/components/link-icon-picker";
 import { BlockStyleEditor } from "./block-style-editor";
 import { cn } from "@/lib/utils";
 import type { Block, BlockData, FormField } from "@/lib/db/schema";
@@ -35,11 +36,62 @@ export function BlockEditorForm({
     <div className="space-y-3">
       {data.kind === "link" && (
         <>
-          <Field label="Texto do botão">
-            <Input defaultValue={data.label} onBlur={(e) => handleUpdate({ ...data, label: e.target.value })} />
+          {/* Mini preview do botão */}
+          <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pré-visualização</p>
+            <div className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-ios-sm">
+              {data.icon ? (
+                <LinkIconRender icon={data.icon} size={22} className="text-foreground" />
+              ) : (
+                <span className="size-[22px] shrink-0 rounded-md border border-dashed border-muted-foreground/40" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold uppercase tracking-wide">
+                  {data.label || "Texto do botão"}
+                </p>
+                {data.subtitle && (
+                  <p className="truncate text-[11px] text-muted-foreground">{data.subtitle}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Field label="Ícone (opcional)">
+            <LinkIconPicker
+              value={data.icon}
+              onChange={(icon) => handleUpdate({ ...data, icon })}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Escolha um emoji ou ícone de rede social. Aparece à esquerda do título.
+            </p>
           </Field>
-          <Field label="URL">
-            <Input type="url" defaultValue={data.url} placeholder="https://..." onBlur={(e) => handleUpdate({ ...data, url: e.target.value })} />
+
+          <Field label="Título">
+            <Input
+              defaultValue={data.label}
+              placeholder="Ex.: VER CARDÁPIO"
+              onBlur={(e) => handleUpdate({ ...data, label: e.target.value })}
+            />
+          </Field>
+
+          <Field label="Subtítulo (opcional)">
+            <Input
+              defaultValue={data.subtitle ?? ""}
+              placeholder="Ex.: Confira nossos hambúrgueres"
+              onBlur={(e) => handleUpdate({ ...data, subtitle: e.target.value || undefined })}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Texto pequeno abaixo do título. Bom para descrever o que o usuário vai encontrar.
+            </p>
+          </Field>
+
+          <Field label="URL de destino">
+            <Input
+              type="url"
+              defaultValue={data.url}
+              placeholder="https://..."
+              onBlur={(e) => handleUpdate({ ...data, url: e.target.value })}
+            />
           </Field>
         </>
       )}

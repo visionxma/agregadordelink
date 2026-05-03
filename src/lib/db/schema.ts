@@ -516,7 +516,7 @@ export type FormField = {
 };
 
 export type BlockData =
-  | { kind: "link"; label: string; url: string; icon?: string }
+  | { kind: "link"; label: string; url: string; icon?: string; subtitle?: string }
   | { kind: "text"; content: string; align?: "left" | "center" | "right" }
   | { kind: "image"; url: string; alt?: string; href?: string }
   | { kind: "video"; provider: "youtube" | "vimeo"; videoId: string }
