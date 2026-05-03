@@ -5,6 +5,7 @@ import {
   CalendarDays, Clock, FileText, HelpCircle,
   Image as ImageIcon, Link2, MapPin, MessageCircle,
   Minus, Music, Play, Quote, ShoppingBag, Sparkles, Type,
+  ChevronDown, ArrowUp, ArrowDown, Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,65 +36,7 @@ export function BlockEditorForm({
   return (
     <div className="space-y-3">
       {data.kind === "link" && (
-        <>
-          {/* Mini preview do botão */}
-          <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pré-visualização</p>
-            <div className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-ios-sm">
-              {data.icon ? (
-                <LinkIconRender icon={data.icon} size={22} className="text-foreground" />
-              ) : (
-                <span className="size-[22px] shrink-0 rounded-md border border-dashed border-muted-foreground/40" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold uppercase tracking-wide">
-                  {data.label || "Texto do botão"}
-                </p>
-                {data.subtitle && (
-                  <p className="truncate text-[11px] text-muted-foreground">{data.subtitle}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <Field label="Ícone (opcional)">
-            <LinkIconPicker
-              value={data.icon}
-              onChange={(icon) => handleUpdate({ ...data, icon })}
-            />
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Escolha um emoji ou ícone de rede social. Aparece à esquerda do título.
-            </p>
-          </Field>
-
-          <Field label="Título">
-            <Input
-              defaultValue={data.label}
-              placeholder="Ex.: VER CARDÁPIO"
-              onBlur={(e) => handleUpdate({ ...data, label: e.target.value })}
-            />
-          </Field>
-
-          <Field label="Subtítulo (opcional)">
-            <Input
-              defaultValue={data.subtitle ?? ""}
-              placeholder="Ex.: Confira nossos hambúrgueres"
-              onBlur={(e) => handleUpdate({ ...data, subtitle: e.target.value || undefined })}
-            />
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Texto pequeno abaixo do título. Bom para descrever o que o usuário vai encontrar.
-            </p>
-          </Field>
-
-          <Field label="URL de destino">
-            <Input
-              type="url"
-              defaultValue={data.url}
-              placeholder="https://..."
-              onBlur={(e) => handleUpdate({ ...data, url: e.target.value })}
-            />
-          </Field>
-        </>
+        <LinkEditor data={data} onUpdate={handleUpdate} />
       )}
 
       {data.kind === "text" && (
@@ -337,6 +280,226 @@ export function BlockEditorForm({
 }
 
 // ─── Sub-editors ──────────────────────────────────────────────────────────────
+
+function makeId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+function LinkEditor({
+  data,
+  onUpdate,
+}: {
+  data: Extract<BlockData, { kind: "link" }>;
+  onUpdate: (d: BlockData) => void;
+}) {
+  const sublinks = data.sublinks ?? [];
+  const isGroup = sublinks.length > 0;
+
+  function updateSub(i: number, patch: Partial<NonNullable<typeof data.sublinks>[number]>) {
+    const next = [...sublinks];
+    next[i] = { ...next[i]!, ...patch };
+    onUpdate({ ...data, sublinks: next });
+  }
+  function removeSub(i: number) {
+    const next = sublinks.filter((_, x) => x !== i);
+    onUpdate({ ...data, sublinks: next.length ? next : undefined });
+  }
+  function addSub() {
+    onUpdate({
+      ...data,
+      sublinks: [...sublinks, { id: makeId(), label: "Novo sublink", url: "https://" }],
+    });
+  }
+  function moveSub(i: number, dir: -1 | 1) {
+    const next = [...sublinks];
+    const j = i + dir;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j]!, next[i]!];
+    onUpdate({ ...data, sublinks: next });
+  }
+  function toggleGroup(on: boolean) {
+    if (on) {
+      onUpdate({
+        ...data,
+        sublinks: [
+          { id: makeId(), label: "Sublink 1", url: "https://" },
+          { id: makeId(), label: "Sublink 2", url: "https://" },
+        ],
+      });
+    } else {
+      onUpdate({ ...data, sublinks: undefined });
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Mini preview */}
+      <div className="rounded-xl border border-dashed border-border bg-muted/40 p-3">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pré-visualização</p>
+        <div className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-ios-sm">
+          {data.icon ? (
+            <LinkIconRender icon={data.icon} size={22} className="text-foreground" />
+          ) : (
+            <span className="size-[22px] shrink-0 rounded-md border border-dashed border-muted-foreground/40" />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold uppercase tracking-wide">
+              {data.label || "Texto do botão"}
+            </p>
+            {data.subtitle && (
+              <p className="truncate text-[11px] text-muted-foreground">{data.subtitle}</p>
+            )}
+          </div>
+          {isGroup && (
+            <span className="flex size-6 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <ChevronDown className="size-3.5" />
+            </span>
+          )}
+        </div>
+
+        {isGroup && (
+          <div className="mt-2 space-y-1.5 pl-5">
+            {sublinks.slice(0, 3).map((s) => (
+              <div key={s.id} className="flex items-center gap-2 rounded-lg border border-border/70 bg-card/70 px-3 py-1.5 text-xs">
+                {s.icon ? <LinkIconRender icon={s.icon} size={14} /> : <span className="size-3.5 rounded border border-dashed border-muted-foreground/40" />}
+                <span className="flex-1 truncate font-semibold">{s.label || "Sublink"}</span>
+              </div>
+            ))}
+            {sublinks.length > 3 && (
+              <p className="pl-1 text-[10px] text-muted-foreground">+{sublinks.length - 3} sublink(s)</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Field label="Ícone (opcional)">
+        <LinkIconPicker
+          value={data.icon}
+          onChange={(icon) => onUpdate({ ...data, icon })}
+        />
+      </Field>
+
+      <Field label="Título">
+        <Input
+          defaultValue={data.label}
+          placeholder="Ex.: VER CARDÁPIO"
+          onBlur={(e) => onUpdate({ ...data, label: e.target.value })}
+        />
+      </Field>
+
+      <Field label="Subtítulo (opcional)">
+        <Input
+          defaultValue={data.subtitle ?? ""}
+          placeholder="Ex.: Confira nossos hambúrgueres"
+          onBlur={(e) => onUpdate({ ...data, subtitle: e.target.value || undefined })}
+        />
+      </Field>
+
+      {/* Toggle: grupo de sublinks */}
+      <div className="rounded-xl border border-border bg-secondary/40 p-3">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={isGroup}
+            onChange={(e) => toggleGroup(e.target.checked)}
+            className="mt-0.5 size-4 cursor-pointer accent-primary"
+          />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Transformar em grupo de sublinks</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Ao clicar no botão, ele expande e mostra outros links abaixo. A URL acima passa a ser ignorada.
+            </p>
+          </div>
+        </label>
+      </div>
+
+      {!isGroup && (
+        <Field label="URL de destino">
+          <Input
+            type="url"
+            defaultValue={data.url}
+            placeholder="https://..."
+            onBlur={(e) => onUpdate({ ...data, url: e.target.value })}
+          />
+        </Field>
+      )}
+
+      {isGroup && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Sublinks ({sublinks.length})
+            </p>
+            <Button type="button" size="sm" variant="outline" onClick={addSub}>
+              + Adicionar sublink
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            {sublinks.map((s, i) => (
+              <div key={s.id} className="space-y-2 rounded-xl border border-border bg-card p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Sublink #{i + 1}
+                  </span>
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      disabled={i === 0}
+                      onClick={() => moveSub(i, -1)}
+                      title="Mover acima"
+                      className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+                    >
+                      <ArrowUp className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={i === sublinks.length - 1}
+                      onClick={() => moveSub(i, 1)}
+                      title="Mover abaixo"
+                      className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
+                    >
+                      <ArrowDown className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSub(i)}
+                      title="Remover"
+                      className="flex size-6 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <LinkIconPicker
+                  value={s.icon}
+                  onChange={(icon) => updateSub(i, { icon })}
+                />
+                <Input
+                  defaultValue={s.label}
+                  placeholder="Título"
+                  onBlur={(e) => updateSub(i, { label: e.target.value })}
+                />
+                <Input
+                  defaultValue={s.subtitle ?? ""}
+                  placeholder="Subtítulo (opcional)"
+                  onBlur={(e) => updateSub(i, { subtitle: e.target.value || undefined })}
+                />
+                <Input
+                  type="url"
+                  defaultValue={s.url}
+                  placeholder="https://..."
+                  onBlur={(e) => updateSub(i, { url: e.target.value })}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ProductsEditor({ data, onUpdate, withColumns = false }: { data: Extract<BlockData, { kind: "products" | "product-grid" | "product-carousel" }>; onUpdate: (d: BlockData) => void; withColumns?: boolean }) {
   return (

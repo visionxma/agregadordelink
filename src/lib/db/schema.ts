@@ -515,8 +515,25 @@ export type FormField = {
   required?: boolean;
 };
 
+export type SubLink = {
+  id: string;
+  label: string;
+  url: string;
+  icon?: string;
+  subtitle?: string;
+};
+
 export type BlockData =
-  | { kind: "link"; label: string; url: string; icon?: string; subtitle?: string }
+  | {
+      kind: "link";
+      label: string;
+      url: string;
+      icon?: string;
+      subtitle?: string;
+      // Quando tiver itens, o botão vira um grupo expansível (accordion).
+      // O `url` do pai é ignorado em runtime.
+      sublinks?: SubLink[];
+    }
   | { kind: "text"; content: string; align?: "left" | "center" | "right" }
   | { kind: "image"; url: string; alt?: string; href?: string }
   | { kind: "video"; provider: "youtube" | "vimeo"; videoId: string }

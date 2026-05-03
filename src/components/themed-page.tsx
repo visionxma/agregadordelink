@@ -930,83 +930,20 @@ function BlockView({
   const d = block.data;
 
   if (d.kind === "link") {
-    const campaign = pageSlug ?? "bio";
-    const finalUrl = withUtm(d.url || "#", campaign);
-    const hover = theme.buttonHover ?? "none";
-    const isAutoWidth = theme.buttonWidth === "auto";
-    const hoverCls =
-      hover === "lift"
-        ? "hover:-translate-y-1 hover:shadow-2xl"
-        : hover === "none"
-          ? "hover:scale-[1.02]"
-          : "";
     const themeStyle = buttonStyleCss(
       theme.buttonStyle,
       theme.accent,
       theme.accentForeground,
       theme.foreground
     );
-    // Style por bloco sobrepõe o tema
-    const baseStyle = { ...themeStyle, ...blockStyleToCss(block.style) };
-    const hasIcon = !!d.icon;
-    const hasSubtitle = !!(d.subtitle && d.subtitle.trim());
-    const isRich = hasIcon || hasSubtitle;
-    const linkEl = (
-      <a
-        href={finalUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => trackClick(d.label, finalUrl)}
-        className={cn(
-          "linkhub-button group font-semibold transition-transform duration-150 active:scale-[0.98]",
-          isAutoWidth ? "inline-block" : "block w-full",
-          isRich ? "text-left" : "text-center",
-          hoverCls
-        )}
-        style={
-          isAutoWidth
-            ? { ...baseStyle, display: "inline-block", width: "auto", touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
-            : { ...baseStyle, touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
-        }
-      >
-        {isRich ? (
-          <span className="flex items-center gap-3">
-            {hasIcon && (
-              <LinkIconRender
-                icon={d.icon}
-                size={22}
-                className="shrink-0"
-              />
-            )}
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[0.95em] font-bold uppercase tracking-wide leading-tight">
-                {d.label || "Meu link"}
-              </span>
-              {hasSubtitle && (
-                <span
-                  className="mt-0.5 block truncate text-[0.78em] font-medium opacity-70"
-                  style={{ letterSpacing: "0" }}
-                >
-                  {d.subtitle}
-                </span>
-              )}
-            </span>
-          </span>
-        ) : (
-          d.label || "Meu link"
-        )}
-      </a>
-    );
-    const withHover =
-      hover === "tilt" || hover === "glare" ? (
-        <TiltWrapper hoverStyle={hover}>{linkEl}</TiltWrapper>
-      ) : (
-        linkEl
-      );
-    return isAutoWidth ? (
-      <div style={{ textAlign: "center", width: "100%" }}>{withHover}</div>
-    ) : (
-      withHover
+    return (
+      <LinkBlockRender
+        data={d}
+        theme={theme}
+        baseStyle={{ ...themeStyle, ...blockStyleToCss(block.style) }}
+        campaign={pageSlug ?? "bio"}
+        onTrackClick={trackClick}
+      />
     );
   }
 
@@ -1211,6 +1148,210 @@ function BlockView({
   }
 
   return null;
+}
+
+function LinkBlockRender({
+  data,
+  theme,
+  baseStyle,
+  campaign,
+  onTrackClick,
+}: {
+  data: Extract<BlockData, { kind: "link" }>;
+  theme: PageTheme;
+  baseStyle: React.CSSProperties;
+  campaign: string;
+  onTrackClick: (label: string, url: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const hover = theme.buttonHover ?? "none";
+  const isAutoWidth = theme.buttonWidth === "auto";
+  const hoverCls =
+    hover === "lift"
+      ? "hover:-translate-y-1 hover:shadow-2xl"
+      : hover === "none"
+        ? "hover:scale-[1.02]"
+        : "";
+
+  const sublinks = data.sublinks ?? [];
+  const isGroup = sublinks.length > 0;
+  const hasIcon = !!data.icon;
+  const hasSubtitle = !!(data.subtitle && data.subtitle.trim());
+  const isRich = hasIcon || hasSubtitle || isGroup;
+
+  const Inner = ({ chevron }: { chevron?: boolean }) =>
+    isRich ? (
+      <span className="flex items-center gap-3">
+        {hasIcon && (
+          <LinkIconRender icon={data.icon} size={22} className="shrink-0" />
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[0.95em] font-bold uppercase tracking-wide leading-tight">
+            {data.label || "Meu link"}
+          </span>
+          {hasSubtitle && (
+            <span
+              className="mt-0.5 block truncate text-[0.78em] font-medium opacity-70"
+              style={{ letterSpacing: "0" }}
+            >
+              {data.subtitle}
+            </span>
+          )}
+        </span>
+        {chevron && (
+          <span
+            aria-hidden
+            className="flex size-6 shrink-0 items-center justify-center rounded-full transition-transform"
+            style={{
+              background: "rgba(0,0,0,0.08)",
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        )}
+      </span>
+    ) : (
+      <>{data.label || "Meu link"}</>
+    );
+
+  // ─── Modo "grupo de sublinks" ─────────────────────────
+  if (isGroup) {
+    const headerEl = (
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={cn(
+          "linkhub-button group cursor-pointer text-left font-semibold transition-transform duration-150 active:scale-[0.98]",
+          isAutoWidth ? "inline-block" : "block w-full",
+          hoverCls
+        )}
+        style={
+          isAutoWidth
+            ? { ...baseStyle, display: "inline-block", width: "auto", touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
+            : { ...baseStyle, touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
+        }
+      >
+        <Inner chevron />
+      </button>
+    );
+
+    return (
+      <div className="space-y-2">
+        {hover === "tilt" || hover === "glare" ? (
+          <TiltWrapper hoverStyle={hover}>{headerEl}</TiltWrapper>
+        ) : (
+          headerEl
+        )}
+
+        {/* Sublinks expansíveis */}
+        <div
+          className={cn(
+            "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out",
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          )}
+          aria-hidden={!open}
+        >
+          <div className="min-h-0">
+            <div className="space-y-2 pt-1">
+              {sublinks.map((s) => {
+                const subUrl = withUtm(s.url || "#", campaign);
+                const subHasIcon = !!s.icon;
+                const subHasSubtitle = !!(s.subtitle && s.subtitle.trim());
+                const subRich = subHasIcon || subHasSubtitle;
+                return (
+                  <a
+                    key={s.id}
+                    href={subUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => onTrackClick(`${data.label} › ${s.label}`, subUrl)}
+                    className={cn(
+                      "linkhub-button group block font-semibold transition-transform duration-150 active:scale-[0.98] hover:scale-[1.01]",
+                      subRich ? "text-left" : "text-center"
+                    )}
+                    style={{
+                      ...baseStyle,
+                      // Sub-botão um pouquinho menor + recuado, mantendo o estilo do tema
+                      padding: "11px 16px",
+                      marginLeft: 16,
+                      width: "calc(100% - 16px)",
+                      opacity: 0.95,
+                      touchAction: "manipulation",
+                      pointerEvents: open ? "auto" : "none",
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
+                    {subRich ? (
+                      <span className="flex items-center gap-2.5">
+                        {subHasIcon && (
+                          <LinkIconRender icon={s.icon} size={18} className="shrink-0" />
+                        )}
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[0.85em] font-bold leading-tight">
+                            {s.label || "Sublink"}
+                          </span>
+                          {subHasSubtitle && (
+                            <span
+                              className="mt-0.5 block truncate text-[0.7em] font-medium opacity-70"
+                              style={{ letterSpacing: "0" }}
+                            >
+                              {s.subtitle}
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-[0.92em]">{s.label || "Sublink"}</span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Modo padrão (link único) ─────────────────────────
+  const finalUrl = withUtm(data.url || "#", campaign);
+  const linkEl = (
+    <a
+      href={finalUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => onTrackClick(data.label, finalUrl)}
+      className={cn(
+        "linkhub-button group font-semibold transition-transform duration-150 active:scale-[0.98]",
+        isAutoWidth ? "inline-block" : "block w-full",
+        isRich ? "text-left" : "text-center",
+        hoverCls
+      )}
+      style={
+        isAutoWidth
+          ? { ...baseStyle, display: "inline-block", width: "auto", touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
+          : { ...baseStyle, touchAction: "manipulation", pointerEvents: "auto", position: "relative", zIndex: 1 }
+      }
+    >
+      <Inner />
+    </a>
+  );
+  const withHover =
+    hover === "tilt" || hover === "glare" ? (
+      <TiltWrapper hoverStyle={hover}>{linkEl}</TiltWrapper>
+    ) : (
+      linkEl
+    );
+  return isAutoWidth ? (
+    <div style={{ textAlign: "center", width: "100%" }}>{withHover}</div>
+  ) : (
+    withHover
+  );
 }
 
 function buttonStyleCss(
